@@ -358,6 +358,8 @@ function initializeDatabase() {
   try { db.exec("ALTER TABLE provider_plans ADD COLUMN paypal_link TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE provider_plans ADD COLUMN stripe_price_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN stripe_payment_id TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN paypal_order_id TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN paypal_payment_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN user_id INTEGER REFERENCES users(id)"); } catch (e) {}
 
   try { db.exec("ALTER TABLE providers_catalog ADD COLUMN website_id INTEGER DEFAULT 1"); } catch (e) {}

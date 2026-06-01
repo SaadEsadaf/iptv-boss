@@ -189,6 +189,126 @@ router.post('/api/checkout/stripe-checkout', async (req, res) => {
   }
 });
 
+router.post('/api/checkout/paypal-checkout', async (req, res) => {
+  try {
+    const { planId, email } = req.body;
+    if (!planId || !email) return res.status(400).json({ error: 'planId and email required' });
+
+    const db = getDb();
+    const wid = req.website ? req.website.id : 1;
+    const plan = db.prepare(`
+      SELECT pp.*, pc.name as provider_name
+      FROM provider_plans pp
+      JOIN providers_catalog pc ON pp.provider_id = pc.id
+      WHERE pp.id = ? AND pp.website_id = ? AND pc.website_id = ?
+    `).get(planId, wid, wid);
+    if (!plan) return res.status(404).json({ error: 'plan_not_found' });
+
+    if (plan.paypal_link) {
+      const orderResult2 = db.prepare(`
+        INSERT INTO orders (plan_id, provider_id, amount, status, source, customer_email, customer_name, website_id)
+        VALUES (?, ?, ?, 'pending', 'paypal', ?, ?, ?)
+      `).run(plan.id, plan.provider_id, plan.price_sell, email, email.split('@')[0], wid);
+      return res.json({ url: plan.paypal_link, orderId: orderResult2.lastInsertRowid });
+    }
+
+    const { isConfigured, createOrder: createPaypalOrder } = require('../services/paypalService');
+
+    if (!isConfigured()) {
+      return res.json({ fallback: true, orderId: null, message: 'paypal_not_configured' });
+    }
+
+    const orderResult = db.prepare(`
+      INSERT INTO orders (plan_id, provider_id, amount, status, source, customer_email, customer_name, website_id)
+      VALUES (?, ?, ?, 'pending', 'paypal', ?, ?, ?)
+    `).run(plan.id, plan.provider_id, plan.price_sell, email, email.split('@')[0], wid);
+
+    const orderId = orderResult.lastInsertRowid;
+    const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
+
+    const paypalOrder = await createPaypalOrder({
+      amount: plan.price_sell,
+      currency: 'EUR',
+      orderId,
+      returnUrl: `${siteUrl}/api/checkout/paypal-capture?order_id=${orderId}`,
+      cancelUrl: `${siteUrl}/payment/cancel`,
+    });
+
+    db.prepare('UPDATE orders SET paypal_order_id = ? WHERE id = ?').run(paypalOrder.id, orderId);
+
+    res.json({ url: paypalOrder.approvalUrl, orderId, paypalOrderId: paypalOrder.id });
+  } catch (e) {
+    console.error('PayPal checkout error:', e);
+    res.status(500).json({ error: e.message || 'server_error' });
+  }
+});
+
+router.get('/api/checkout/paypal-capture', async (req, res) => {
+  try {
+    const { order_id, token } = req.query;
+    if (!order_id) return res.redirect('/payment/cancel');
+
+    const db = getDb();
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(order_id);
+    if (!order) return res.redirect('/payment/cancel');
+
+    if (order.status === 'completed') {
+      return res.redirect(`/payment/success?paypal_order_id=${token || ''}`);
+    }
+
+    const paypalOrderId = order.paypal_order_id;
+    if (!paypalOrderId) return res.redirect('/payment/cancel');
+
+    const { captureOrder } = require('../services/paypalService');
+    const result = await captureOrder(paypalOrderId);
+
+    if (!result.completed) {
+      console.error(`PayPal capture failed for order ${order_id}: status=${result.status}`);
+      return res.redirect('/payment/cancel');
+    }
+
+    db.prepare(`
+      UPDATE orders SET status = 'completed', paypal_payment_id = ?, payment_confirmed_at = datetime('now') WHERE id = ?
+    `).run(result.captureId || '', order_id);
+
+    const { sendThankYou } = require('../services/emailService');
+    await sendThankYou({ email: order.customer_email, name: order.customer_name });
+
+    const { assignCode } = require('../services/codeAssigner');
+    const credentials = assignCode(order_id, order.provider_id, order.plan_id);
+    if (credentials) {
+      const codeRow = db.prepare('SELECT id FROM activation_codes WHERE used_by_order_id = ?').get(order_id);
+      if (codeRow) {
+        db.prepare('UPDATE orders SET activation_code_id = ? WHERE id = ?').run(codeRow.id, order_id);
+      }
+      setTimeout(async () => {
+        try {
+          const { sendCredentials } = require('../services/emailService');
+          await sendCredentials({ email: order.customer_email, name: order.customer_name, credentials });
+          const db2 = getDb();
+          db2.prepare("UPDATE orders SET credentials_sent_at = datetime('now') WHERE id = ?").run(order_id);
+        } catch (e) {
+          console.error('Delayed credentials email error:', e);
+        }
+      }, 3 * 60 * 1000);
+    } else {
+      console.error(`No codes available for order ${order_id}`);
+      db.prepare(
+        'INSERT INTO agent_log (agent, action, details, order_id) VALUES (?, ?, ?, ?)'
+      ).run('System', 'stock_issue', `No codes available for order ${order_id}`, order_id);
+    }
+
+    db.prepare(
+      'INSERT INTO agent_log (agent, action, details, order_id) VALUES (?, ?, ?, ?)'
+    ).run('System', 'payment_completed', `Order ${order_id} paid via PayPal, code assigned`, order_id);
+
+    res.redirect(`/payment/success?paypal_order_id=${paypalOrderId}`);
+  } catch (e) {
+    console.error('PayPal capture error:', e);
+    res.redirect('/payment/cancel');
+  }
+});
+
 router.post('/api/checkout/send-link', async (req, res) => {
   try {
     const { planId, email } = req.body;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 const ws = typeof window !== 'undefined' && window.__WEBSITE__
 const lang = ws?.language || 'en'
@@ -70,12 +70,9 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [sentUrl, setSentUrl] = useState('')
-  const [checkoutUrl, setCheckoutUrl] = useState('')
   const [paid, setPaid] = useState(false)
-  const [iframeError, setIframeError] = useState(false)
   const [paypalError, setPaypalError] = useState('')
   const [copied, setCopied] = useState(null)
-  const iframeRef = useRef(null)
 
   const methods = settings?.paymentMethodsEnabled
     ? ALL_METHODS.filter(m => settings.paymentMethodsEnabled.includes(m.id))
@@ -87,7 +84,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
 
   async function handleProceed() {
     if (!selected) return
-    if (selected === 'email' || selected === 'stripe') return setStep(selected)
+    if (selected === 'email' || selected === 'stripe' || selected === 'paypal') return setStep(selected)
     if (selected === 'sellup') {
       const headers = { 'Content-Type': 'application/json' }
       if (userToken) headers['Authorization'] = `Bearer ${userToken}`
@@ -225,36 +222,67 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
           </>
         )}
 
-        {step === 'paypal' && !paid && (
+        {step === 'paypal' && !sent && !paypalError.startsWith('manual') && (
           <>
             <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('paypalCheckout')}</h2>
-            {paypalError && (
-              <div style={{ background: '#ff444420', border: '1px solid #ff4444', borderRadius: 8, padding: 12, marginBottom: 12, color: '#ff4444', fontSize: 13, textAlign: 'center' }}>
-                {paypalError}
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              if (!email.trim()) return
+              setSending(true)
+              try {
+                const res = await fetch('/api/checkout/paypal-checkout', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ planId: plan.id, email: email.trim() }),
+                })
+                const data = await res.json()
+                if (data.fallback) {
+                  setPaypalError('manual')
+                  setSending(false)
+                } else if (data.url) {
+                  window.location.href = data.url
+                } else {
+                  alert(data.error || t('failedToSend'))
+                  setSending(false)
+                }
+              } catch {
+                alert(t('networkError'))
+                setSending(false)
+              }
+            }}>
+              <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
+                {t('stripeDesc')}
+              </p>
+              <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+                <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>{t('amount')} <strong style={{ color: '#fff' }}>{lang === 'fr' ? '€' : '$'}{plan.price_sell}</strong></div>
               </div>
-            )}
-            {checkoutUrl && !iframeError ? (
-              <div style={{ marginBottom: 12, borderRadius: 10, overflow: 'hidden', border: '1px solid #2a2a2a' }}>
-                <iframe ref={iframeRef} src={checkoutUrl} title="PayPal Checkout"
-                  style={{ width: '100%', height: 400, border: 'none' }}
-                  onError={() => setIframeError(true)}
-                  sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
-                />
-              </div>
-            ) : checkoutUrl ? (
-              <div style={{ textAlign: 'center', padding: 20, background: '#0f0f0f', borderRadius: 10, marginBottom: 16 }}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>💳</div>
-                <p style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 12 }}>
-                  {iframeError ? t('embedError') : t('loadingCheckout')}
-                </p>
-                {checkoutUrl && (
-                  <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" style={{
-                    display: 'inline-block', padding: '10px 24px', background: '#00d4ff', color: '#000',
-                    borderRadius: 8, fontWeight: 700, textDecoration: 'none', fontSize: 14,
-                  }}>{t('openPaypal')}</a>
-                )}
-              </div>
-            ) : settings?.paypalEmail ? (
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder={t('emailPlaceholder')} required
+                style={{
+                  width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid #333',
+                  background: '#0f0f0f', color: '#fff', fontSize: 14, outline: 'none',
+                  boxSizing: 'border-box', marginBottom: 12,
+                }} />
+              <button type="submit" disabled={sending || !email.trim()} style={{
+                width: '100%', padding: '12px', background: '#00d4ff', color: '#000',
+                border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15,
+                opacity: sending || !email.trim() ? 0.6 : 1,
+              }}>
+                {sending ? t('sending') : t('proceedToPayment')}
+              </button>
+            </form>
+            <button onClick={reset} style={{
+              width: '100%', padding: '10px', marginTop: 12, background: 'transparent',
+              color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: 8,
+              fontWeight: 600, cursor: 'pointer', fontSize: 14,
+            }}>{t('backToMethods')}</button>
+          </>
+        )}
+
+        {step === 'paypal' && paypalError === 'manual' && (
+          <>
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('paypalCheckout')}</h2>
+            {settings?.paypalEmail ? (
               <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
                 <p style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 12 }}>
                   {t('sendPaypal')}
@@ -272,7 +300,11 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
                   </button>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <p style={{ color: '#666', textAlign: 'center', padding: 20 }}>
+                {t('paypalNotConfigured')}
+              </p>
+            )}
             <button onClick={() => setPaid(true)} style={{
               width: '100%', padding: '12px', background: '#00cc66', color: '#000',
               border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15, marginBottom: 8,

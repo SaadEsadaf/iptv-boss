@@ -5,7 +5,8 @@ export default function PaymentResult() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const sessionId = searchParams.get('session_id')
-  const [status, setStatus] = useState(sessionId ? 'success' : 'cancel')
+  const paypalOrderId = searchParams.get('paypal_order_id')
+  const [status, setStatus] = useState((sessionId || paypalOrderId) ? 'success' : 'cancel')
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 24 }}>
