@@ -70,7 +70,7 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState('')
   const [websiteId, setWebsiteId] = useState(localStorage.getItem('admin_website_id') || '')
   const [websites, setWebsites] = useState([])
-  const [lang, setLang] = useState('en')
+  const [lang, setLang] = useState(window.__WEBSITE__?.language === 'fr' ? 'fr' : 'en')
 
   function t(key) { return (LOCALE[lang] || LOCALE.en)[key] || key }
 
