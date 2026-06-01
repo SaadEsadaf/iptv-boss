@@ -143,6 +143,52 @@ router.get('/api/checkout/settings', (req, res) => {
   });
 });
 
+router.post('/api/checkout/stripe-checkout', async (req, res) => {
+  try {
+    const { planId, email } = req.body;
+    if (!planId || !email) return res.status(400).json({ error: 'planId and email required' });
+
+    const db = getDb();
+    const wid = req.website ? req.website.id : 1;
+    const plan = db.prepare(`
+      SELECT pp.*, pc.name as provider_name
+      FROM provider_plans pp
+      JOIN providers_catalog pc ON pp.provider_id = pc.id
+      WHERE pp.id = ? AND pp.website_id = ? AND pc.website_id = ?
+    `).get(planId, wid, wid);
+    if (!plan) return res.status(404).json({ error: 'plan_not_found' });
+
+    if (!plan.stripe_price_id) {
+      return res.status(400).json({ error: 'stripe_not_configured' });
+    }
+
+    const orderResult = db.prepare(`
+      INSERT INTO orders (plan_id, provider_id, amount, status, source, customer_email, customer_name, website_id)
+      VALUES (?, ?, ?, 'pending', 'stripe', ?, ?, ?)
+    `).run(plan.id, plan.provider_id, plan.price_sell, email, email.split('@')[0], wid);
+
+    const orderId = orderResult.lastInsertRowid;
+    const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
+
+    const { createCheckoutSession } = require('../services/stripeService');
+    const session = await createCheckoutSession({
+      plan,
+      email,
+      orderId,
+      websiteId: wid,
+      successUrl: `${siteUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${siteUrl}/payment/cancel`,
+    });
+
+    db.prepare('UPDATE orders SET stripe_payment_id = ? WHERE id = ?').run(session.id, orderId);
+
+    res.json({ url: session.url, orderId, sessionId: session.id });
+  } catch (e) {
+    console.error('Stripe checkout error:', e);
+    res.status(500).json({ error: e.message || 'server_error' });
+  }
+});
+
 router.post('/api/checkout/send-link', async (req, res) => {
   try {
     const { planId, email } = req.body;

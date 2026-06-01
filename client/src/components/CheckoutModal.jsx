@@ -287,24 +287,65 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
         {step === 'stripe' && (
           <>
             <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('stripePayment')}</h2>
-            <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
-              <p style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 12 }}>
-                {t('stripeDesc')}
-              </p>
-              {settings?.stripePublishableKey && (
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>{t('amount')} <strong style={{ color: '#fff' }}>{lang === 'fr' ? '€' : '$'}{plan.price_sell}</strong></div>
-                  <div style={{ color: '#666', fontSize: 12 }}>{t('reference')} <strong style={{ color: '#fff' }}>#{Date.now().toString(36).toUpperCase()}</strong></div>
+            {!sent ? (
+              <form onSubmit={async (e) => {
+                e.preventDefault()
+                if (!email.trim()) return
+                setSending(true)
+                try {
+                  const res = await fetch('/api/checkout/stripe-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ planId: plan.id, email: email.trim() }),
+                  })
+                  const data = await res.json()
+                  if (data.url) {
+                    window.location.href = data.url
+                  } else {
+                    alert(data.error || t('failedToSend'))
+                  }
+                } catch {
+                  alert(t('networkError'))
+                } finally {
+                  setSending(false)
+                }
+              }}>
+                <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
+                  {t('stripeDesc')}
+                </p>
+                <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+                  {settings?.stripePublishableKey && (
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>{t('amount')} <strong style={{ color: '#fff' }}>{lang === 'fr' ? '€' : '$'}{plan.price_sell}</strong></div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <button onClick={() => setPaid(true)} style={{
-              width: '100%', padding: '12px', background: '#00cc66', color: '#000',
-              border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15, marginBottom: 8,
-            }}>{t('completedPayment')}</button>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder={t('emailPlaceholder')} required
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid #333',
+                    background: '#0f0f0f', color: '#fff', fontSize: 14, outline: 'none',
+                    boxSizing: 'border-box', marginBottom: 12,
+                  }} />
+                <button type="submit" disabled={sending || !email.trim()} style={{
+                  width: '100%', padding: '12px', background: '#00d4ff', color: '#000',
+                  border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15,
+                  opacity: sending || !email.trim() ? 0.6 : 1,
+                }}>
+                  {sending ? t('sending') : t('proceedToPayment')}
+                </button>
+              </form>
+            ) : (
+              <div style={{ textAlign: 'center', padding: 20 }}>
+                <div style={{ fontSize: 40, marginBottom: 8 }}>💳</div>
+                <p style={{ color: '#00cc66', fontWeight: 700, marginBottom: 4 }}>{t('paymentSuccessful')}</p>
+                <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>{t('credentialsSent')}</p>
+              </div>
+            )}
             <button onClick={reset} style={{
-              width: '100%', padding: '10px', background: 'transparent', color: '#00d4ff',
-              border: '1px solid #00d4ff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 14,
+              width: '100%', padding: '10px', marginTop: 12, background: 'transparent',
+              color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: 8,
+              fontWeight: 600, cursor: 'pointer', fontSize: 14,
             }}>{t('backToMethods')}</button>
           </>
         )}

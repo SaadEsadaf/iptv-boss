@@ -356,6 +356,8 @@ function initializeDatabase() {
 
   try { db.exec("ALTER TABLE orders ADD COLUMN source TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE provider_plans ADD COLUMN paypal_link TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE provider_plans ADD COLUMN stripe_price_id TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN stripe_payment_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN user_id INTEGER REFERENCES users(id)"); } catch (e) {}
 
   try { db.exec("ALTER TABLE providers_catalog ADD COLUMN website_id INTEGER DEFAULT 1"); } catch (e) {}
@@ -472,6 +474,7 @@ function initializeDatabase() {
     ['paypal_mode', 'sandbox'],
     ['stripe_publishable_key', ''],
     ['stripe_secret_key', ''],
+    ['stripe_webhook_secret', ''],
     ['payment_methods_enabled', '["paypal","crypto","email","sepa","stripe"]'],
     ['google_client_id', ''],
     ['apple_client_id', ''],

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { generateSafePage } = require('../services/safePage');
+const { generateHostingPage } = require('../services/hostingPage');
 
 const CONFIG_PATH = path.join(__dirname, '..', 'config', 'cloak.json');
 
@@ -82,7 +83,12 @@ function cloakMiddleware(req, res, next) {
   if (matched) {
     console.log(`[Cloak] ${matchedPlatform} detected — IP: ${ip}, UA: ${ua.slice(0, 80)}`);
     res.setHeader('X-Cloak', matchedPlatform);
-    res.send(generateSafePage(cfg));
+    const pageType = cfg.platforms[matchedPlatform]?.page_type || 'default';
+    if (pageType === 'hosting') {
+      res.send(generateHostingPage());
+    } else {
+      res.send(generateSafePage(cfg));
+    }
     return;
   }
 

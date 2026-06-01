@@ -4,6 +4,35 @@ const { getDb } = require('../db');
 const { assignCode } = require('../services/codeAssigner');
 const { sendThankYou, sendCredentials } = require('../services/emailService');
 const { verifyWebhookSignature } = require('../services/sellupService');
+const { handleWebhookEvent } = require('../services/stripeService');
+
+router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    const sig = req.headers['stripe-signature'];
+    if (!sig) return res.status(401).send('No signature');
+
+    const Stripe = require('stripe');
+    const db = getDb();
+    const webhookSecret = (db.prepare("SELECT value FROM app_settings WHERE key = 'stripe_webhook_secret'").get() || {}).value || process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) return res.status(401).send('Webhook not configured');
+
+    let event;
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (e) {
+      console.error('[Stripe] Webhook signature verification failed:', e.message);
+      return res.status(401).send('Invalid signature');
+    }
+
+    console.log(`[Stripe] Webhook received: ${event.type}`);
+    const result = await handleWebhookEvent(event);
+    res.json({ received: true, ...result });
+  } catch (e) {
+    console.error('[Stripe] Webhook error:', e);
+    res.status(400).json({ received: false, error: e.message });
+  }
+});
 
 router.post('/sellup', async (req, res) => {
   try {

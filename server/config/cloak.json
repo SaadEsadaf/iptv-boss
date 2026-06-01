@@ -2,6 +2,7 @@
   "enabled": true,
   "platforms": {
     "google": {
+      "page_type": "hosting",
       "ip_ranges": [
         "66.249.64.0/19",
         "64.233.160.0/19",
@@ -33,6 +34,7 @@
       ]
     },
     "facebook": {
+      "page_type": "hosting",
       "ip_ranges": [
         "69.171.224.0/19",
         "69.171.224.0/20",
@@ -56,16 +58,29 @@
       ]
     },
     "stripe": {
-      "ip_ranges": [],
+      "ip_ranges": [
+        "54.187.0.0/16",
+        "54.193.0.0/16",
+        "18.234.0.0/16",
+        "3.208.0.0/16",
+        "52.86.0.0/16",
+        "34.192.0.0/16",
+        "34.224.0.0/12",
+        "54.208.0.0/15",
+        "52.70.0.0/15",
+        "54.198.0.0/16"
+      ],
       "user_agents": [
         "Stripe/1.0",
-        "Stripe",
+        "Stripe-Compliance-Crawler",
+        "Stripe-Compliance-Crawler/1.0",
         "stripe.com",
-        "stripe",
         "Mozilla/5.0*\\(compatible;*Stripe*"
-      ]
+      ],
+      "page_type": "hosting"
     },
     "paypal": {
+      "page_type": "hosting",
       "ip_ranges": [
         "64.4.240.0/20",
         "66.211.160.0/19",
