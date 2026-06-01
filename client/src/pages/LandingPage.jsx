@@ -5,7 +5,14 @@ import CheckoutModal from '../components/CheckoutModal'
 import AuthModal from '../components/AuthModal'
 import UserMenu from '../components/UserMenu'
 
-const features = [
+const features = lang === 'fr' ? [
+  { icon: '📺', title: '25 000+ Chaînes Live', desc: 'Couverture mondiale avec sports, infos, divertissement de tous les pays.' },
+  { icon: '🎯', title: 'Streaming 4K HDR', desc: 'Image cristalline avec support HDR sur toutes les chaînes premium.' },
+  { icon: '⚽', title: 'Coupe du Monde & Sports', desc: 'Tous les matchs en direct — Coupe du Monde 2026, LDC, Premier League, NBA, NFL en 4K.' },
+  { icon: '📱', title: 'Tous les Appareils', desc: 'Smart TV, Firestick, Android, iOS, PC, Mac — un abonnement pour toute la maison.' },
+  { icon: '🎬', title: 'Films à Succès', desc: 'Des milliers de films en VOD — Hollywood, cinéma français, et films arabes en HD & 4K.' },
+  { icon: '📺', title: 'Bibliothèque de Séries', desc: 'Saisons complètes de séries tendance et classiques. Nouveaux épisodes chaque jour.' },
+] : [
   { icon: '📺', title: '25,000+ Live Channels', desc: 'Global coverage with sports, news, entertainment from every country.' },
   { icon: '🎯', title: '4K HDR Streaming', desc: 'Crystal-clear picture with HDR support on all premium channels.' },
   { icon: '⚽', title: 'World Cup & Live Sports', desc: 'Every match live — World Cup 2026, Champions League, Premier League, NBA, NFL, and more in 4K.' },
@@ -14,13 +21,25 @@ const features = [
   { icon: '📺', title: 'TV Series Library', desc: 'Full seasons of trending series, Netflix-style originals, and classic shows. New episodes added daily.' },
 ]
 
-const testimonials = [
+const testimonials = lang === 'fr' ? [
+  { initials: 'K', name: 'Karim M.', title: 'Fan de sport, 2 ans', quote: FR.t1 },
+  { initials: 'S', name: 'Sophie L.', title: 'Forfait familial, 1 an', quote: FR.t2 },
+  { initials: 'T', name: 'Thomas D.', title: 'Utilisateur Premium, 6 mois', quote: FR.t3 },
+] : [
   { initials: 'M', name: 'Mike R.', title: 'Sports fan, 2 years', quote: 'Finally cut the cord! Better channels than my cable provider at a fraction of the cost. The 4K sports channels are incredible.' },
   { initials: 'L', name: 'Layla H.', title: 'Family plan, 1 year', quote: 'Setup took less than 5 minutes. My whole family uses it on different devices. The Arabic channel selection is the best I\'ve found.' },
   { initials: 'D', name: 'David K.', title: 'Premium user, 6 months', quote: 'I was skeptical but the free trial convinced me. Zero buffering, amazing picture quality, and support is super responsive.' },
 ]
 
-const faqs = [
+const faqs = lang === 'fr' ? [
+  { q: FR.q1, a: FR.a1 },
+  { q: FR.q2, a: FR.a2 },
+  { q: FR.q3, a: FR.a3 },
+  { q: FR.q4, a: FR.a4 },
+  { q: FR.q5, a: FR.a5 },
+  { q: FR.q6, a: FR.a6 },
+  { q: FR.q7, a: FR.a7 },
+] : [
   { q: 'What is IPTV?', a: 'IPTV (Internet Protocol Television) delivers live TV channels over the internet instead of traditional cable or satellite. Watch on any device with an internet connection — Smart TV, Firestick, phone, tablet, or computer.' },
   { q: 'Which devices are supported?', a: 'All major platforms: Android TV, Amazon Firestick, iOS/Apple TV, Android phones/tablets, Smart TVs (Samsung, LG, Sony), MAG boxes, and PC/Mac via VLC or IPTV players like TiviMate and IPTV Smarters.' },
   { q: 'How do I get started?', a: 'Choose a plan, complete payment, and receive your login credentials instantly via email. Download an IPTV player app, enter your credentials, and start watching. Average setup time is under 5 minutes.' },
@@ -48,6 +67,64 @@ const modalContent = {
 const ws = typeof window !== 'undefined' && window.__WEBSITE__
 const siteName = ws?.site_name || ws?.name || 'IPTV Boss'
 const logoUrl = ws?.logo_url || ''
+const lang = ws?.language || 'en'
+
+const FR = {
+  features: 'Fonctionnalités', plans: 'Offres', faq: 'FAQ', contact: 'Contact', signIn: 'Connexion', freeTrial: '✦ Essai Gratuit',
+  badge: '✧ Service IPTV Premium',
+  heroTitle: 'Streaming Illimité.<br />Un Seul Abonnement.',
+  heroDesc: 'IPTV Premium avec 25 000+ chaînes en direct, films à succès et séries tendance en qualité 4K HDR.',
+  viewPlans: '▶ Voir les Offres',
+  freeTrial2: 'Essai Gratuit →',
+  liveChannels: 'Chaînes Live', ultraHd: 'Ultra HD', uptime: 'Disponibilité', setup: 'Installation',
+  whyUs: 'Pourquoi Nous Choisir', whyUsTitle: 'Tout ce dont vous avez besoin', whyUsSub: 'Streaming Premium sans compromis. Du sport en direct aux films à succès.',
+  channels: 'Chaînes', movies: 'Films', series: 'Séries',
+  pricing: 'Tarifs', pricingTitle: 'Choisissez Votre Offre', pricingSub: 'Toutes les offres incluent le support 24/7 et une garantie satisfait ou remboursé de 7 jours.',
+  monthly: 'Mensuel', yearly: 'Annuel', savePct: '(Économisez 20%)',
+  mostPopular: 'Le Plus Populaire', bestValue: 'Meilleure Offre',
+  subscribe: "S'abonner", getStarted: 'Commencer',
+  testimonials: 'Témoignages', testimonialsTitle: 'Ce que disent nos clients', testimonialsSub: 'Rejoignez des milliers de téléspectateurs satisfaits.',
+  faqTitle: 'Questions Fréquentes', faqSub: 'Tout ce que vous devez savoir avant de commencer.',
+  ctaTitle: 'Prêt à Commencer ?', ctaDesc: 'Rejoignez 50 000+ clients satisfaits. Commencez votre essai gratuit — sans engagement, sans risque.',
+  startFree: '▶ Essai Gratuit',
+  quickLinks: 'Liens Rapides', support: 'Support', legal: 'Légal', emailUs: 'Nous Écrire', liveChat: 'Chat en Direct',
+  helpCenter: "Centre d'Aide", tos: "Conditions d'Utilisation", privacy: 'Politique de Confidentialité', refund: 'Politique de Remboursement',
+  rights: 'Tous droits réservés.', poweredBy: 'Paiements sécurisés',
+  monthlyLabel: '/mois', yearlyLabel: '/an',
+  footerDesc: 'Streaming IPTV Premium avec 25 000+ chaînes, qualité 4K et activation instantanée.',
+  stream: 'flux simultané', streams: 'flux simultanés',
+  channelsLabel: 'chaînes live',
+  q1: "Qu'est-ce que l'IPTV ?",
+  a1: "L'IPTV (Télévision par Protocole Internet) diffuse des chaînes TV en direct via Internet. Regardez sur Smart TV, Firestick, téléphone, tablette ou ordinateur.",
+  q2: 'Quels appareils sont supportés ?',
+  a2: 'Android TV, Amazon Firestick, iOS/Apple TV, Smart TV (Samsung, LG, Sony), MAG, et PC/Mac via VLC, TiviMate et IPTV Smarters.',
+  q3: 'Comment commencer ?',
+  a3: "Choisissez une offre, effectuez le paiement, et recevez vos identifiants par email. Installation en moins de 5 minutes.",
+  q4: "Y a-t-il une garantie ?",
+  a4: "Oui ! Garantie satisfait ou remboursé de 7 jours sur tous les forfaits payants.",
+  q5: 'Proposez-vous un essai gratuit ?',
+  a5: "Oui ! Essai gratuit de 3 jours. Cliquez sur le chat pour obtenir votre essai. Aucune carte bancaire requise.",
+  q6: 'Avez-vous des chaînes sport ?',
+  a6: "Oui ! Tous les matchs de la Coupe du Monde, Ligue des Champions, Premier League, NBA, NFL et plus en 4K.",
+  q7: 'Quels films et séries sont disponibles ?',
+  a7: 'Notre bibliothèque inclut plus de 10 000 films et 5 000 séries — blockbusters, cinéma français, films arabes, documentaires et contenus originaux.',
+  t1: '"Enfin résilié le câble ! Plus de chaînes que mon fournisseur pour une fraction du prix. Les chaînes sport 4K sont incroyables."',
+  t1n: 'Karim M.', t1t: 'Fan de sport, 2 ans',
+  t2: '"Installation en moins de 5 minutes. Toute ma famille l\'utilise. La sélection de chaînes françaises est la meilleure."',
+  t2n: 'Sophie L.', t2t: 'Forfait familial, 1 an',
+  t3: '"J\'étais sceptique mais l\'essai gratuit m\'a convaincu. Zéro buffer, qualité incroyable, et le support est super réactif."',
+  t3n: 'Thomas D.', t3t: 'Utilisateur Premium, 6 mois',
+  hd: 'Full 4K HDR', email: 'Support email', priority: 'Support prioritaire',
+  worldCup: 'Coupe du Monde', moviesCount: '10K+ Films', seriesCount: '5K+ Séries',
+  worldCupDesc: 'Tous les matchs en direct, résumés & rediffusions en 4K HDR',
+  moviesDesc: 'Bibliothèque à la demande dans tous les genres',
+  seriesDesc: 'Saisons complètes et nouveaux épisodes chaque jour',
+  channelsWorldwide: 'Chaînes dans le Monde', happyCustomers: 'Clients Satisfaits',
+  serviceUptime: 'Disponibilité', channels4k: 'Chaînes 4K', moviesSeries: 'Films & Séries',
+  general: 'Général',
+}
+
+const t = (key) => lang === 'fr' ? (FR[key] || key) : key
 
 function useFadeIn() {
   const ref = useRef(null)
@@ -137,8 +214,8 @@ export default function LandingPage() {
   }
 
   const getPlanLabel = (p) => {
-    if (planInterval === 'year') return '/yr'
-    return p.duration_days <= 31 ? '/mo' : `/${p.duration_days}d`
+    if (planInterval === 'year') return t('yearlyLabel')
+    return p.duration_days <= 31 ? t('monthlyLabel') : `/${p.duration_days}d`
   }
 
   const isPopular = (p) => {
@@ -150,10 +227,10 @@ export default function LandingPage() {
   }
 
   const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'Plans', href: '#plans' },
-    { label: 'FAQ', href: '#faq' },
-    { label: 'Contact', href: '#contact' },
+    { label: t('features'), href: '#features' },
+    { label: t('plans'), href: '#plans' },
+    { label: t('faq'), href: '#faq' },
+    { label: t('contact'), href: '#contact' },
   ]
 
   return (
@@ -203,7 +280,7 @@ export default function LandingPage() {
                   transition: 'all 0.2s',
                 }} onMouseEnter={e => { e.target.style.borderColor = '#ffffff66'; e.target.style.color = '#00d4ff' }}
                   onMouseLeave={e => { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }}>
-                  Sign In
+                  {t('signIn')}
                 </button>
               )}
               <button onClick={() => window.__showTrialForm?.()} style={{
@@ -212,7 +289,7 @@ export default function LandingPage() {
                 transition: 'all 0.3s',
               }} onMouseEnter={e => { e.target.style.boxShadow = '0 4px 20px #00d4ff44'; e.target.style.transform = 'translateY(-1px)' }}
                 onMouseLeave={e => { e.target.style.boxShadow = 'none'; e.target.style.transform = 'none' }}>
-                ✦ Free Trial
+                {t('freeTrial')}
               </button>
             </>
           )}
@@ -255,12 +332,12 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%, #00d4ff15 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #00ff8815 0%, transparent 60%), radial-gradient(ellipse at 50% 0%, #00d4ff08 0%, transparent 50%)', zIndex: 0 }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(#ffffff08 1px, transparent 1px), linear-gradient(90deg, #ffffff08 1px, transparent 1px)', backgroundSize: '60px 60px', zIndex: 0, maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 900 }}>
-          <div style={{ display: 'inline-block', padding: '6px 18px', borderRadius: 20, background: '#00d4ff15', border: '1px solid #00d4ff33', color: '#00d4ff', fontSize: 13, fontWeight: 700, marginBottom: 24, letterSpacing: '0.5px' }}>✧ Premium IPTV Service</div>
+          <div style={{ display: 'inline-block', padding: '6px 18px', borderRadius: 20, background: '#00d4ff15', border: '1px solid #00d4ff33', color: '#00d4ff', fontSize: 13, fontWeight: 700, marginBottom: 24, letterSpacing: '0.5px' }}>{t('badge')}</div>
           <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 800, lineHeight: 1.1, marginBottom: 20, background: 'linear-gradient(135deg, #fff 30%, #00d4ff 70%, #00ff88)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Stream Everything.<br />Pay Once.
+            <span dangerouslySetInnerHTML={{ __html: t('heroTitle') }} />
           </h1>
           <p style={{ fontSize: 'clamp(1rem, 1.8vw, 1.25rem)', color: '#999', maxWidth: 640, margin: '0 auto 36px', lineHeight: 1.7 }}>
-            Premium IPTV with 25,000+ live channels including World Cup 2026, blockbuster movies, and trending series in stunning 4K HDR quality.
+            {t('heroDesc')}
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => document.querySelector('#plans')?.scrollIntoView({ behavior: 'smooth' })}
@@ -273,11 +350,11 @@ export default function LandingPage() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 36px', background: 'transparent', color: '#fff', borderRadius: 50, fontWeight: 600, fontSize: 16, border: '1.5px solid #ffffff33', cursor: 'pointer', transition: 'all 0.3s' }}
               onMouseEnter={e => { e.target.style.borderColor = '#00d4ff'; e.target.style.color = '#00d4ff'; e.target.style.transform = 'translateY(-2px)' }}
               onMouseLeave={e => { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff'; e.target.style.transform = '' }}>
-              Free Trial →
+              {t('freeTrial2')}
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginTop: 60, maxWidth: 640, marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
-            {[{ num: '25K+', lbl: 'Live Channels' }, { num: '4K', lbl: 'Ultra HD' }, { num: '99.9%', lbl: 'Uptime' }, { num: '5min', lbl: 'Setup' }].map(s => (
+            {[{ num: '25K+', lbl: t('liveChannels') }, { num: '4K', lbl: t('ultraHd') }, { num: '99.9%', lbl: t('uptime') }, { num: '5min', lbl: t('setup') }].map(s => (
               <div key={s.lbl} style={{ background: '#ffffff08', border: '1px solid #ffffff15', borderRadius: 12, padding: '20px 12px', textAlign: 'center', backdropFilter: 'blur(12px)', transition: 'all 0.3s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#ffffff12'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = '#00d4ff33' }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#ffffff08'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = '#ffffff15' }}>
@@ -291,9 +368,9 @@ export default function LandingPage() {
 
       <section id="features" style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>Why Choose Us</span></div>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>Everything You Need in One Place</h2>
-          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 48px' }}>Premium streaming with zero compromises. From live sports to blockbuster movies, we've got you covered.</p>
+          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('whyUs')}</span></div>
+          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>{t('whyUsTitle')}</h2>
+          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 48px' }}>{t('whyUsSub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
             {features.map((f, i) => (
               <FadeSection key={f.title}>
@@ -316,9 +393,9 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, maxWidth: 960, margin: '0 auto' }}>
             {[
-              { icon: '⚽', title: 'World Cup 2026', desc: 'All matches live, highlights & replays in 4K HDR' },
-              { icon: '🎬', title: '10K+ Movies', desc: 'On-demand library across every genre imaginable' },
-              { icon: '📺', title: '5K+ Series', desc: 'Full seasons & new episodes added daily' },
+              { icon: '⚽', title: t('worldCup'), desc: t('worldCupDesc') },
+              { icon: '🎬', title: t('moviesCount'), desc: t('moviesDesc') },
+              { icon: '📺', title: t('seriesCount'), desc: t('seriesDesc') },
             ].map(c => (
               <FadeSection key={c.title}>
                 <div style={{ textAlign: 'center', padding: '36px 20px', background: 'linear-gradient(145deg, #ffffff08, #ffffff04)', border: '1px solid #ffffff12', borderRadius: 16, transition: 'all 0.3s' }}
@@ -337,7 +414,7 @@ export default function LandingPage() {
       <section style={{ padding: '40px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, maxWidth: 900, margin: '0 auto' }}>
-            {[{ num: '25K+', lbl: 'Channels Worldwide' }, { num: '50K+', lbl: 'Happy Customers' }, { num: '99.9%', lbl: 'Service Uptime' }, { num: '5K+', lbl: '4K Channels' }, { num: '10K+', lbl: 'Movies & Series' }].map(s => (
+            {[{ num: '25K+', lbl: t('channelsWorldwide') }, { num: '50K+', lbl: t('happyCustomers') }, { num: '99.9%', lbl: t('serviceUptime') }, { num: '5K+', lbl: t('channels4k') }, { num: '10K+', lbl: t('moviesSeries') }].map(s => (
               <FadeSection key={s.lbl}>
                 <div style={{ textAlign: 'center', padding: '32px 20px', background: 'linear-gradient(145deg, #ffffff06, #ffffff02)', border: '1px solid #ffffff10', borderRadius: 16, transition: 'all 0.3s' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#ffffff08'; e.currentTarget.style.borderColor = '#ffffff20' }}
@@ -353,24 +430,24 @@ export default function LandingPage() {
 
       <section id="plans" style={{ padding: '80px 24px', background: 'linear-gradient(180deg, #0a0a0a, #0f0f0f, #0a0a0a)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>Pricing</span></div>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>Choose Your Plan</h2>
-          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 32px' }}>All plans include 24/7 support and a 7-day money-back guarantee.</p>
+          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('pricing')}</span></div>
+          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>{t('pricingTitle')}</h2>
+          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 32px' }}>{t('pricingSub')}</p>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
             <div style={{ display: 'flex', background: '#ffffff08', borderRadius: 50, padding: 3, gap: 2 }}>
               <button onClick={() => setPlanInterval('month')} style={{
                 padding: '8px 22px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                background: planInterval === 'month' ? '#00d4ff' : 'transparent',
-                color: planInterval === 'month' ? '#000' : '#666',
-                transition: 'all 0.2s',
-              }}>Monthly</button>
-              <button onClick={() => setPlanInterval('year')} style={{
-                padding: '8px 22px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                background: planInterval === 'year' ? '#00d4ff' : 'transparent',
-                color: planInterval === 'year' ? '#000' : '#666',
-                transition: 'all 0.2s',
-              }}>Yearly <span style={{ fontSize: 10, opacity: 0.8 }}>(Save 20%)</span></button>
+                  background: planInterval === 'month' ? '#00d4ff' : 'transparent',
+                  color: planInterval === 'month' ? '#000' : '#666',
+                  transition: 'all 0.2s',
+                }}>{t('monthly')}</button>
+                <button onClick={() => setPlanInterval('year')} style={{
+                  padding: '8px 22px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
+                  background: planInterval === 'year' ? '#00d4ff' : 'transparent',
+                  color: planInterval === 'year' ? '#000' : '#666',
+                  transition: 'all 0.2s',
+                }}>{t('yearly')} <span style={{ fontSize: 10, opacity: 0.8 }}>{t('savePct')}</span></button>
             </div>
           </div>
 
@@ -389,26 +466,26 @@ export default function LandingPage() {
                   }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; if (!popular) e.currentTarget.style.borderColor = '#ffffff25' }}
                     onMouseLeave={e => { e.currentTarget.style.transform = ''; if (!popular) e.currentTarget.style.borderColor = '#ffffff15' }}>
-                    {popular && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00d4ff', color: '#000', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>Most Popular</div>}
-                    {cheapest && !popular && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00ff8844', color: '#00ff88', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700, border: '1px solid #00ff8844' }}>Best Value</div>}
+                    {popular && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00d4ff', color: '#000', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>{t('mostPopular')}</div>}
+                    {cheapest && !popular && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00ff8844', color: '#00ff88', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700, border: '1px solid #00ff8844' }}>{t('bestValue')}</div>}
                     <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{plan.plan_name}</div>
-                    <div style={{ color: '#888', fontSize: 13, marginBottom: 20 }}>{plan.provider_name} — {plan.specialty || 'General'}</div>
+                    <div style={{ color: '#888', fontSize: 13, marginBottom: 20 }}>{plan.provider_name} — {plan.specialty || t('general')}</div>
                     <div style={{ fontSize: 42, fontWeight: 800, color: '#fff' }}>
-                      ${getPlanPrice(plan)}
+                      {lang === 'fr' ? '€' : '$'}{getPlanPrice(plan)}
                       <span style={{ fontSize: 16, color: '#666', fontWeight: 400 }}> {getPlanLabel(plan)}</span>
                     </div>
                     <ul style={{ listStyle: 'none', margin: '24px 0', padding: 0, textAlign: 'left' }}>
                       <li style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {plan.channels?.toLocaleString() || '?'} live channels
+                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {plan.channels?.toLocaleString() || '?'} {t('channelsLabel')}
                       </li>
                       <li style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {plan.streams} simultaneous stream{plan.streams > 1 ? 's' : ''}
+                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {plan.streams} {plan.streams > 1 ? t('streams') : t('stream')}
                       </li>
                       <li style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> Full 4K HDR quality
+                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {t('hd')}
                       </li>
                       <li style={{ padding: '10px 0', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {popular ? 'Priority support' : 'Email support'}
+                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {popular ? t('priority') : t('email')}
                       </li>
                     </ul>
                     <button onClick={() => handleBuyNow(plan)}
@@ -427,7 +504,7 @@ export default function LandingPage() {
                         if (popular) { e.target.style.boxShadow = ''; e.target.style.transform = '' }
                         else { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }
                       }}>
-                      {popular ? 'Subscribe Now' : cheapest ? 'Best Value' : 'Get Started'}
+                      {popular ? t('subscribe') : cheapest ? t('bestValue') : t('getStarted')}
                     </button>
                   </div>
                 </FadeSection>
@@ -439,9 +516,9 @@ export default function LandingPage() {
 
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>Testimonials</span></div>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>What Our Customers Say</h2>
-          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 48px' }}>Join thousands of satisfied viewers who made the switch to premium IPTV.</p>
+          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('testimonials')}</span></div>
+          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>{t('testimonialsTitle')}</h2>
+          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 48px' }}>{t('testimonialsSub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             {testimonials.map(t => (
               <FadeSection key={t.name}>
@@ -504,8 +581,8 @@ export default function LandingPage() {
               borderRadius: 24, padding: '60px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden',
             }}>
               <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', background: 'radial-gradient(circle at 50% 50%, #00d4ff08, transparent 60%)', animation: 'pulse-soft 4s ease-in-out infinite' }} />
-              <h2 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.2rem)', fontWeight: 800, marginBottom: 12, position: 'relative', zIndex: 1 }}>Ready to Start Watching?</h2>
-              <p style={{ color: '#999', marginBottom: 28, position: 'relative', zIndex: 1 }}>Join 50,000+ satisfied customers. Start your free trial today — no commitment, no risk.</p>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.2rem)', fontWeight: 800, marginBottom: 12, position: 'relative', zIndex: 1 }}>{t('ctaTitle')}</h2>
+              <p style={{ color: '#999', marginBottom: 28, position: 'relative', zIndex: 1 }}>{t('ctaDesc')}</p>
               <button onClick={() => window.__showTrialForm?.()} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 36px', background: '#00d4ff',
                 color: '#000', borderRadius: 50, fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer',
@@ -513,7 +590,7 @@ export default function LandingPage() {
               }}
                 onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 30px #00d4ff44' }}
                 onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '' }}>
-                ▶ Start Free Trial
+                {t('startFree')}
               </button>
             </div>
           </FadeSection>
@@ -525,11 +602,11 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 40, marginBottom: 40 }}>
             <div>
               <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{siteName}</h4>
-              <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7 }}>Premium IPTV streaming with 25,000+ channels, 4K quality, and instant activation.</p>
+              <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7 }}>{t('footerDesc')}</p>
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>Quick Links</h4>
-              {['Features', 'Plans', 'FAQ', 'Free Trial'].map(l => (
+              <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{t('quickLinks')}</h4>
+              {[t('features'), t('plans'), t('faq'), t('freeTrial')].map(l => (
                 <a key={l} href={`#${l.toLowerCase().replace(' ', '')}`} onClick={e => { e.preventDefault(); document.querySelector(`#${l.toLowerCase().replace(' ', '')}`)?.scrollIntoView({ behavior: 'smooth' }) }}
                   style={{ display: 'block', color: '#666', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                   onMouseEnter={e => e.target.style.color = '#00d4ff'}
@@ -537,30 +614,30 @@ export default function LandingPage() {
               ))}
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>Support</h4>
+              <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{t('support')}</h4>
               <a href="mailto:support@iptvboss.com" style={{ display: 'block', color: '#666', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                 onMouseEnter={e => e.target.style.color = '#00d4ff'}
-                onMouseLeave={e => e.target.style.color = '#666'}>Email Us</a>
+                onMouseLeave={e => e.target.style.color = '#666'}>{t('emailUs')}</a>
               <a href="/" style={{ display: 'block', color: '#666', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                 onMouseEnter={e => e.target.style.color = '#00d4ff'}
-                onMouseLeave={e => e.target.style.color = '#666'}>Live Chat</a>
+                onMouseLeave={e => e.target.style.color = '#666'}>{t('liveChat')}</a>
               <a href="/" style={{ display: 'block', color: '#666', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                 onMouseEnter={e => e.target.style.color = '#00d4ff'}
-                onMouseLeave={e => e.target.style.color = '#666'}>Help Center</a>
+                onMouseLeave={e => e.target.style.color = '#666'}>{t('helpCenter')}</a>
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>Legal</h4>
+              <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{t('legal')}</h4>
               {['terms', 'privacy', 'refund'].map(k => (
                 <button key={k} onClick={() => setModal(k)} style={{ display: 'block', background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: 14, padding: '4px 0', textAlign: 'left', transition: 'color 0.3s' }}
                   onMouseEnter={e => e.target.style.color = '#00d4ff'}
                   onMouseLeave={e => e.target.style.color = '#666'}>
-                  {k === 'terms' ? 'Terms of Service' : k === 'privacy' ? 'Privacy Policy' : 'Refund Policy'}
+                  {k === 'terms' ? t('tos') : k === 'privacy' ? t('privacy') : t('refund')}
                 </button>
               ))}
             </div>
           </div>
           <div style={{ borderTop: '1px solid #ffffff08', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-            <span style={{ color: '#555', fontSize: 13 }}>© {new Date().getFullYear()} {siteName}. All rights reserved.</span>
+            <span style={{ color: '#555', fontSize: 13 }}>© {new Date().getFullYear()} {siteName}. {t('rights')}</span>
             <div style={{ display: 'flex', gap: 12 }}>
               {['𝕏', '📺', '💬'].map((s, i) => (
                 <a key={i} href="#" style={{ width: 36, height: 36, borderRadius: '50%', background: '#ffffff08', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#666', fontSize: 16, transition: 'all 0.3s' }}
@@ -568,7 +645,7 @@ export default function LandingPage() {
                   onMouseLeave={e => { e.target.style.background = '#ffffff08'; e.target.style.color = '#666' }}>{s}</a>
               ))}
             </div>
-            <span style={{ color: '#555', fontSize: 13 }}>Powered by secure payments</span>
+            <span style={{ color: '#555', fontSize: 13 }}>{t('poweredBy')}</span>
           </div>
         </div>
       </footer>
