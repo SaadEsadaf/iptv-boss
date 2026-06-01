@@ -171,27 +171,33 @@ app.get('*', (req, res) => {
   const distPath = path.join(__dirname, '..', 'client', 'dist');
   const filePath = path.join(distPath, req.path === '/' ? 'index.html' : req.path);
 
-  const serveHtml = (htmlPath) => {
-    const fs = require('fs');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
-    const siteTitle = website.site_name || website.name || 'Dalletek';
-    const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
-    html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
-    html = html.replace('</head>', script + '</head>');
-    res.send(html);
-  };
-
   if (filePath.startsWith(distPath) && require('fs').existsSync(filePath)) {
     res.setHeader('Cache-Control', filePath.endsWith('.html') ? 'no-cache, no-store, must-revalidate' : 'max-age=31536000');
-    if (filePath.endsWith('.html')) return serveHtml(filePath);
-    return;
-  }
-
-  const indexPath = path.join(distPath, 'index.html');
-  if (require('fs').existsSync(indexPath)) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    serveHtml(indexPath);
+    if (filePath.endsWith('.html')) {
+      const fs = require('fs');
+      let html = fs.readFileSync(filePath, 'utf8');
+      const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
+      const siteTitle = website.site_name || website.name || 'Dalletek';
+      const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
+      html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
+      html = html.replace('</head>', script + '</head>');
+      res.send(html);
+    } else {
+      res.sendFile(filePath);
+    }
+  } else {
+    const indexPath = path.join(distPath, 'index.html');
+    if (require('fs').existsSync(indexPath)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      const fs = require('fs');
+      let html = fs.readFileSync(indexPath, 'utf8');
+      const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
+      const siteTitle = website.site_name || website.name || 'Dalletek';
+      const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
+      html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
+      html = html.replace('</head>', script + '</head>');
+      res.send(html);
+    }
   }
 });
 
