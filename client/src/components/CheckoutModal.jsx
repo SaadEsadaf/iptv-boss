@@ -5,6 +5,7 @@ const lang = ws?.language || 'en'
 const FR = {
   paypal: 'PayPal', paypalDesc: 'Payer avec PayPal ou carte bancaire',
   stripe: 'Stripe', stripeDesc: 'Carte de crédit via Stripe',
+  sellup: 'Sellup', sellupDesc: 'Paiement sécurisé via Sellup',
   crypto: 'Crypto', cryptoDesc: 'USDT (TRC20) ou BTC',
   email: 'Lien Email', emailDesc: 'Recevoir un lien de paiement par email',
   sepa: 'Virement SEPA', sepaDesc: 'Virement bancaire dans l\'UE',
@@ -55,6 +56,7 @@ const t = (key) => lang === 'fr' ? (FR[key] || key) : key
 const ALL_METHODS = [
   { id: 'paypal', label: t('paypal'), icon: '💳', desc: t('paypalDesc') },
   { id: 'stripe', label: t('stripe'), icon: '💳', desc: t('stripeDesc') },
+  { id: 'sellup', label: t('sellup'), icon: '🛒', desc: t('sellupDesc') },
   { id: 'crypto', label: t('crypto'), icon: '₿', desc: t('cryptoDesc') },
   { id: 'email', label: t('email'), icon: '📧', desc: t('emailDesc') },
   { id: 'sepa', label: t('sepa'), icon: '🏦', desc: t('sepaDesc') },
@@ -86,6 +88,26 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
   async function handleProceed() {
     if (!selected) return
     if (selected === 'email' || selected === 'stripe') return setStep(selected)
+    if (selected === 'sellup') {
+      const headers = { 'Content-Type': 'application/json' }
+      if (userToken) headers['Authorization'] = `Bearer ${userToken}`
+      try {
+        const res = await fetch('/api/checkout/direct', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ planId: plan.id }),
+        })
+        const data = await res.json()
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl
+        } else {
+          alert(data.error === 'not_configured' ? t('notConfigured') : data.error || t('failedToSend'))
+        }
+      } catch {
+        alert(t('networkError'))
+      }
+      return
+    }
     if (selected === 'paypal') {
       setPaypalError('')
       setPaid(false)

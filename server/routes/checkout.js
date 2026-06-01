@@ -128,7 +128,7 @@ router.get('/api/checkout/settings', (req, res) => {
   const rows = db.prepare("SELECT key, value FROM app_settings WHERE key IN ('crypto_address_usdt', 'crypto_address_btc', 'sepa_iban', 'sepa_bic', 'sepa_bank_name', 'site_name', 'paypal_email', 'paypal_mode', 'stripe_publishable_key', 'payment_methods_enabled', 'google_client_id', 'apple_client_id')").all();
   const s = {};
   for (const r of rows) s[r.key] = r.value;
-  let enabled = ['paypal', 'crypto', 'email', 'sepa', 'stripe'];
+  let enabled = ['paypal', 'crypto', 'email', 'sepa', 'stripe', 'sellup'];
   try { enabled = JSON.parse(s.payment_methods_enabled || '[]'); } catch {}
   res.json({
     crypto: { usdt: s.crypto_address_usdt || null, btc: s.crypto_address_btc || null },

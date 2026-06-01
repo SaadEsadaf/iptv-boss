@@ -475,7 +475,7 @@ function initializeDatabase() {
     ['stripe_publishable_key', ''],
     ['stripe_secret_key', ''],
     ['stripe_webhook_secret', ''],
-    ['payment_methods_enabled', '["paypal","crypto","email","sepa","stripe"]'],
+    ['payment_methods_enabled', '["paypal","crypto","email","sepa","stripe","sellup"]'],
     ['google_client_id', ''],
     ['apple_client_id', ''],
     ['namecheap_api_user', ''],
