@@ -37,6 +37,8 @@ function initializeDatabase() {
       active INTEGER DEFAULT 1,
       language TEXT DEFAULT 'en',
       deploy_region TEXT DEFAULT '',
+      tagline TEXT DEFAULT '',
+      whatsapp TEXT DEFAULT '',
       created_at TEXT DEFAULT (datetime('now'))
     );
 
@@ -374,6 +376,7 @@ function initializeDatabase() {
   try { db.exec("ALTER TABLE websites ADD COLUMN deploy_status TEXT DEFAULT NULL"); } catch (e) {}
   try { db.exec("ALTER TABLE websites ADD COLUMN deployed_at TEXT DEFAULT NULL"); } catch (e) {}
   try { db.exec("ALTER TABLE websites ADD COLUMN tagline TEXT DEFAULT ''"); } catch (e) {}
+  try { db.exec("ALTER TABLE websites ADD COLUMN whatsapp TEXT DEFAULT ''"); } catch (e) {}
   try { db.exec("ALTER TABLE demand_signals ADD COLUMN email TEXT DEFAULT ''"); } catch (e) {}
   try { db.exec("ALTER TABLE demand_signals ADD COLUMN phone TEXT DEFAULT ''"); } catch (e) {}
   try { db.exec("ALTER TABLE demand_signals ADD COLUMN groups_mentioned TEXT DEFAULT ''"); } catch (e) {}

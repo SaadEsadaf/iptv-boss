@@ -825,7 +825,8 @@ router.post('/pages/build', authMiddleware, async (req, res) => {
   if (!keyword) return res.status(400).json({ error: 'keyword is required' });
   try {
     const { buildPage } = require('../services/pageBuilder');
-    const result = await buildPage({ keyword, audience, providerId: provider_id, planId: plan_id });
+    const lang = req.website?.language || 'en';
+    const result = await buildPage({ keyword, audience, providerId: provider_id, planId: plan_id, language: lang });
     res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -930,7 +931,8 @@ router.post('/seo/build-suggestion/:id', authMiddleware, async (req, res) => {
 
   try {
     const { buildPage } = require('../services/pageBuilder');
-    const result = await buildPage({ keyword: suggestion.keyword, audience });
+    const lang = req.website?.language || 'en';
+    const result = await buildPage({ keyword: suggestion.keyword, audience, language: lang });
     if (result.id) {
       db.prepare("UPDATE seo_log SET status = 'completed', result = ? WHERE id = ?").run(JSON.stringify({ page_id: result.id, slug: result.slug }), req.params.id);
     }

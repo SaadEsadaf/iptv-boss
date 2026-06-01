@@ -5,15 +5,53 @@ function slugify(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-async function buildPage({ keyword, audience, providerId, planId }) {
+const FR = {
+  navFeatures: 'Fonctionnalités', navPlans: 'Offres', navFaq: 'FAQ',
+  freeTrial: '✦ Essai Gratuit',
+  heroBadge: '✦ Service IPTV Premium',
+  heroDesc: 'Découvrez le streaming qualité cinéma avec plus de 25 000 chaînes en direct, qualité 4K HDR et activation instantanée sur tous vos appareils.',
+  startTrial: '▶ Essai Gratuit',
+  viewPlans: 'Voir les Offres →',
+  liveChannels: 'Chaînes Live', ultraHd: 'Ultra HD', uptime: 'Garantie Uptime', instantSetup: 'Installation',
+  whyUs: 'Pourquoi Nous Choisir', whyUsTitle: 'Tout ce dont vous avez besoin en un seul endroit',
+  whyUsSub: 'Streaming Premium sans compromis. Du sport en direct aux films à succès, nous avons tout ce qu\'il vous faut.',
+  features: ['📺 25 000+ Chaînes Live', 'Couverture mondiale avec sports, infos, divertissement et chaînes locales de tous les pays.', '🎯 Streaming 4K HDR', 'Image cristalline avec support HDR sur toutes les chaînes premium. Lecture fluide 60fps.', '⚡ Zéro Buffer', 'CDN professionnel avec 99.9% de disponibilité. Serveurs dédiés pour un streaming sans latence 24/7.', '📱 Tous les Appareils', 'Smart TV, Firestick, Android, iOS, PC, Mac, MAG — un abonnement pour toute la maison.', '🔒 Sécurisé & Privé', 'Connexions chiffrées, politique de non-conservation des logs et paiements anonymes.', '🎧 Support 24/7', 'Chat en direct avec de vrais humains. Temps de réponse moyen moins de 2 minutes.'],
+  statsChannels: 'Chaînes dans le Monde', statsCustomers: 'Clients Satisfaits', statsUptime: 'Disponibilité', stats4k: 'Chaînes 4K',
+  pricing: 'Tarifs', pricingTitle: 'Choisissez Votre Offre', pricingSub: 'Sélectionnez l\'offre parfaite pour vos besoins. Toutes incluent le support 24/7 et une garantie satisfait ou remboursé de 7 jours.',
+  popular: 'Le Plus Populaire', getStarted: 'Commencer', subscribe: 'S\'abonner', bestValue: 'Meilleur Offre',
+  testimonials: 'Témoignages', testimonialsTitle: 'Ce que disent nos clients', testimonialsSub: 'Rejoignez des milliers de téléspectateurs satisfaits.',
+  t1Text: '"Enfin résilié le câble ! Plus de chaînes que mon fournisseur pour une fraction du prix. Les chaînes sport 4K sont incroyables."',
+  t1Name: 'Karim M.', t1Title: 'Fan de sport, 2 ans',
+  t2Text: '"Installation en moins de 5 minutes. Toute ma famille l\'utilise. La sélection de chaînes françaises est la meilleure que j\'ai trouvée."',
+  t2Name: 'Sophie L.', t2Title: 'Forfait familial, 1 an',
+  t3Text: '"J\'étais sceptique sur l\'IPTV mais l\'essai gratuit m\'a convaincu. Zéro buffer, qualité incroyable, et le support est super réactif."',
+  t3Name: 'Thomas D.', t3Title: 'Utilisateur Premium, 6 mois',
+  faq: 'FAQ', faqTitle: 'Questions Fréquentes', faqSub: 'Tout ce que vous devez savoir avant de commencer.',
+  faq1Q: 'Qu\'est-ce que l\'IPTV ?', faq1A: 'L\'IPTV (Télévision par Protocole Internet) diffuse des chaînes TV en direct et du contenu à la demande via Internet au lieu du câble ou du satellite. Regardez sur n\'importe quel appareil avec une connexion Internet — Smart TV, Firestick, téléphone, tablette ou ordinateur.',
+  faq2Q: 'Quels appareils sont supportés ?', faq2A: 'Nous supportons toutes les plateformes : Android TV, Amazon Firestick, iOS/Apple TV, Android, Smart TV (Samsung, LG, Sony), MAG, et PC/Mac via VLC ou des lecteurs IPTV comme TiviMate et IPTV Smarters.',
+  faq3Q: 'Comment commencer ?', faq3A: 'Choisissez une offre, effectuez le paiement, et vous recevrez vos identifiants de connexion par email. Téléchargez une application IPTV, entrez vos identifiants, et commencez à regarder immédiatement. Installation moyenne en moins de 5 minutes.',
+  faq4Q: 'Y a-t-il une garantie ?', faq4A: 'Absolument ! Nous offrons une garantie satisfait ou remboursé de 7 jours sur tous les forfaits payants. Si vous n\'êtes pas complètement satisfait, contactez le support sous 7 jours pour un remboursement intégral.',
+  faq5Q: 'Proposez-vous un essai gratuit ?', faq5A: 'Oui ! Nous offrons un essai gratuit de 3 jours pour tester notre service sans risque. Discutez avec Alex, notre assistant commercial, pour obtenir votre essai. Aucune carte bancaire requise.',
+  ctaTitle: 'Prêt à Commencer ?', ctaDesc: 'Rejoignez 50 000+ clients satisfaits. Commencez votre essai gratuit — sans engagement, sans risque.',
+  footerDesc: 'Streaming IPTV Premium avec 25 000+ chaînes, qualité 4K, et activation instantanée.',
+  footerQuick: 'Liens Rapides', footerSupport: 'Support', footerLegal: 'Légal',
+  home: 'Accueil', freeTrial2: 'Essai Gratuit', emailUs: 'Nous Écrire', liveChat: 'Chat en Direct',
+  helpCenter: 'Centre d\'Aide', tos: 'Conditions d\'Utilisation', privacy: 'Politique de Confidentialité', refund: 'Politique de Remboursement',
+  rights: 'Tous droits réservés.',
+  contactWhatsApp: 'Contactez-nous sur WhatsApp',
+};
+
+async function buildPage({ keyword, audience, providerId, planId, language }) {
   const db = getDb();
   const slug = slugify(keyword);
+  const lang = language || 'fr';
 
   if (db.prepare('SELECT id FROM landing_pages WHERE slug = ?').get(slug)) {
     return { error: 'A page with this slug already exists' };
   }
 
   let html;
+  const t = lang === 'fr' ? FR : null; // Only French supported for now
 
   try {
     html = await generateText({
@@ -478,8 +516,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   const title = keyword.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
   const result = db.prepare(
-    'INSERT INTO landing_pages (title, slug, keyword, audience, html_content, provider_id, plan_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(title, slug, keyword, audience || null, html, providerId || null, planId || null);
+    'INSERT INTO landing_pages (title, slug, keyword, audience, html_content, language, provider_id, plan_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(title, slug, keyword, audience || null, html, lang, providerId || null, planId || null);
 
   db.prepare(
     'INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)'

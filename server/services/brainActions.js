@@ -83,7 +83,7 @@ async function discoverSources(params) {
 async function buildLandingPage(params) {
   try {
     const { buildPage } = require('./pageBuilder');
-    const result = await buildPage({ keyword: params.keyword, audience: params.audience, providerId: params.providerId, planId: params.planId });
+    const result = await buildPage({ keyword: params.keyword, audience: params.audience, providerId: params.providerId, planId: params.planId, language: 'fr' });
     if (result.error) return { error: result.error };
     logAction('page_built', `Landing page "${result.title}" (${result.slug})`, getDb());
     return { page_id: result.id, slug: result.slug, title: result.title };

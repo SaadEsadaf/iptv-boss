@@ -124,7 +124,7 @@ async function autoBuildFromLeads() {
 
     const audience = lead.language ? `Users searching in ${lead.language}` : 'IPTV seekers';
     try {
-      const result = await buildPage({ keyword, audience, providerId: null, planId: null });
+      const result = await buildPage({ keyword, audience, providerId: null, planId: null, language: 'fr' });
       if (result.error) { skipped++; continue; }
 
       db.prepare("UPDATE demand_signals SET status = 'page_built' WHERE id = ?").run(lead.id);
