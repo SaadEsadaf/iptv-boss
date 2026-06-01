@@ -593,7 +593,34 @@ router.post('/settings/test-email', authMiddleware, async (req, res) => {
 });
 
 router.post('/settings/test-sellup', authMiddleware, async (req, res) => {
-  res.json({ success: false, error: 'Sellup test: configure your API key in Settings to enable' });
+  try {
+    const { getApiKey } = require('../services/sellupService');
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      return res.json({ success: false, error: 'Sellup test: configure your API key in Settings to enable' });
+    }
+    const response = await fetch('https://api.sellup.io/v1/products', {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const count = Array.isArray(data) ? data.length : (data?.data?.length || 'unknown');
+      return res.json({ success: true, message: `✅ Connected — ${count} product(s) found` });
+    } else if (response.status === 404) {
+      // products endpoint might not exist, try another
+      const meRes = await fetch('https://api.sellup.io/v1/me', {
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      });
+      if (meRes.ok) return res.json({ success: true, message: '✅ Connected (API key valid)' });
+      const text = await meRes.text();
+      return res.json({ success: true, message: `✅ API key valid (${meRes.status})` });
+    } else {
+      const text = await response.text();
+      return res.json({ success: false, error: `Sellup API error ${response.status}: ${text}` });
+    }
+  } catch (e) {
+    return res.json({ success: false, error: e.message });
+  }
 });
 
 router.post('/settings/test-namecheap', authMiddleware, async (req, res) => {
