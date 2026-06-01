@@ -224,3 +224,25 @@ Single-page React app served by Express. Sidebar tabs:
 | **SERP Rank Tracking** | `rank_tracking` + `rank_history` tables. `server/services/rankTracker.js` checks Google positions via SerpAPI with trend tracking (up/down/stable/not_found). Admin API: CRUD on `/api/admin/seo/ranks`, `GET history`, `POST check-all`, `POST :id/check`. Frontend: 📈 Rankings sub-tab in SEO tab with keyword/page/locale selectors, inline manual position entry, trend icons, per-row locale switching. Cron auto-checks at configurable interval. |
 | **Auto-Build from Leads** | `autoBuildFromLeads()` in `seoAgent.js` runs on configurable cron. Queries `demand_signals` where `intent_score >= threshold` (default 70), dedups against existing landing pages by slug, calls `buildPage()` for each eligible lead, updates signal status to `page_built`, logs to `seo_log` and `agent_log`, and regenerates sitemap. Settings in SEO → Settings: enabled toggle, min intent score, max per run, interval. Manual trigger via `POST /api/admin/seo/auto-build`. |
 | **Website Cards** | Websites tab shows cards with: public URL (first domain or site_url/slug), "Visit Site" link (opens in new tab), "Manage" button (sets website context), deploy status badge (🟡 Pending / 🟢 Deployed / 🔴 Error), language flag, region tag, domain pills, deployment timestamp. "AI Assist" button in create modal generates site_name, tagline, and logo_url from website name using AI. Slug auto-generated from name. `deploy_status` and `deployed_at` columns track deployment lifecycle; setting status to `deployed` auto-timestamps `deployed_at`. |
+
+# Atlas Pro IPTV Knowledge (persistent)
+
+## Official Apps
+- **Android TV / Fire TV**: Atlas Pro ONTV (also called Atlas 9X) — activation code only, no URLs. Available on Amazon Appstore or APK.
+- **Apple (iOS, iPadOS, Apple TV)**: Atlas Pro IPTV Ontv GSE — from App Store, enter subscriber code.
+
+## Third-Party Apps (Xtream Codes)
+- Use Server URL + Username + Password when official apps aren't available.
+- Best apps: TiviMate (Firestick/Android TV), IPTV Smarters (universal), IBO Player/Smart IPTV (Samsung/LG TV).
+- Always use "Xtream Codes API" option (not M3U) for EPG support.
+
+## IPTV in France — Key Tips
+- French ISPs (Orange, SFR, Bouygues, Free) block/throttle IPTV, especially during football (Ligue 1, UCL). **VPN fixes this instantly**.
+- Minimum bandwidth: 5 Mbps (SD), 10-15 Mbps (HD), 25+ Mbps (4K).
+- Always test with free trial before buying long-term.
+- Use Ethernet over Wi-Fi for stability.
+
+## Sales Agent
+- `salesAgent.js` — French fallbacks updated to mention Atlas Pro IPTV. Keyword `atlas` triggers an Atlas-specific fallback reply.
+- Knowledge base at `server/data/iptvKnowledge.js` has topic `atlas_pro_setup` with full setup guide in French + troubleshooting for ISP blocking, activation codes, and EPG.
+

@@ -78,14 +78,15 @@ const FALLBACKS = {
     technical: "I'd be happy to help you with that! First, could you tell me what device you're using (Firestick, Android TV, iPhone, etc.) and what exactly you're seeing on screen?",
   },
   fr: {
-    welcome: "Bienvenue chez IPTV Boss ! 👋 Je suis Alex. Cherchez-vous un essai gratuit ou êtes-vous prêt à vous abonner ? Quel type de contenu aimez-vous ?",
+    welcome: "Bienvenue chez Atlas Pro IPTV France ! 👋 Je suis Alex. Cherchez-vous un essai gratuit ou êtes-vous prêt à vous abonner ? Quel type de contenu aimez-vous (sport, films, séries, etc.) ?",
     trial: "Un essai gratuit est parfait pour commencer ! J'ai juste besoin de votre nom et email pour le configurer. Quel est votre nom ?",
     trialReady: "Parfait ! Vos identifiants d'essai ont été envoyés à votre email. Vérifiez votre boîte de réception et commencez à regarder ! 🎉",
-    sports: "Parfait pour les fans de sport ! StreamMax offre 10 000+ chaînes avec une excellente couverture sportive. Voulez-vous un essai gratuit ou un abonnement payant ?",
-    arabic: "UltraTV est notre meilleur choix pour le contenu arabe — 8 000+ chaînes. Voulez-vous d'abord un essai gratuit ?",
-    europe: "ClearStream est excellent pour le contenu européen — 12 000+ chaînes. Essai gratuit ou abonnement payant ?",
-    pricing: "Excellent choix ! Nos plans commencent à partir de 9,99 €/mois. Pourriez-vous partager votre nom, email, téléphone et pays ?",
-    existing: "Bon retour ! Je vois que vous êtes un client existant. Comment puis-je vous aider avec votre configuration IPTV aujourd'hui ?",
+    sports: "Parfait pour les fans de sport ! Atlas Pro IPTV offre 25 000+ chaînes avec une excellente couverture sportive (Coupe du Monde 2026, LDC, Premier League, NBA, NFL en 4K). Voulez-vous un essai gratuit ou un abonnement payant ?",
+    arabic: "Atlas Pro IPTV est notre meilleur choix pour le contenu arabe — 25 000+ chaînes avec une large sélection. Voulez-vous d'abord un essai gratuit ?",
+    europe: "Atlas Pro IPTV est excellent pour le contenu européen — 25 000+ chaînes. Essai gratuit ou abonnement payant ?",
+    atlas: "Atlas Pro IPTV est notre service premium français ! Nous proposons 25 000+ chaînes en 4K, avec les applications officielles Atlas Pro ONTV (Android/Fire TV) et Atlas Pro IPTV Ontv GSE (Apple). L'activation est simple : entrez votre code et regardez. Voulez-vous un essai gratuit pour tester ?",
+    pricing: "Excellent choix ! Nos plans commencent à partir de 9,99 €/mois. Pourriez-vous partager votre nom, email, téléphone et pays pour que je vous envoie le lien de paiement ?",
+    existing: "Bon retour ! Je vois que vous êtes un client existant. Comment puis-je vous aider avec votre configuration IPTV aujourd'hui ? Quel appareil utilisez-vous ?",
     abuse: "Vous avez déjà utilisé votre essai gratuit. Je serais ravi de vous aider à choisir un abonnement payant à partir de seulement 9,99 €/mois !",
     technical: "Je serai heureux de vous aider ! D'abord, pourriez-vous me dire quel appareil vous utilisez (Firestick, Android TV, iPhone, etc.) et ce que vous voyez à l'écran ?",
   },
@@ -201,10 +202,12 @@ function fallbackReply(lower, langCode, isExisting) {
     } else {
       reply = getFallback('trial', langCode)
     }
-  } else if (lower.includes('sport')) {
-    actions.push({ action: 'recommend_plan', provider_id: 1, plan_id: 2, provider_name: 'StreamMax', plan_name: 'Basic', price: '14.99', is_trial: false, channels: 10000, streams: 1 })
-    reply = getFallback('sports', langCode)
-  } else if (lower.includes('arabic') || lower.includes('arab')) {
+    } else if (lower.includes('sport')) {
+      actions.push({ action: 'recommend_plan', provider_id: 1, plan_id: 2, provider_name: 'StreamMax', plan_name: 'Basic', price: '14.99', is_trial: false, channels: 10000, streams: 1 })
+      reply = getFallback('sports', langCode)
+    } else if (lower.includes('atlas')) {
+      reply = getFallback('atlas', langCode)
+    } else if (lower.includes('arabic') || lower.includes('arab')) {
     actions.push({ action: 'recommend_plan', provider_id: 2, plan_id: 6, provider_name: 'UltraTV', plan_name: 'Basic', price: '12.99', is_trial: false, channels: 8000, streams: 1 })
     reply = getFallback('arabic', langCode)
   } else if (lower.includes('europe')) {
