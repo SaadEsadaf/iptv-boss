@@ -208,6 +208,7 @@ export default function Settings() {
         { key: 'site_name', label: 'Site Name', type: 'text', optional: true },
         { key: 'site_url', label: 'Site URL', type: 'text', optional: true },
         { key: 'support_email', label: 'Support Email', type: 'text' },
+        { key: 'whatsapp_number', label: 'WhatsApp Number', type: 'text', optional: true, placeholder: '+33612345678' },
         { key: 'google_client_id', label: 'Google OAuth Client ID', type: 'text', optional: true },
         { key: 'apple_client_id', label: 'Apple Sign In Service ID', type: 'text', optional: true },
       ],

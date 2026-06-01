@@ -470,6 +470,7 @@ function initializeDatabase() {
     ['site_name', process.env.SITE_NAME || 'Dalletek'],
     ['site_url', process.env.SITE_URL || 'http://localhost:3001'],
     ['support_email', process.env.SUPPORT_EMAIL || ''],
+    ['whatsapp_number', process.env.WHATSAPP_NUMBER || ''],
     ['paypal_email', ''],
     ['paypal_client_id', ''],
     ['paypal_client_secret', ''],

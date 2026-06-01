@@ -63,6 +63,9 @@ IMPORTANT Only output action JSON when you're ready to perform the action. Do no
 Below you'll find the customer's order history and past sessions.
 Use this to personalize your response. If they have an active trial or order, reference it.
 If they've contacted support before about the same issue, acknowledge it.
+
+# CONTACT INFO
+Our WhatsApp number is {WHATSAPP_NUMBER} — share it when customers want direct support.
 `
 
 const FALLBACKS = {
@@ -76,6 +79,7 @@ const FALLBACKS = {
     pricing: "Great choice! Our plans start from $9.99/month. Could you share your name, email, phone, and country so I can send you the payment link?",
     existing: "Welcome back! I can see you're an existing customer. How can I help you with your IPTV setup today? What device are you using?",
     abuse: "It looks like you've already used your free trial. You can still click 'Get Free Trial' to see available options, or I can help you with a paid plan from just $9.99/month!",
+    contact: "For direct support, you can also reach us on WhatsApp at {whatsapp} — we're here to help!",
     technical: "I'd be happy to help you with that! First, could you tell me what device you're using (Firestick, Android TV, iPhone, etc.) and what exactly you're seeing on screen?",
   },
   fr: {
@@ -89,6 +93,7 @@ const FALLBACKS = {
     pricing: "Excellent choix ! Nos plans commencent à partir de 9,99 €/mois. Pourriez-vous partager votre nom, email, téléphone et pays pour que je vous envoie le lien de paiement ?",
     existing: "Bon retour ! Je vois que vous êtes un client existant. Comment puis-je vous aider avec votre configuration IPTV aujourd'hui ? Quel appareil utilisez-vous ?",
     abuse: "Vous avez déjà utilisé votre essai gratuit. Vous pouvez toujours cliquer sur 'Obtenir un Essai Gratuit' ou choisir un abonnement payant à partir de 9,99 €/mois !",
+    contact: "Pour un support direct, vous pouvez aussi nous contacter sur WhatsApp au {whatsapp} — nous sommes là pour vous aider !",
     technical: "Je serai heureux de vous aider ! D'abord, pourriez-vous me dire quel appareil vous utilisez (Firestick, Android TV, iPhone, etc.) et ce que vous voyez à l'écran ?",
   },
   es: {
@@ -195,6 +200,18 @@ function fallbackReply(lower, langCode, isExisting) {
     return { reply: getFallback('technical', langCode), actions }
   }
 
+  // Contact/WhatsApp
+  if (lower.includes('whatsapp') || lower.includes('whatapp')) {
+    let whatsapp = '';
+    try {
+      const { getDb } = require('./db');
+      const row = getDb().prepare("SELECT value FROM app_settings WHERE key = 'whatsapp_number'").get();
+      whatsapp = row?.value || '';
+    } catch {}
+    reply = getFallback('contact', langCode, { whatsapp: whatsapp || 'not configured' });
+    return { reply, actions };
+  }
+
   // Trial flow — just redirect to the button
   if (lower.includes('trial') || lower.includes('try') || lower.includes('test') || lower.includes('free')) {
     reply = getFallback('trial', langCode)
@@ -270,7 +287,16 @@ async function getAlexReply({ message, history, providers, language, customerDat
   const providerCtx = providers ? buildProviderContext(providers) : ''
   const customerCtx = buildCustomerContext(customerData)
 
-  const sysPrompt = SYSTEM_PROMPT + providerCtx + customerCtx + kbContext + `\n\nIMPORTANT: The visitor is writing in ${langInfo.name} (${langInfo.code}). Respond in ${langInfo.name}. Always use their language.`
+  let whatsappNumber = '';
+  try {
+    const { getDb } = require('./db');
+    const row = getDb().prepare("SELECT value FROM app_settings WHERE key = 'whatsapp_number'").get();
+    whatsappNumber = row?.value || '';
+  } catch {}
+
+  const sysPrompt = (SYSTEM_PROMPT + providerCtx + customerCtx + kbContext)
+    .replace('{WHATSAPP_NUMBER}', whatsappNumber || 'not configured')
+    + `\n\nIMPORTANT: The visitor is writing in ${langInfo.name} (${langInfo.code}). Respond in ${langInfo.name}. Always use their language.`
 
   try {
     const msgs = [
