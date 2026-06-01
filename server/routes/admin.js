@@ -594,9 +594,9 @@ router.post('/settings/test-email', authMiddleware, async (req, res) => {
 
 router.post('/settings/test-sellup', authMiddleware, async (req, res) => {
   try {
-    const { getApiKey } = require('../services/sellupService');
-    const apiKey = getApiKey();
-    if (!apiKey) {
+    const db = getDb();
+    let apiKey = (db.prepare("SELECT value FROM app_settings WHERE key = 'sellup_api_key'").get() || {}).value || process.env.SELLUP_API_KEY || '';
+    if (!apiKey || apiKey === 'your_sellup_api_key_here') {
       return res.json({ success: false, error: 'Sellup test: configure your API key in Settings to enable' });
     }
     const response = await fetch('https://api.sellup.io/v1/products', {
