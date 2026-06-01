@@ -316,14 +316,14 @@ export default function LandingPage() {
               padding: '10px 20px', background: 'transparent', color: '#fff', border: '1px solid #ffffff33',
               borderRadius: 50, fontWeight: 600, cursor: 'pointer', fontSize: 13, textAlign: 'center', marginTop: 4,
             }}>
-              Sign In
+              {t('signIn')}
             </button>
           )}
           <button onClick={() => { setMobileMenu(false); window.__showTrialForm?.() }} style={{
             padding: '10px 20px', background: '#00d4ff', color: '#000', border: 'none',
             borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, textAlign: 'center', marginTop: 4,
           }}>
-            ✦ Free Trial
+            {t('freeTrial')}
           </button>
         </div>
       </nav>
@@ -543,9 +543,9 @@ export default function LandingPage() {
 
       <section id="faq" style={{ padding: '40px 24px 80px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>FAQ</span></div>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>Frequently Asked Questions</h2>
-          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 32px' }}>Everything you need to know before getting started.</p>
+          <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('faq')}</span></div>
+          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>{t('faqTitle')}</h2>
+          <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 32px' }}>{t('faqSub')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {faqs.map((faq, i) => (
               <div key={i} onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{

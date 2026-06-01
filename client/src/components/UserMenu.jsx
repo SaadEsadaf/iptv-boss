@@ -1,5 +1,16 @@
 import { useState } from 'react'
 
+const ws = typeof window !== 'undefined' && window.__WEBSITE__
+const lang = ws?.language || 'en'
+const FR = {
+  mySubscriptions: 'Mes Abonnements',
+  expired: 'Expiré', daysLeft: 'j restants',
+  started: 'Début :', ends: 'Fin :',
+  noSubscriptions: 'Aucun abonnement pour le moment. Achetez un forfait pour commencer !',
+  signOut: 'Déconnexion',
+}
+const t = (key) => lang === 'fr' ? (FR[key] || key) : key
+
 function getDaysRemaining(expiresAt) {
   const diff = new Date(expiresAt) - new Date()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
@@ -42,7 +53,7 @@ export default function UserMenu({ user, subscriptions, onSignOut }) {
 
             <div style={{ padding: 12 }}>
               <div style={{ color: '#a0a0a0', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
-                My Subscriptions {subscriptions?.length > 0 ? `(${subscriptions.length})` : ''}
+                {t('mySubscriptions')} {subscriptions?.length > 0 ? `(${subscriptions.length})` : ''}
               </div>
               {subscriptions?.length > 0 ? subscriptions.map(sub => {
                 const daysLeft = getDaysRemaining(sub.expires_at)
@@ -59,18 +70,18 @@ export default function UserMenu({ user, subscriptions, onSignOut }) {
                         background: expired ? '#ff444420' : '#00cc6620',
                         color: expired ? '#ff4444' : '#00cc66',
                       }}>
-                        {expired ? 'Expired' : `${daysLeft}d left`}
+                        {expired ? t('expired') : `${daysLeft}${t('daysLeft')}`}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: 11 }}>
-                      <span>Started: {new Date(sub.purchased_at).toLocaleDateString()}</span>
-                      <span>Ends: {new Date(sub.expires_at).toLocaleDateString()}</span>
+                      <span>{t('started')} {new Date(sub.purchased_at).toLocaleDateString()}</span>
+                      <span>{t('ends')} {new Date(sub.expires_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 )
               }) : (
                 <p style={{ color: '#555', fontSize: 12, textAlign: 'center', padding: '16px 0' }}>
-                  No subscriptions yet. Purchase a plan to get started!
+                  {t('noSubscriptions')}
                 </p>
               )}
             </div>
@@ -79,7 +90,7 @@ export default function UserMenu({ user, subscriptions, onSignOut }) {
               <button onClick={() => { onSignOut(); setOpen(false) }} style={{
                 width: '100%', padding: '10px', background: 'transparent', color: '#ff4444',
                 border: '1px solid #ff444433', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13,
-              }}>Sign Out</button>
+              }}>{t('signOut')}</button>
             </div>
           </div>
         </>

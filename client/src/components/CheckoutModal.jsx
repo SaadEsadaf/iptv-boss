@@ -1,11 +1,63 @@
 import { useState, useEffect, useRef } from 'react'
 
+const ws = typeof window !== 'undefined' && window.__WEBSITE__
+const lang = ws?.language || 'en'
+const FR = {
+  paypal: 'PayPal', paypalDesc: 'Payer avec PayPal ou carte bancaire',
+  stripe: 'Stripe', stripeDesc: 'Carte de crédit via Stripe',
+  crypto: 'Crypto', cryptoDesc: 'USDT (TRC20) ou BTC',
+  email: 'Lien Email', emailDesc: 'Recevoir un lien de paiement par email',
+  sepa: 'Virement SEPA', sepaDesc: 'Virement bancaire dans l\'UE',
+  completePurchase: 'Finaliser l\'Achat',
+  notConfigured: 'Aucun moyen de paiement configuré pour cette offre. Contactez le support.',
+  paypalNotConfigured: 'PayPal non configuré. Contactez le support.',
+  failedToSend: 'Échec de l\'envoi',
+  networkError: 'Erreur réseau',
+  continue: 'Continuer',
+  proceedToPayment: 'Procéder au Paiement',
+  paypalCheckout: 'Paiement PayPal',
+  embedError: 'PayPal ne peut pas être intégré. Ouvrez-le dans un nouvel onglet.',
+  loadingCheckout: 'Chargement du paiement...',
+  openPaypal: 'Ouvrir PayPal',
+  sendPaypal: 'Envoyez le paiement via PayPal Friends & Family à l\'adresse ci-dessous :',
+  copied: 'Copié !',
+  copy: 'Copier',
+  completedPayment: '✓ J\'ai Effectué le Paiement',
+  backToMethods: '← Retour aux méthodes',
+  paymentSuccessful: 'Paiement Réussi !',
+  credentialsSent: 'Vos identifiants d\'activation seront envoyés par email sous peu.',
+  done: 'Terminé',
+  stripePayment: 'Paiement Stripe',
+  stripeDesc: 'Paiement sécurisé via Stripe. Votre paiement sera traité une fois confirmé.',
+  amount: 'Montant :',
+  reference: 'Référence :',
+  emailPaymentLink: 'Lien de Paiement par Email',
+  emailDesc2: 'Entrez votre email et nous vous enverrons un lien de paiement sécurisé.',
+  emailPlaceholder: 'votre@email.com',
+  sending: 'Envoi en cours...',
+  sendPaymentLink: 'Envoyer le Lien de Paiement',
+  paymentLinkSent: 'Lien de paiement envoyé !',
+  checkInbox: 'Vérifiez votre boîte de réception',
+  orOpen: 'Ou ouvrez-le directement :',
+  copyLink: 'Copier le Lien',
+  cryptoPayment: 'Paiement Crypto',
+  cryptoDesc: 'Envoyez le montant exact à l\'une des adresses ci-dessous.',
+  usdt: 'USDT (TRC20)',
+  btc: 'Bitcoin (BTC)',
+  cryptoNotConfigured: 'Adresses crypto non configurées.',
+  sepaPayment: 'Virement SEPA',
+  sepaDesc2: 'Virez le montant exact sur le compte ci-dessous.',
+  sepaAmount: 'Montant', sepaIban: 'IBAN', sepaBic: 'BIC', sepaBank: 'Banque',
+  sepaNotConfigured: 'Coordonnées SEPA non configurées.',
+}
+const t = (key) => lang === 'fr' ? (FR[key] || key) : key
+
 const ALL_METHODS = [
-  { id: 'paypal', label: 'PayPal', icon: '💳', desc: 'Pay with PayPal or credit card' },
-  { id: 'stripe', label: 'Stripe', icon: '💳', desc: 'Credit/debit card via Stripe' },
-  { id: 'crypto', label: 'Crypto', icon: '₿', desc: 'USDT (TRC20) or BTC' },
-  { id: 'email', label: 'Email Link', icon: '📧', desc: 'Receive a payment link via email' },
-  { id: 'sepa', label: 'SEPA Transfer', icon: '🏦', desc: 'Bank transfer within EU' },
+  { id: 'paypal', label: t('paypal'), icon: '💳', desc: t('paypalDesc') },
+  { id: 'stripe', label: t('stripe'), icon: '💳', desc: t('stripeDesc') },
+  { id: 'crypto', label: t('crypto'), icon: '₿', desc: t('cryptoDesc') },
+  { id: 'email', label: t('email'), icon: '📧', desc: t('emailDesc') },
+  { id: 'sepa', label: t('sepa'), icon: '🏦', desc: t('sepaDesc') },
 ]
 
 export default function CheckoutModal({ plan, onClose, userToken }) {
@@ -48,7 +100,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
         })
         const data = await res.json()
         if (data.error === 'not_configured') {
-          setPaypalError('No payment method configured for this plan. Please contact support.')
+          setPaypalError(t('notConfigured'))
           return
         }
         setCheckoutUrl(data.checkoutUrl || '')
@@ -56,7 +108,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
       } else if (settings?.paypalEmail) {
         setCheckoutUrl('')
       } else {
-        setPaypalError('No PayPal payment method configured. Please contact support.')
+        setPaypalError(t('paypalNotConfigured'))
         return
       }
     }
@@ -75,9 +127,9 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
       })
       const data = await res.json()
       if (data.success) { setSent(true); setSentUrl(data.paymentUrl || '') }
-      else alert(data.error || 'Failed to send')
+      else alert(data.error || t('failedToSend'))
     } catch {
-      alert('Network error')
+      alert(t('networkError'))
     } finally {
       setSending(false)
     }
@@ -115,12 +167,12 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
 
         {step === 'methods' && (
           <>
-            <h2 style={{ margin: '0 0 4px', fontSize: 20, color: '#00d4ff' }}>Complete Purchase</h2>
+            <h2 style={{ margin: '0 0 4px', fontSize: 20, color: '#00d4ff' }}>{t('completePurchase')}</h2>
             <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
               {plan.provider_name} — {plan.plan_name}
             </p>
             <div style={{ fontSize: 32, fontWeight: 700, color: '#00d4ff', marginBottom: 20 }}>
-              ${plan.price_sell}
+              {lang === 'fr' ? '€' : '$'}{plan.price_sell}
               <span style={{ fontSize: 14, color: '#666', fontWeight: 400 }}> / {plan.duration_days}d</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
@@ -146,14 +198,14 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
               color: selected ? '#000' : '#666', border: 'none', borderRadius: 8,
               fontWeight: 700, cursor: selected ? 'pointer' : 'default', fontSize: 15,
             }}>
-              {selected === 'email' ? 'Continue' : 'Proceed to Payment'}
+              {selected === 'email' ? t('continue') : t('proceedToPayment')}
             </button>
           </>
         )}
 
         {step === 'paypal' && !paid && (
           <>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>PayPal Checkout</h2>
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('paypalCheckout')}</h2>
             {paypalError && (
               <div style={{ background: '#ff444420', border: '1px solid #ff4444', borderRadius: 8, padding: 12, marginBottom: 12, color: '#ff4444', fontSize: 13, textAlign: 'center' }}>
                 {paypalError}
@@ -171,19 +223,19 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
               <div style={{ textAlign: 'center', padding: 20, background: '#0f0f0f', borderRadius: 10, marginBottom: 16 }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>💳</div>
                 <p style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 12 }}>
-                  {iframeError ? 'PayPal cannot be embedded. Open it in a new tab.' : 'Loading checkout...'}
+                  {iframeError ? t('embedError') : t('loadingCheckout')}
                 </p>
                 {checkoutUrl && (
                   <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" style={{
                     display: 'inline-block', padding: '10px 24px', background: '#00d4ff', color: '#000',
                     borderRadius: 8, fontWeight: 700, textDecoration: 'none', fontSize: 14,
-                  }}>Open PayPal</a>
+                  }}>{t('openPaypal')}</a>
                 )}
               </div>
             ) : settings?.paypalEmail ? (
               <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
                 <p style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 12 }}>
-                  Send payment via PayPal Friends &amp; Family to the email below:
+                  {t('sendPaypal')}
                 </p>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <code style={{ flex: 1, color: '#a0a0a0', fontSize: 13, wordBreak: 'break-all' }}>
@@ -194,7 +246,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
                     padding: '6px 14px', color: copied === 'paypal_email' ? '#00cc66' : '#00d4ff',
                     cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap',
                   }}>
-                    {copied === 'paypal_email' ? 'Copied!' : 'Copy'}
+                    {copied === 'paypal_email' ? t('copied') : t('copy')}
                   </button>
                 </div>
               </div>
@@ -202,11 +254,11 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
             <button onClick={() => setPaid(true)} style={{
               width: '100%', padding: '12px', background: '#00cc66', color: '#000',
               border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15, marginBottom: 8,
-            }}>✓ I've Completed Payment</button>
+            }}>{t('completedPayment')}</button>
             <button onClick={reset} style={{
               width: '100%', padding: '10px', background: 'transparent', color: '#00d4ff',
               border: '1px solid #00d4ff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 14,
-            }}>← Back to methods</button>
+            }}>{t('backToMethods')}</button>
           </>
         )}
 
@@ -214,59 +266,59 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
           <>
             <div style={{ textAlign: 'center', padding: '30px 20px' }}>
               <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
-              <h2 style={{ margin: '0 0 8px', fontSize: 22, color: '#00cc66' }}>Payment Successful!</h2>
+              <h2 style={{ margin: '0 0 8px', fontSize: 22, color: '#00cc66' }}>{t('paymentSuccessful')}</h2>
               <p style={{ color: '#a0a0a0', fontSize: 14, margin: '0 0 4px' }}>
                 {plan.provider_name} — {plan.plan_name}
               </p>
               <p style={{ color: '#666', fontSize: 13, margin: '0 0 24px' }}>
-                ${plan.price_sell}
+                {lang === 'fr' ? '€' : '$'}{plan.price_sell}
               </p>
               <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 20px' }}>
-                Your activation credentials will be sent to your email shortly.
+                {t('credentialsSent')}
               </p>
               <button onClick={onClose} style={{
                 padding: '12px 36px', background: '#00d4ff', color: '#000',
                 border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15,
-              }}>Done</button>
+              }}>{t('done')}</button>
             </div>
           </>
         )}
 
         {step === 'stripe' && (
           <>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>Stripe Payment</h2>
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('stripePayment')}</h2>
             <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
               <p style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 12 }}>
-                Pay securely via Stripe. Your payment will be processed once confirmed.
+                {t('stripeDesc')}
               </p>
               {settings?.stripePublishableKey && (
                 <div style={{ marginTop: 8 }}>
-                  <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>Amount: <strong style={{ color: '#fff' }}>${plan.price_sell}</strong></div>
-                  <div style={{ color: '#666', fontSize: 12 }}>Reference: <strong style={{ color: '#fff' }}>#{Date.now().toString(36).toUpperCase()}</strong></div>
+                  <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>{t('amount')} <strong style={{ color: '#fff' }}>{lang === 'fr' ? '€' : '$'}{plan.price_sell}</strong></div>
+                  <div style={{ color: '#666', fontSize: 12 }}>{t('reference')} <strong style={{ color: '#fff' }}>#{Date.now().toString(36).toUpperCase()}</strong></div>
                 </div>
               )}
             </div>
             <button onClick={() => setPaid(true)} style={{
               width: '100%', padding: '12px', background: '#00cc66', color: '#000',
               border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15, marginBottom: 8,
-            }}>✓ I've Completed Payment</button>
+            }}>{t('completedPayment')}</button>
             <button onClick={reset} style={{
               width: '100%', padding: '10px', background: 'transparent', color: '#00d4ff',
               border: '1px solid #00d4ff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 14,
-            }}>← Back to methods</button>
+            }}>{t('backToMethods')}</button>
           </>
         )}
 
         {step === 'email' && (
           <>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>Email Payment Link</h2>
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('emailPaymentLink')}</h2>
             {!sent ? (
               <form onSubmit={handleSendLink}>
                 <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
-                  Enter your email and we'll send you a secure payment link.
+                  {t('emailDesc2')}
                 </p>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com" required
+                  placeholder={t('emailPlaceholder')} required
                   style={{
                     width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid #333',
                     background: '#0f0f0f', color: '#fff', fontSize: 14, outline: 'none',
@@ -277,17 +329,17 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
                   border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 15,
                   opacity: sending || !email.trim() ? 0.6 : 1,
                 }}>
-                  {sending ? 'Sending...' : 'Send Payment Link'}
+                  {sending ? t('sending') : t('sendPaymentLink')}
                 </button>
               </form>
             ) : (
               <div style={{ textAlign: 'center', padding: 20 }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>📧</div>
-                <p style={{ color: '#00cc66', fontWeight: 700, marginBottom: 4 }}>Payment link sent!</p>
-                <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>Check your inbox at <strong style={{ color: '#fff' }}>{email}</strong></p>
+                <p style={{ color: '#00cc66', fontWeight: 700, marginBottom: 4 }}>{t('paymentLinkSent')}</p>
+                <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>{t('checkInbox')} <strong style={{ color: '#fff' }}>{email}</strong></p>
                 {sentUrl && (
                   <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
-                    <p style={{ color: '#666', fontSize: 12, marginBottom: 6 }}>Or open it directly:</p>
+                    <p style={{ color: '#666', fontSize: 12, marginBottom: 6 }}>{t('orOpen')}</p>
                     <a href={sentUrl} target="_blank" rel="noopener noreferrer" style={{
                       display: 'block', color: '#00d4ff', wordBreak: 'break-all', fontSize: 13, textDecoration: 'underline',
                     }}>{sentUrl}</a>
@@ -295,7 +347,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
                       marginTop: 8, background: 'transparent', border: '1px solid #333', borderRadius: 6,
                       padding: '6px 14px', color: copied === 'url' ? '#00cc66' : '#00d4ff',
                       cursor: 'pointer', fontSize: 12,
-                    }}>{copied === 'url' ? 'Copied!' : 'Copy Link'}</button>
+                    }}>{copied === 'url' ? t('copied') : t('copyLink')}</button>
                   </div>
                 )}
               </div>
@@ -304,19 +356,19 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
               width: '100%', padding: '10px', marginTop: 12, background: 'transparent',
               color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: 8,
               fontWeight: 600, cursor: 'pointer', fontSize: 14,
-            }}>← Back to methods</button>
+            }}>{t('backToMethods')}</button>
           </>
         )}
 
         {step === 'crypto' && (
           <>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>Crypto Payment</h2>
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('cryptoPayment')}</h2>
             <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
-              Send exact amount to one of the addresses below.
+              {t('cryptoDesc')}
             </p>
             {settings?.crypto?.usdt && (
               <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 12 }}>
-                <div style={{ color: '#00d4ff', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>USDT (TRC20)</div>
+                <div style={{ color: '#00d4ff', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t('usdt')}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <code style={{ flex: 1, color: '#a0a0a0', fontSize: 12, wordBreak: 'break-all' }}>
                     {settings.crypto.usdt}
@@ -326,14 +378,14 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
                     padding: '4px 10px', color: copied === 'usdt' ? '#00cc66' : '#00d4ff',
                     cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap',
                   }}>
-                    {copied === 'usdt' ? 'Copied!' : 'Copy'}
+                    {copied === 'usdt' ? t('copied') : t('copy')}
                   </button>
                 </div>
               </div>
             )}
             {settings?.crypto?.btc && (
               <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
-                <div style={{ color: '#ffaa00', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Bitcoin (BTC)</div>
+                <div style={{ color: '#ffaa00', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t('btc')}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <code style={{ flex: 1, color: '#a0a0a0', fontSize: 12, wordBreak: 'break-all' }}>
                     {settings.crypto.btc}
@@ -343,36 +395,36 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
                     padding: '4px 10px', color: copied === 'btc' ? '#00cc66' : '#00d4ff',
                     cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap',
                   }}>
-                    {copied === 'btc' ? 'Copied!' : 'Copy'}
+                    {copied === 'btc' ? t('copied') : t('copy')}
                   </button>
                 </div>
               </div>
             )}
             {!settings?.crypto?.usdt && !settings?.crypto?.btc && (
               <p style={{ color: '#666', textAlign: 'center', padding: 20 }}>
-                Crypto addresses not configured yet.
+                {t('cryptoNotConfigured')}
               </p>
             )}
             <button onClick={reset} style={{
               width: '100%', padding: '10px', background: 'transparent', color: '#00d4ff',
               border: '1px solid #00d4ff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 14,
-            }}>← Back to methods</button>
+            }}>{t('backToMethods')}</button>
           </>
         )}
 
         {step === 'sepa' && (
           <>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>SEPA Transfer</h2>
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, color: '#00d4ff' }}>{t('sepaPayment')}</h2>
             <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
-              Transfer the exact amount to the account below.
+              {t('sepaDesc2')}
             </p>
             <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 16, marginBottom: 16 }}>
               {[
-                { label: 'Amount', value: `$${plan.price_sell}` },
-                { label: 'IBAN', value: settings?.sepa?.iban, key: 'iban' },
-                { label: 'BIC', value: settings?.sepa?.bic, key: 'bic' },
-                { label: 'Bank', value: settings?.sepa?.bank, key: 'bank' },
-                { label: 'Reference', value: `Order #${Date.now().toString(36).toUpperCase()}` },
+                { label: t('sepaAmount'), value: `${lang === 'fr' ? '€' : '$'}${plan.price_sell}` },
+                { label: t('sepaIban'), value: settings?.sepa?.iban, key: 'iban' },
+                { label: t('sepaBic'), value: settings?.sepa?.bic, key: 'bic' },
+                { label: t('sepaBank'), value: settings?.sepa?.bank, key: 'bank' },
+                { label: t('reference'), value: `Order #${Date.now().toString(36).toUpperCase()}` },
               ].map(item => item.value ? (
                 <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1a1a1a' }}>
                   <span style={{ color: '#666', fontSize: 12 }}>{item.label}</span>
@@ -382,13 +434,13 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
             </div>
             {!settings?.sepa?.iban && (
               <p style={{ color: '#666', textAlign: 'center', padding: 20 }}>
-                SEPA details not configured yet.
+                {t('sepaNotConfigured')}
               </p>
             )}
             <button onClick={reset} style={{
               width: '100%', padding: '10px', background: 'transparent', color: '#00d4ff',
               border: '1px solid #00d4ff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 14,
-            }}>← Back to methods</button>
+            }}>{t('backToMethods')}</button>
           </>
         )}
       </div>
