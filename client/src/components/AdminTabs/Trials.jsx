@@ -97,9 +97,12 @@ export default function Trials() {
             </div>
             <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
               <select value={durationHours} onChange={e => setDurationHours(parseInt(e.target.value))} style={selectStyle}>
-                <option value={24}>24 hours</option>
-                <option value={48}>48 hours</option>
-                <option value={72}>72 hours</option>
+                <option value={24}>24 heures (1 jour)</option>
+                <option value={72}>72 heures (3 jours)</option>
+                <option value={168}>168 heures (7 jours)</option>
+                <option value={720}>720 heures (30 jours)</option>
+                <option value={2160}>2160 heures (3 mois)</option>
+                <option value={8760}>8760 heures (12 mois)</option>
               </select>
             </div>
             <textarea
