@@ -5,12 +5,11 @@ const SYSTEM_PROMPT = `You are Alex, a friendly IPTV technical sales agent for D
 # YOUR BEHAVIOR BY VISITOR STATE
 
 ## New Visitor (no email collected, no order)
-- GOAL: Collect their email (required), name (optional), and WhatsApp (optional). Only act after they confirm.
+- GOAL: Answer questions and direct to the "Get Free Trial" button or plan selection.
 - Start with a warm greeting and ask how you can help or what content they enjoy.
 - If they say hi or ask a simple question (like "do you speak X?"), answer briefly and ask what they're looking for.
-- Never activate anything without the visitor explicitly asking for it.
-- Once they express interest, ask for their email (required), name (optional), and WhatsApp number (optional).
-- Only output action JSON when the visitor has clearly said yes to an offer AND provided their email.
+- If they want a trial: tell them to click "Get Free Trial" button above. Do not collect their info yourself.
+- If they want to buy: offer the available plans.
 - If they ask a technical question about setup: give a BRIEF 1-2 sentence answer, then close with an offer.
 
 ## Info-Collected / Trial Visitor (email provided, order pending)
@@ -47,6 +46,9 @@ If the user sends a screenshot image, analyze it carefully. Describe what you se
 - Is the screen blank or frozen? Suggest next steps.
 Be specific about what you observe in the image.
 
+# TRIAL REDIRECT
+When a visitor asks for a trial, tell them to click the "Get Free Trial" button and fill in their info. Do NOT collect their email or offer to send trial yourself.
+
 # SALES FLOW
 When recommending plans, output JSON in this format:
 {"action": "recommend_plan", "provider_id": X, "plan_id": X, "provider_name": "X", "plan_name": "X", "price": "X.XX", "is_trial": true/false, "channels": X, "streams": X}
@@ -54,8 +56,7 @@ When ready to collect info:
 {"action": "collect_info", "plan_id": X, "provider_id": X, "is_trial": true/false}
 When payment link needed:
 {"action": "create_sellup_order", "order_id": X, "plan_id": X, "amount": X.XX}
-When trial ready to send:
-{"action": "send_trial", "order_id": X}
+NOTE: For trials, do NOT output any action JSON. Just tell them to click the "Get Free Trial" button.
 IMPORTANT Only output action JSON when you're ready to perform the action. Do not output multiple actions in one message.
 
 # CUSTOMER DATA (when available)
@@ -67,75 +68,75 @@ If they've contacted support before about the same issue, acknowledge it.
 const FALLBACKS = {
   en: {
     welcome: "Welcome to Dalletek! 👋 I'm Alex. Are you looking for a free trial or ready to subscribe? What kind of content do you enjoy?",
-    trial: "A free trial is a great way to start! I just need your name and email to set it up. What's your name?",
-    trialReady: "Great! Your trial credentials have been sent to your email. Check your inbox and start watching! If you need help setting up, let me know. 🎉",
+    trial: "You can click on 'Get Free Trial' and fill in your info, and you will get your trial instantly! 🎉",
+    trialReady: "Great! Click on the 'Get Free Trial' button above to fill in your info and get started instantly! 🎉",
     sports: "Perfect for sports fans! StreamMax offers 10,000+ channels with excellent sports coverage including World Cup 2026, Premier League, and more. Would you like a free trial or a paid plan?",
     arabic: "UltraTV is our top choice for Arabic content — 8,000+ channels with the best Arabic programming. Would you like a free trial first or go for a paid plan?",
     europe: "ClearStream is excellent for European content — 12,000+ channels with great international coverage. Would you like a free trial or a paid plan?",
     pricing: "Great choice! Our plans start from $9.99/month. Could you share your name, email, phone, and country so I can send you the payment link?",
     existing: "Welcome back! I can see you're an existing customer. How can I help you with your IPTV setup today? What device are you using?",
-    abuse: "It looks like you've already used your free trial. I'd love to help you get set up with a paid plan instead — our prices start from just $9.99/month!",
+    abuse: "It looks like you've already used your free trial. You can still click 'Get Free Trial' to see available options, or I can help you with a paid plan from just $9.99/month!",
     technical: "I'd be happy to help you with that! First, could you tell me what device you're using (Firestick, Android TV, iPhone, etc.) and what exactly you're seeing on screen?",
   },
   fr: {
     welcome: "Bienvenue chez Atlas Pro IPTV France ! 👋 Je suis Alex. Cherchez-vous un essai gratuit ou êtes-vous prêt à vous abonner ? Quel type de contenu aimez-vous (sport, films, séries, etc.) ?",
-    trial: "Un essai gratuit est parfait pour commencer ! J'ai juste besoin de votre nom et email pour le configurer. Quel est votre nom ?",
-    trialReady: "Parfait ! Vos identifiants d'essai ont été envoyés à votre email. Vérifiez votre boîte de réception et commencez à regarder ! 🎉",
+    trial: "Vous pouvez cliquer sur 'Obtenir un Essai Gratuit' et remplir vos informations, et vous recevrez votre essai instantanément ! 🎉",
+    trialReady: "Parfait ! Cliquez sur le bouton 'Obtenir un Essai Gratuit' ci-dessus pour remplir vos informations et commencer instantanément ! 🎉",
     sports: "Parfait pour les fans de sport ! Atlas Pro IPTV offre 25 000+ chaînes avec une excellente couverture sportive (Coupe du Monde 2026, LDC, Premier League, NBA, NFL en 4K). Voulez-vous un essai gratuit ou un abonnement payant ?",
     arabic: "Atlas Pro IPTV est notre meilleur choix pour le contenu arabe — 25 000+ chaînes avec une large sélection. Voulez-vous d'abord un essai gratuit ?",
     europe: "Atlas Pro IPTV est excellent pour le contenu européen — 25 000+ chaînes. Essai gratuit ou abonnement payant ?",
     atlas: "Atlas Pro IPTV est notre service premium français ! Nous proposons 25 000+ chaînes en 4K, avec les applications officielles Atlas Pro ONTV (Android/Fire TV) et Atlas Pro IPTV Ontv GSE (Apple). L'activation est simple : entrez votre code et regardez. Voulez-vous un essai gratuit pour tester ?",
     pricing: "Excellent choix ! Nos plans commencent à partir de 9,99 €/mois. Pourriez-vous partager votre nom, email, téléphone et pays pour que je vous envoie le lien de paiement ?",
     existing: "Bon retour ! Je vois que vous êtes un client existant. Comment puis-je vous aider avec votre configuration IPTV aujourd'hui ? Quel appareil utilisez-vous ?",
-    abuse: "Vous avez déjà utilisé votre essai gratuit. Je serais ravi de vous aider à choisir un abonnement payant à partir de seulement 9,99 €/mois !",
+    abuse: "Vous avez déjà utilisé votre essai gratuit. Vous pouvez toujours cliquer sur 'Obtenir un Essai Gratuit' ou choisir un abonnement payant à partir de 9,99 €/mois !",
     technical: "Je serai heureux de vous aider ! D'abord, pourriez-vous me dire quel appareil vous utilisez (Firestick, Android TV, iPhone, etc.) et ce que vous voyez à l'écran ?",
   },
   es: {
     welcome: "¡Bienvenido a Dalletek! 👋 Soy Alex. ¿Buscas una prueba gratuita o estás listo para suscribirte? ¿Qué tipo de contenido te gusta?",
-    trial: "¡Una prueba gratuita es perfecta para empezar! Solo necesito tu nombre y email para configurarla. ¿Cuál es tu nombre?",
-    trialReady: "¡Genial! Tus credenciales de prueba han sido enviadas a tu email. ¡Revisa tu bandeja de entrada y empieza a ver! 🎉",
+    trial: "¡Puedes hacer clic en 'Obtener Prueba Gratis' y llenar tus datos, y recibirás tu prueba al instante! 🎉",
+    trialReady: "¡Genial! Haz clic en el botón 'Obtener Prueba Gratis' arriba para llenar tus datos y empezar al instante! 🎉",
     sports: "¡Perfecto para los amantes del deporte! StreamMax ofrece más de 10,000 canales con excelente cobertura deportiva. ¿Prueba gratuita o plan de pago?",
     arabic: "UltraTV es nuestra mejor opción para contenido árabe — más de 8,000 canales. ¿Quieres una prueba gratuita primero?",
     europe: "ClearStream es excelente para contenido europeo — más de 12,000 canales. ¿Prueba gratuita o plan de pago?",
     pricing: "¡Excelente elección! Nuestros planes desde $9.99/mes. ¿Podrías compartir tu nombre, email, teléfono y país?",
     existing: "¡Bienvenido de nuevo! Veo que eres un cliente existente. ¿Cómo puedo ayudarte con tu configuración IPTV hoy?",
-    abuse: "Ya has usado tu prueba gratuita. ¡Me encantaría ayudarte a conseguir un plan de pago desde solo $9.99/mes!",
+    abuse: "Ya has usado tu prueba gratuita. Puedes hacer clic en 'Obtener Prueba Gratis' o elegir un plan de pago desde $9.99/mes!",
     technical: "¡Con gusto te ayudaré! Primero, ¿podrías decirme qué dispositivo usas (Firestick, Android TV, iPhone, etc.) y qué ves exactamente en la pantalla?",
   },
   ar: {
     welcome: "!👋 مرحباً بك في Dalletek. أنا أليكس. هل تبحث عن نسخة تجريبية مجانية أم أنك مستعد للاشتراك؟ ما نوع المحتوى الذي تستمتع به؟",
-    trial: "النسخة التجريبية المجانية هي طريقة رائعة للبدء! أحتاج فقط إلى اسمك وبريدك الإلكتروني. ما هو اسمك؟",
-    trialReady: "!🎉 رائع! تم إرسال بيانات النسخة التجريبية إلى بريدك الإلكتروني. تحقق من صندوق الوارد الخاص بك وابدأ المشاهدة",
+    trial: "!🎉 يمكنك النقر على 'الحصول على نسخة تجريبية مجانية' وملء معلوماتك، وستحصل على نسختك التجريبية فوراً",
+    trialReady: "!🎉 رائع! انقر على زر 'الحصول على نسخة تجريبية مجانية' أعلاه لملء معلوماتك والبدء فوراً",
     sports: "مثالي لعشاق الرياضة! StreamMax يقدم أكثر من 10,000 قناة مع تغطية رياضية ممتازة. هل تريد نسخة تجريبية مجانية أم اشتراك مدفوع؟",
     arabic: "UltraTV هو خيارنا الأفضل للمحتوى العربي — أكثر من 8,000 قناة. هل تريد نسخة تجريبية مجانية أولاً؟",
     europe: "ClearStream ممتاز للمحتوى الأوروبي — أكثر من 12,000 قناة. نسخة تجريبية مجانية أم اشتراك مدفوع؟",
     pricing: "!خيار رائع! خططنا تبدأ من 9.99 دولار شهرياً. هل يمكنك مشاركة اسمك وبريدك الإلكتروني ورقم هاتفك ودولتك",
     existing: "مرحباً بعودتك! أرى أنك عميل حالي. كيف يمكنني مساعدتك في إعداد IPTV الخاص بك اليوم؟",
-    abuse: "لقد استخدمت نسختك التجريبية المجانية بالفعل. يسعدني مساعدتك في الحصول على اشتراك مدفوع يبدأ من 9.99 دولار شهرياً فقط!",
+    abuse: "!لقد استخدمت نسختك التجريبية المجانية بالفعل. يمكنك النقر على 'الحصول على نسخة تجريبية مجانية' أو اختيار اشتراك مدفوع يبدأ من 9.99 دولار شهرياً",
     technical: "يسعدني مساعدتك في ذلك! أولاً، هل يمكنك إخباري بالجهاز الذي تستخدمه (Firestick أو Android TV أو iPhone أو غيره) وماذا ترى بالضبط على الشاشة؟",
   },
   de: {
     welcome: "Willkommen bei Dalletek! 👋 Ich bin Alex. Suchen Sie eine kostenlose Testversion oder möchten Sie gleich abonnieren? Welche Inhalte interessieren Sie?",
-    trial: "Ein kostenloser Test ist perfekt für den Anfang! Ich brauche nur Ihren Namen und Ihre E-Mail. Wie heißen Sie?",
-    trialReady: "Toll! Ihre Testzugangsdaten wurden an Ihre E-Mail gesendet. Schauen Sie in Ihrem Posteingang nach und legen Sie los! 🎉",
+    trial: "Sie können auf 'Kostenlosen Test erhalten' klicken und Ihre Daten eingeben, und Sie erhalten Ihren Test sofort! 🎉",
+    trialReady: "Toll! Klicken Sie oben auf 'Kostenlosen Test erhalten', um Ihre Daten einzugeben und sofort zu starten! 🎉",
     sports: "Perfekt für Sportfans! StreamMax bietet über 10.000 Sender mit exzellenter Sportberichterstattung. Kostenlos testen oder bezahlen?",
     arabic: "UltraTV ist unsere Top-Wahl für arabische Inhalte — über 8.000 Sender. Erst kostenlos testen?",
     europe: "ClearStream ist hervorragend für europäische Inhalte — über 12.000 Sender. Test oder Abo?",
     pricing: "Ausgezeichnete Wahl! Unsere Pläne beginnen bei 9,99 €/Monat. Können Sie mir Ihren Namen, E-Mail, Telefon und Land nennen?",
     existing: "Willkommen zurück! Sie sind bereits Kunde. Wie kann ich Ihnen heute bei Ihrem IPTV-Setup helfen?",
-    abuse: "Sie haben Ihre kostenlose Testversion bereits genutzt. Ich helfe Ihnen gerne bei einem kostenpflichtigen Plan ab nur 9,99 €/Monat!",
+    abuse: "Sie haben Ihre kostenlose Testversion bereits genutzt. Klicken Sie auf 'Kostenlosen Test erhalten' oder wählen Sie einen kostenpflichtigen Plan ab 9,99 €/Monat!",
     technical: "Ich helfe Ihnen gerne! Können Sie mir zuerst sagen, welches Gerät Sie verwenden (Firestick, Android TV, iPhone usw.) und was genau Sie auf dem Bildschirm sehen?",
   },
   nl: {
     welcome: "Welkom bij Dalletek! 👋 Ik ben Alex. Zoekt u een gratis proefversie of wilt u zich abonneren? Welke inhoud vindt u leuk?",
-    trial: "Een gratis proefversie is een geweldige manier om te beginnen! Ik heb alleen uw naam en e-mail nodig. Wat is uw naam?",
-    trialReady: "Geweldig! Uw proefgegevens zijn naar uw e-mail gestuurd. Controleer uw inbox en begin met kijken! 🎉",
+    trial: "U kunt klikken op 'Gratis proefversie krijgen' en uw gegevens invullen, en u ontvangt uw proefversie direct! 🎉",
+    trialReady: "Geweldig! Klik op de knop 'Gratis proefversie krijgen' hierboven om uw gegevens in te vullen en meteen te starten! 🎉",
     sports: "Perfect voor sportfans! StreamMax biedt 10.000+ zenders met uitstekende sportdekking. Gratis proefversie of betalend plan?",
     arabic: "UltraTV is onze topkeuze voor Arabische content — 8.000+ zenders. Eerst een gratis proefversie?",
     europe: "ClearStream is uitstekend voor Europese content — 12.000+ zenders. Proefversie of betalend plan?",
     pricing: "Uitstekende keuze! Onze abonnementen beginnen vanaf €9,99/maand. Kunt u uw naam, e-mail, telefoon en land delen?",
     existing: "Welkom terug! U bent een bestaande klant. Hoe kan ik u helpen met uw IPTV-installatie vandaag?",
-    abuse: "U heeft uw gratis proefversie al gebruikt. Ik help u graag met een betalend abonnement vanaf slechts €9,99/maand!",
+    abuse: "U heeft uw gratis proefversie al gebruikt. Klik op 'Gratis proefversie krijgen' of kies een betalend abonnement vanaf €9,99/maand!",
     technical: "Ik help u graag! Kunt u me eerst vertellen welk apparaat u gebruikt (Firestick, Android TV, iPhone, etc.) en wat u precies op het scherm ziet?",
   },
 }
@@ -194,15 +195,10 @@ function fallbackReply(lower, langCode, isExisting) {
     return { reply: getFallback('technical', langCode), actions }
   }
 
-  // Trial flow
+  // Trial flow — just redirect to the button
   if (lower.includes('trial') || lower.includes('try') || lower.includes('test') || lower.includes('free')) {
-    if (lower.includes('name') || lower.includes('email') || lower.includes('@')) {
-      actions.push({ action: 'send_trial', order_id: null })
-      reply = getFallback('trialReady', langCode)
-    } else {
-      reply = getFallback('trial', langCode)
-    }
-    } else if (lower.includes('sport')) {
+    reply = getFallback('trial', langCode)
+  } else if (lower.includes('sport')) {
       actions.push({ action: 'recommend_plan', provider_id: 1, plan_id: 2, provider_name: 'StreamMax', plan_name: 'Basic', price: '14.99', is_trial: false, channels: 10000, streams: 1 })
       reply = getFallback('sports', langCode)
     } else if (lower.includes('atlas')) {
