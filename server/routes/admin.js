@@ -625,15 +625,27 @@ router.post('/settings/test-sellup', authMiddleware, async (req, res) => {
 
 router.post('/settings/test-paypal', authMiddleware, async (req, res) => {
   try {
-    const { isConfigured, getAccessToken } = require('../services/paypalService');
+    const { isConfigured, getPaypalConfig } = require('../services/paypalService');
     if (!isConfigured()) {
       return res.json({ success: false, error: 'PayPal test: configure Client ID and Secret in Settings to enable' });
     }
-    const token = await getAccessToken();
-    if (token) {
-      return res.json({ success: true, message: '✅ PayPal connected — API credentials valid' });
+    const { clientId, clientSecret, baseUrl } = getPaypalConfig();
+    const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials',
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.access_token) {
+        return res.json({ success: true, message: '✅ PayPal connected — API credentials valid' });
+      }
     }
-    return res.json({ success: false, error: 'Could not obtain access token' });
+    const text = await response.text();
+    return res.json({ success: false, error: `PayPal auth error ${response.status}: ${text}` });
   } catch (e) {
     return res.json({ success: false, error: e.message });
   }
