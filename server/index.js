@@ -16,6 +16,9 @@ const { startRedditSniffer } = require('./services/redditSniffer');
 const { startTwitterSniffer } = require('./services/twitterSniffer');
 const { startBrain } = require('./services/businessBrain');
 const { startRankChecker } = require('./services/rankTracker');
+
+initializeDatabase();
+
 startStockMonitor();
 startTelegramSniffer();
 startYouTubeSniffer();
@@ -25,8 +28,7 @@ startRankChecker();
 startBrain();
 const PORT = process.env.PORT || 3001;
 
-initializeDatabase();
-
+app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.SITE_URL || 'http://localhost:3000', credentials: true }));
 app.use(morgan('dev'));
