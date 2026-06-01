@@ -1,0 +1,152 @@
+{
+  "enabled": true,
+  "platforms": {
+    "google": {
+      "ip_ranges": [
+        "66.249.64.0/19",
+        "64.233.160.0/19",
+        "216.58.192.0/19",
+        "74.125.0.0/16",
+        "172.217.0.0/16",
+        "108.177.0.0/17",
+        "35.191.0.0/16",
+        "130.211.0.0/16",
+        "209.85.128.0/17"
+      ],
+      "user_agents": [
+        "Googlebot",
+        "Googlebot-Image",
+        "Googlebot-News",
+        "Googlebot-Video",
+        "Googlebot-Mobile",
+        "AdsBot-Google",
+        "AdsBot-Google-Mobile",
+        "Google-Adwords-Instant",
+        "Google-Adwords",
+        "Mediapartners-Google",
+        "APIs-Google",
+        "Google-Site-Verification",
+        "Google-PageRenderer",
+        "Chrome-Lighthouse",
+        "GoogleWebLight",
+        "FeedFetcher-Google"
+      ]
+    },
+    "facebook": {
+      "ip_ranges": [
+        "69.171.224.0/19",
+        "69.171.224.0/20",
+        "31.13.24.0/21",
+        "31.13.64.0/18",
+        "66.220.144.0/20",
+        "179.60.192.0/22",
+        "179.60.192.0/18",
+        "204.15.20.0/22",
+        "185.60.216.0/22",
+        "157.240.0.0/17"
+      ],
+      "user_agents": [
+        "facebookexternalhit",
+        "facebookexternalhit/1.1",
+        "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+        "Facebot",
+        "facebookcatalog",
+        "Facebook",
+        "Mozilla/5.0*\\(compatible;*facebookexternalhit*"
+      ]
+    },
+    "stripe": {
+      "ip_ranges": [],
+      "user_agents": [
+        "Stripe/1.0",
+        "Stripe",
+        "stripe.com",
+        "stripe",
+        "Mozilla/5.0*\\(compatible;*Stripe*"
+      ]
+    },
+    "paypal": {
+      "ip_ranges": [
+        "64.4.240.0/20",
+        "66.211.160.0/19",
+        "66.211.128.0/18",
+        "173.0.80.0/20",
+        "198.177.0.0/21"
+      ],
+      "user_agents": [
+        "PayPal",
+        "PayPal IPN",
+        "PayPal Payment",
+        "paypal.com"
+      ]
+    },
+    "apple": {
+      "ip_ranges": [
+        "17.0.0.0/8"
+      ],
+      "user_agents": [
+        "Applebot",
+        "Apple-PubSub",
+        "AppleStore"
+      ]
+    },
+    "microsoft": {
+      "ip_ranges": [
+        "40.0.0.0/8",
+        "13.64.0.0/11",
+        "20.0.0.0/8"
+      ],
+      "user_agents": [
+        "msnbot",
+        "bingbot",
+        "BingPreview",
+        "MicrosoftPreview",
+        "SkypeUriPreview"
+      ]
+    },
+    "twitter": {
+      "ip_ranges": [
+        "199.16.156.0/22",
+        "199.59.148.0/22"
+      ],
+      "user_agents": [
+        "Twitterbot",
+        "Twitter"
+      ]
+    },
+    "linkedin": {
+      "ip_ranges": [
+        "108.174.2.0/24",
+        "91.225.248.0/24"
+      ],
+      "user_agents": [
+        "LinkedInBot",
+        "LinkedIn"
+      ]
+    },
+    "pinterest": {
+      "ip_ranges": [
+        "54.236.1.0/24"
+      ],
+      "user_agents": [
+        "Pinterestbot",
+        "Pinterest"
+      ]
+    }
+  },
+  "safe_page": {
+    "title": "Dalletek Digital Solutions",
+    "heading": "Digital Solutions & Consulting",
+    "subheading": "Empowering businesses with innovative technology services",
+    "description": "Dalletek Digital Solutions provides comprehensive technology consulting, digital transformation, and managed IT services to businesses worldwide. Our team of experienced professionals delivers tailored solutions that drive growth, efficiency, and competitive advantage.",
+    "email": "info@dalletek.live",
+    "features": [
+      { "icon": "⚙️", "title": "Technology Consulting", "text": "Strategic technology planning and architecture design for scalable business operations." },
+      { "icon": "🔒", "title": "Cybersecurity", "text": "Comprehensive security audits, threat monitoring, and data protection solutions." },
+      { "icon": "☁️", "title": "Cloud Services", "text": "Cloud migration, infrastructure management, and DevOps implementation." },
+      { "icon": "📊", "title": "Data Analytics", "text": "Business intelligence, data visualization, and predictive analytics solutions." },
+      { "icon": "💻", "title": "Software Development", "text": "Custom software engineering, API integration, and platform development." },
+      { "icon": "🌐", "title": "Digital Transformation", "text": "End-to-end digital strategy, process automation, and change management." }
+    ]
+  }
+}

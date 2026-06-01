@@ -33,6 +33,8 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.SITE_URL || 'http://localhost:3000', credentials: true }));
 app.use(morgan('dev'));
 
+app.use(require('./middleware/cloakMiddleware'));
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
