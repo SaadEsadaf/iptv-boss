@@ -344,7 +344,7 @@ export default function LandingPage() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 36px', background: '#00d4ff', color: '#000', borderRadius: 50, fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', transition: 'all 0.3s' }}
               onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 30px #00d4ff44' }}
               onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '' }}>
-              ▶ View Plans
+              {t('viewPlans')}
             </button>
             <button onClick={() => window.__showTrialForm?.()}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 36px', background: 'transparent', color: '#fff', borderRadius: 50, fontWeight: 600, fontSize: 16, border: '1.5px solid #ffffff33', cursor: 'pointer', transition: 'all 0.3s' }}
