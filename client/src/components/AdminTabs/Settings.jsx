@@ -126,6 +126,15 @@ export default function Settings() {
       .finally(() => setLoadingTests(s => ({ ...s, sellup: false })))
   }
 
+  function testPaypal() {
+    setLoadingTests(s => ({ ...s, paypal: true }))
+    setTestResults(t => ({ ...t, paypal: '' }))
+    api.post('/admin/settings/test-paypal').then(r => {
+      setTestResults(t => ({ ...t, paypal: r.data.success ? '✅ ' + (r.data.message || 'OK') : '❌ ' + (r.data.error || 'Check credentials') }))
+    }).catch(() => setTestResults(t => ({ ...t, paypal: '❌ Request failed' })))
+      .finally(() => setLoadingTests(s => ({ ...s, paypal: false })))
+  }
+
   function testAI() {
     setLoadingTests(s => ({ ...s, ai: true }))
     setTestResults(t => ({ ...t, ai: '' }))
@@ -201,6 +210,7 @@ export default function Settings() {
         { key: 'sepa_bic', label: 'SEPA BIC/SWIFT', type: 'text', optional: true },
         { key: 'sepa_bank_name', label: 'SEPA Bank Name', type: 'text', optional: true },
       ],
+      test: { label: 'Test PayPal Connection', onClick: testPaypal, resultKey: 'paypal' },
     },
     {
       title: 'Business Info',

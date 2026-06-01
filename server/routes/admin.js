@@ -623,6 +623,22 @@ router.post('/settings/test-sellup', authMiddleware, async (req, res) => {
   }
 });
 
+router.post('/settings/test-paypal', authMiddleware, async (req, res) => {
+  try {
+    const { isConfigured, getAccessToken } = require('../services/paypalService');
+    if (!isConfigured()) {
+      return res.json({ success: false, error: 'PayPal test: configure Client ID and Secret in Settings to enable' });
+    }
+    const token = await getAccessToken();
+    if (token) {
+      return res.json({ success: true, message: '✅ PayPal connected — API credentials valid' });
+    }
+    return res.json({ success: false, error: 'Could not obtain access token' });
+  } catch (e) {
+    return res.json({ success: false, error: e.message });
+  }
+});
+
 router.post('/settings/test-namecheap', authMiddleware, async (req, res) => {
   try {
     const { testConnection } = require('../services/namecheapService');
