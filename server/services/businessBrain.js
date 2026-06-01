@@ -14,7 +14,7 @@ let lastDecision = null;
 
 function getSiteName() {
   const db = getDb();
-  return (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'IPTV Boss';
+  return (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
 }
 
 function buildMetricsSummary(m) {

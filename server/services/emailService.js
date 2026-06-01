@@ -35,7 +35,7 @@ function getTransporter() {
   const port = parseInt((db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_port'").get() || {}).value || process.env.SMTP_PORT || '587');
   const user = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_user'").get() || {}).value || process.env.SMTP_USER;
   const pass = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_pass'").get() || {}).value || process.env.SMTP_PASS;
-  const fromName = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_name'").get() || {}).value || process.env.SMTP_FROM_NAME || 'IPTV Boss';
+  const fromName = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_name'").get() || {}).value || process.env.SMTP_FROM_NAME || 'Dalletek';
   const fromEmail = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_email'").get() || {}).value || process.env.SMTP_FROM_EMAIL;
 
   const t = nodemailer.createTransport({
@@ -53,7 +53,7 @@ function getTransporter() {
 function renderTemplate(body) {
   const { getDb } = require('../db');
   const db = getDb();
-  const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'IPTV Boss';
+  const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
   const supportEmail = (db.prepare("SELECT value FROM app_settings WHERE key = 'support_email'").get() || {}).value || process.env.SUPPORT_EMAIL || 'support@iptvboss.com';
   return `
 <!DOCTYPE html>
@@ -78,7 +78,7 @@ async function sendPaymentLink({ email, name, checkoutUrl, planName, amount, ord
     const t = getTransporter();
     const { getDb } = require('../db');
     const db = getDb();
-    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'IPTV Boss';
+    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
     const tpl = renderEmailTemplate('payment_link_default', {
       customer_name: name, customer_email: email, checkout_url: checkoutUrl,
       plan_name: planName, amount, order_id: orderId, site_name: siteName,
@@ -194,7 +194,7 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
     const { getDb } = require('../db');
     const db = getDb();
     const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
-    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'IPTV Boss';
+    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
     const tpl = renderEmailTemplate('trial_default', {
       customer_name: name, customer_email: email,
       username: credentials.username, password: credentials.password, server_url: credentials.server_url,

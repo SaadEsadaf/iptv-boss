@@ -87,7 +87,7 @@ Return ONLY the raw HTML, no markdown.`
   if (!html) {
     const provider = providerId ? db.prepare('SELECT name, specialty FROM providers_catalog WHERE id = ?').get(providerId) : null;
     const plan = planId ? db.prepare('SELECT plan_name, price_sell, duration_days, channels, streams FROM provider_plans WHERE id = ?').get(planId) : null;
-    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'IPTV Boss';
+    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
     const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
     const supportEmail = (db.prepare("SELECT value FROM app_settings WHERE key = 'support_email'").get() || {}).value || process.env.SUPPORT_EMAIL || 'support@iptvboss.com';
 

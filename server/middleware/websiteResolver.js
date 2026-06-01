@@ -23,7 +23,7 @@ function websiteResolver(req, res, next) {
   }
 
   if (!website) {
-    website = { id: 1, name: 'Default', slug: 'default', site_name: 'IPTV Boss', logo_url: '' };
+    website = { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
   }
 
   req.website = website;

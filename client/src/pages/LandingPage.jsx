@@ -52,7 +52,7 @@ const faqs = lang === 'fr' ? [
 const modalContent = {
   terms: {
     title: 'Terms of Service',
-    body: `These Terms of Service govern your use of ${typeof siteName !== 'undefined' ? siteName : 'IPTV Boss'} services. By purchasing a subscription, you agree to use the service for personal, lawful purposes only. All sales are final unless covered by our refund policy. We reserve the right to terminate accounts that violate these terms.`,
+    body: `These Terms of Service govern your use of ${typeof siteName !== 'undefined' ? siteName : 'Dalletek'} services. By purchasing a subscription, you agree to use the service for personal, lawful purposes only. All sales are final unless covered by our refund policy. We reserve the right to terminate accounts that violate these terms.`,
   },
   privacy: {
     title: 'Privacy Policy',
@@ -65,7 +65,7 @@ const modalContent = {
 }
 
 const ws = typeof window !== 'undefined' && window.__WEBSITE__
-const siteName = ws?.site_name || ws?.name || 'IPTV Boss'
+const siteName = ws?.site_name || ws?.name || 'Dalletek'
 const logoUrl = ws?.logo_url || ''
 const lang = ws?.language || 'en'
 

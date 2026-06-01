@@ -139,7 +139,7 @@ router.get('/api/checkout/settings', (req, res) => {
     googleClientId: s.google_client_id || null,
     appleClientId: s.apple_client_id || null,
     paymentMethodsEnabled: enabled,
-    siteName: s.site_name || 'IPTV Boss',
+    siteName: s.site_name || 'Dalletek',
   });
 });
 

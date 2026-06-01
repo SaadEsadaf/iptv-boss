@@ -297,11 +297,11 @@ async function handleQuery(tab, question, db) {
     autoFill = [
       { key: 'smtp_host', value: 'smtp.gmail.com', label: 'Gmail SMTP' },
       { key: 'smtp_port', value: '587', label: 'Port 587 (TLS)' },
-      { key: 'smtp_from_name', value: 'IPTV Boss', label: 'Sender Name' },
+      { key: 'smtp_from_name', value: 'Dalletek', label: 'Sender Name' },
     ]
   }
 
-  const prompt = `You are the IPTV Boss AI Assistant — a helpful admin panel guide.
+  const prompt = `You are the Dalletek AI Assistant — a helpful admin panel guide.
 
 Current tab: "${tabInfo.name}"
 Description: ${tabInfo.description}${fieldsHelp}${tipsHelp}${settingsContext}

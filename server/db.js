@@ -397,7 +397,7 @@ function initializeDatabase() {
   const existingWebsite = db.prepare('SELECT id FROM websites LIMIT 1').get();
   if (!existingWebsite) {
     db.prepare('INSERT INTO websites (name, slug, site_name, domains) VALUES (?, ?, ?, ?)').run(
-      'Default', 'default', process.env.SITE_NAME || 'IPTV Boss', '[]'
+      'Default', 'default', process.env.SITE_NAME || 'Dalletek', '[]'
     );
   }
 
@@ -463,7 +463,7 @@ function initializeDatabase() {
     ['ai_model_custom', ''],
     ['ai_url_custom', ''],
     ['anthropic_api_key', ''],
-    ['site_name', process.env.SITE_NAME || 'IPTV Boss'],
+    ['site_name', process.env.SITE_NAME || 'Dalletek'],
     ['site_url', process.env.SITE_URL || 'http://localhost:3001'],
     ['support_email', process.env.SUPPORT_EMAIL || ''],
     ['paypal_email', ''],

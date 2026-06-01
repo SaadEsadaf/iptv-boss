@@ -1,6 +1,6 @@
 const { generateText } = require('./aiProvider')
 
-const SYSTEM_PROMPT = `You are Alex, a friendly IPTV technical sales agent for IPTV Boss.
+const SYSTEM_PROMPT = `You are Alex, a friendly IPTV technical sales agent for Dalletek.
 
 # YOUR BEHAVIOR BY VISITOR STATE
 
@@ -66,7 +66,7 @@ If they've contacted support before about the same issue, acknowledge it.
 
 const FALLBACKS = {
   en: {
-    welcome: "Welcome to IPTV Boss! 👋 I'm Alex. Are you looking for a free trial or ready to subscribe? What kind of content do you enjoy?",
+    welcome: "Welcome to Dalletek! 👋 I'm Alex. Are you looking for a free trial or ready to subscribe? What kind of content do you enjoy?",
     trial: "A free trial is a great way to start! I just need your name and email to set it up. What's your name?",
     trialReady: "Great! Your trial credentials have been sent to your email. Check your inbox and start watching! If you need help setting up, let me know. 🎉",
     sports: "Perfect for sports fans! StreamMax offers 10,000+ channels with excellent sports coverage including World Cup 2026, Premier League, and more. Would you like a free trial or a paid plan?",
@@ -91,7 +91,7 @@ const FALLBACKS = {
     technical: "Je serai heureux de vous aider ! D'abord, pourriez-vous me dire quel appareil vous utilisez (Firestick, Android TV, iPhone, etc.) et ce que vous voyez à l'écran ?",
   },
   es: {
-    welcome: "¡Bienvenido a IPTV Boss! 👋 Soy Alex. ¿Buscas una prueba gratuita o estás listo para suscribirte? ¿Qué tipo de contenido te gusta?",
+    welcome: "¡Bienvenido a Dalletek! 👋 Soy Alex. ¿Buscas una prueba gratuita o estás listo para suscribirte? ¿Qué tipo de contenido te gusta?",
     trial: "¡Una prueba gratuita es perfecta para empezar! Solo necesito tu nombre y email para configurarla. ¿Cuál es tu nombre?",
     trialReady: "¡Genial! Tus credenciales de prueba han sido enviadas a tu email. ¡Revisa tu bandeja de entrada y empieza a ver! 🎉",
     sports: "¡Perfecto para los amantes del deporte! StreamMax ofrece más de 10,000 canales con excelente cobertura deportiva. ¿Prueba gratuita o plan de pago?",
@@ -103,7 +103,7 @@ const FALLBACKS = {
     technical: "¡Con gusto te ayudaré! Primero, ¿podrías decirme qué dispositivo usas (Firestick, Android TV, iPhone, etc.) y qué ves exactamente en la pantalla?",
   },
   ar: {
-    welcome: "!👋 مرحباً بك في IPTV Boss. أنا أليكس. هل تبحث عن نسخة تجريبية مجانية أم أنك مستعد للاشتراك؟ ما نوع المحتوى الذي تستمتع به؟",
+    welcome: "!👋 مرحباً بك في Dalletek. أنا أليكس. هل تبحث عن نسخة تجريبية مجانية أم أنك مستعد للاشتراك؟ ما نوع المحتوى الذي تستمتع به؟",
     trial: "النسخة التجريبية المجانية هي طريقة رائعة للبدء! أحتاج فقط إلى اسمك وبريدك الإلكتروني. ما هو اسمك؟",
     trialReady: "!🎉 رائع! تم إرسال بيانات النسخة التجريبية إلى بريدك الإلكتروني. تحقق من صندوق الوارد الخاص بك وابدأ المشاهدة",
     sports: "مثالي لعشاق الرياضة! StreamMax يقدم أكثر من 10,000 قناة مع تغطية رياضية ممتازة. هل تريد نسخة تجريبية مجانية أم اشتراك مدفوع؟",
@@ -115,7 +115,7 @@ const FALLBACKS = {
     technical: "يسعدني مساعدتك في ذلك! أولاً، هل يمكنك إخباري بالجهاز الذي تستخدمه (Firestick أو Android TV أو iPhone أو غيره) وماذا ترى بالضبط على الشاشة؟",
   },
   de: {
-    welcome: "Willkommen bei IPTV Boss! 👋 Ich bin Alex. Suchen Sie eine kostenlose Testversion oder möchten Sie gleich abonnieren? Welche Inhalte interessieren Sie?",
+    welcome: "Willkommen bei Dalletek! 👋 Ich bin Alex. Suchen Sie eine kostenlose Testversion oder möchten Sie gleich abonnieren? Welche Inhalte interessieren Sie?",
     trial: "Ein kostenloser Test ist perfekt für den Anfang! Ich brauche nur Ihren Namen und Ihre E-Mail. Wie heißen Sie?",
     trialReady: "Toll! Ihre Testzugangsdaten wurden an Ihre E-Mail gesendet. Schauen Sie in Ihrem Posteingang nach und legen Sie los! 🎉",
     sports: "Perfekt für Sportfans! StreamMax bietet über 10.000 Sender mit exzellenter Sportberichterstattung. Kostenlos testen oder bezahlen?",
@@ -127,7 +127,7 @@ const FALLBACKS = {
     technical: "Ich helfe Ihnen gerne! Können Sie mir zuerst sagen, welches Gerät Sie verwenden (Firestick, Android TV, iPhone usw.) und was genau Sie auf dem Bildschirm sehen?",
   },
   nl: {
-    welcome: "Welkom bij IPTV Boss! 👋 Ik ben Alex. Zoekt u een gratis proefversie of wilt u zich abonneren? Welke inhoud vindt u leuk?",
+    welcome: "Welkom bij Dalletek! 👋 Ik ben Alex. Zoekt u een gratis proefversie of wilt u zich abonneren? Welke inhoud vindt u leuk?",
     trial: "Een gratis proefversie is een geweldige manier om te beginnen! Ik heb alleen uw naam en e-mail nodig. Wat is uw naam?",
     trialReady: "Geweldig! Uw proefgegevens zijn naar uw e-mail gestuurd. Controleer uw inbox en begin met kijken! 🎉",
     sports: "Perfect voor sportfans! StreamMax biedt 10.000+ zenders met uitstekende sportdekking. Gratis proefversie of betalend plan?",

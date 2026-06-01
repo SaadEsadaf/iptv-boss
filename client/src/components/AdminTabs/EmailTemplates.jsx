@@ -76,7 +76,7 @@ export default function EmailTemplates() {
     .replace(/\{\{password\}\}/g, 'abc123xyz')
     .replace(/\{\{server_url\}\}/g, 'http://iptv.example.com')
     .replace(/\{\{duration_hours\}\}/g, '72')
-    .replace(/\{\{site_name\}\}/g, 'IPTV Boss')
+    .replace(/\{\{site_name\}\}/g, 'Dalletek')
     .replace(/\{\{site_url\}\}/g, 'http://localhost:3000')
     .replace(/\{\{code\}\}/g, 'ACTIVATION-CODE-123')
     .replace(/\{\{checkout_url\}\}/g, 'http://localhost:3001/checkout/abc')

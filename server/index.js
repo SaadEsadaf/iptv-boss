@@ -156,7 +156,7 @@ body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
   </div>`}
 
   <div class="footer">
-    ${website.site_name || website.name} &mdash; Powered by IPTV Boss
+    ${website.site_name || website.name} &mdash; Powered by Dalletek
   </div>
 </div>
 </body>
@@ -176,21 +176,9 @@ app.get('*', (req, res) => {
     if (filePath.endsWith('.html')) {
       const fs = require('fs');
       let html = fs.readFileSync(filePath, 'utf8');
-      const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'IPTV Boss', logo_url: '' };
-      const siteTitle = website.site_name || website.name || 'IPTV Boss';
-      const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
-      html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
-      html = html.replace('</head>', script + '</head>');
-      res.send(html);
-    } else {
-      res.sendFile(filePath);
-    }
-  } else {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    const fs = require('fs');
-    let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
-    const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'IPTV Boss', logo_url: '' };
-    const siteTitle = website.site_name || website.name || 'IPTV Boss';
+const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
+
+      const siteTitle = website.site_name || website.name || 'Dalletek';
     const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
     html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
     html = html.replace('</head>', script + '</head>');
@@ -204,5 +192,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`IPTV Boss server running on port ${PORT}`);
+  console.log(`Dalletek server running on port ${PORT}`);
 });
