@@ -1,0 +1,16 @@
+# 12-digit trial activation codes for IPTV Boss testing
+# Each line: code,username,password,server_url,duration_hours
+# Provider 1 = StreamMax, Provider 2 = UltraTV, Provider 3 = ClearStream
+code,username,password,server_url,duration_hours
+123456789012,trial1,pass1,http://test1.server,72
+223456789012,trial2,pass2,http://test2.server,72
+323456789012,trial3,pass3,http://test3.server,72
+423456789012,trial4,pass4,http://test4.server,72
+523456789012,trial5,pass5,http://test5.server,72
+623456789012,trial6,pass6,http://test6.server,72
+723456789012,trial7,pass7,http://test7.server,72
+823456789012,trial8,pass8,http://test8.server,72
+923456789012,trial9,pass9,http://test9.server,72
+103456789012,trail10,pass10,http://test10.server,72
+113456789012,trail11,pass11,http://test11.server,72
+123456789012,trail12,pass12,http://test12.server,72

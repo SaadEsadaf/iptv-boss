@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+dist/
+.vite/
+server/data.db
