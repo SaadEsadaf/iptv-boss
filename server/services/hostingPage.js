@@ -19,7 +19,7 @@ function generateHostingPage() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dalletek Hosting — Fast & Reliable Web Hosting</title>
+<title>NexusHost — Fast & Reliable Web Hosting</title>
 <meta name="robots" content="noindex,nofollow">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -78,7 +78,7 @@ footer{background:#0f0f1a;color:#666;text-align:center;padding:24px 0;font-size:
 <body>
 <header>
   <div class="container">
-    <a href="/" class="logo">Dalletek<span>.</span> Hosting</a>
+    <a href="/" class="logo">Nexus<span>.</span> Host</a>
     <nav>
       <a href="#plans">Plans</a>
       <a href="#features">Features</a>
@@ -111,7 +111,7 @@ footer{background:#0f0f1a;color:#666;text-align:center;padding:24px 0;font-size:
 
 <section class="features-section" id="features">
   <div class="container">
-    <h2>Why Choose Dalletek Hosting?</h2>
+    <h2>Why Choose NexusHost?</h2>
     <div class="features-grid">
       <div class="feature-item"><div class="icon">🚀</div><h3>Blazing Speed</h3><p>NVMe SSD storage and LiteSpeed servers deliver lightning-fast page loads.</p></div>
       <div class="feature-item"><div class="icon">🔒</div><h3>Enterprise Security</h3><p>Free SSL, DDoS protection, malware scanning, and automated firewalls.</p></div>
@@ -127,13 +127,13 @@ footer{background:#0f0f1a;color:#666;text-align:center;padding:24px 0;font-size:
   <div class="container">
     <h2>Get Started Today</h2>
     <p>Have questions? Our hosting specialists are ready to help you find the perfect plan.</p>
-    <a href="mailto:support@dalletek.hosting" class="email">support@dalletek.hosting</a>
+    <a href="mailto:support@nexushost.com" class="email">support@nexushost.com</a>
   </div>
 </section>
 
 <footer>
   <div class="container">
-    <p>&copy; ${new Date().getFullYear()} Dalletek Hosting — a division of Dalletek Digital Solutions. All rights reserved.</p>
+    <p>&copy; ${new Date().getFullYear()} NexusHost — All rights reserved.</p>
   </div>
 </footer>
 </body>
