@@ -21,4 +21,15 @@ router.post('/', (req, res) => {
   res.json({ id: result.lastInsertRowid });
 });
 
+router.get('/:id', (req, res) => {
+  const db = getDb();
+  const order = db.prepare(`SELECT o.*, pc.name as provider_name, pp.plan_name, pp.duration_days
+    FROM orders o
+    LEFT JOIN providers_catalog pc ON o.provider_id = pc.id
+    LEFT JOIN provider_plans pp ON o.plan_id = pp.id
+    WHERE o.id = ?`).get(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Not found' });
+  res.json(order);
+});
+
 module.exports = router;

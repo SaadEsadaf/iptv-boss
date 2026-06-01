@@ -167,11 +167,12 @@ router.post('/api/checkout/send-link', async (req, res) => {
     const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
     const paymentUrl = plan.paypal_link || `${siteUrl}/checkout?order=${orderId}`;
 
-    try {
-      const { sendPaymentLink } = require('../services/emailService');
-      await sendPaymentLink({ email, name: email.split('@')[0], checkoutUrl: paymentUrl, planName: plan.plan_name, amount: plan.price_sell, orderId });
-    } catch (e) {
-      console.error('Send payment link email error:', e);
+    const { sendPaymentLink } = require('../services/emailService');
+    const emailSent = await sendPaymentLink({ email, name: email.split('@')[0], checkoutUrl: paymentUrl, planName: plan.plan_name, amount: plan.price_sell, orderId });
+
+    if (!emailSent) {
+      console.warn('Payment link email failed to send');
+      return res.status(500).json({ error: 'email_failed', orderId, paymentUrl });
     }
 
     res.json({ success: true, orderId, paymentUrl });
