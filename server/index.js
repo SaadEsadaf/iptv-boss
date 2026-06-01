@@ -176,13 +176,14 @@ app.get('*', (req, res) => {
     if (filePath.endsWith('.html')) {
       const fs = require('fs');
       let html = fs.readFileSync(filePath, 'utf8');
-const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
+      const website = req.website || { id: 1, name: 'Default', slug: 'default', site_name: 'Dalletek', logo_url: '' };
 
       const siteTitle = website.site_name || website.name || 'Dalletek';
-    const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
-    html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
-    html = html.replace('</head>', script + '</head>');
-    res.send(html);
+      const script = `<script>window.__WEBSITE__ = ${JSON.stringify(website)};<\/script>`;
+      html = html.replace('<title>Loading...</title>', `<title>${siteTitle}</title>`);
+      html = html.replace('</head>', script + '</head>');
+      res.send(html);
+    }
   }
 });
 
