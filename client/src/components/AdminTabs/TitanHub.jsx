@@ -39,6 +39,24 @@ const TITAN_LOCALE = {
     analyze: 'Analyze Conversations', conversations: 'Conversations',
     optimizeSales: 'Optimize Sales Sequence', sequenceType: 'Sequence Type',
     optimize: 'Optimize',
+    growth: 'Growth Engine', pipeline: 'Pipeline', dailyTarget: 'Daily Target',
+    leadsGenerated: 'Leads Generated', leadsContacted: 'Leads Contacted',
+    conversions: 'Conversions', conversionRate: 'Conversion Rate',
+    runPipeline: 'Run Pipeline', autoMode: 'Auto Mode',
+    stopAutoMode: 'Stop Auto Mode', platforms: 'Platforms',
+    reddit: 'Reddit', twitter: 'Twitter', youtube: 'YouTube',
+    telegram: 'Telegram', forums: 'Forums',
+    totalLeads: 'Total Leads', totalConverted: 'Total Converted',
+    todayLeads: 'Today Leads', todayConversions: 'Today Conversions',
+    dailyProgress: 'Daily Progress', dailyPercentage: 'Daily %',
+    topSources: 'Top Sources', topPlatforms: 'Top Platforms',
+    campaigns: 'Campaigns', affiliates: 'Affiliates',
+    contentReady: 'Content Ready', generateContent: 'Generate Content',
+    massOutreach: 'Mass Outreach', selectLeads: 'Select Leads',
+    outreachTemplate: 'Outreach Template', sendOutreach: 'Send Outreach',
+    referrals: 'Referrals', registerAffiliate: 'Register Affiliate',
+    affiliateName: 'Affiliate Name', affiliateEmail: 'Affiliate Email',
+    affiliateCode: 'Affiliate Code', earnings: 'Earnings',
     templates: 'Templates', templateInjection: 'Template Injection',
     templateType: 'Template Type', templateName: 'Template Name',
     templateContent: 'Template Content', templateVariables: 'Variables',
@@ -94,6 +112,24 @@ const TITAN_LOCALE = {
     analyze: 'Analyser Conversations', conversations: 'Conversations',
     optimizeSales: 'Optimiser Séquence de Ventes', sequenceType: 'Type de Séquence',
     optimize: 'Optimiser',
+    growth: 'Moteur de Croissance', pipeline: 'Pipeline', dailyTarget: 'Objectif Journalier',
+    leadsGenerated: 'Leads Générés', leadsContacted: 'Leads Contactés',
+    conversions: 'Conversions', conversionRate: 'Taux de Conversion',
+    runPipeline: 'Lancer Pipeline', autoMode: 'Mode Auto',
+    stopAutoMode: 'Arrêter Mode Auto', platforms: 'Plateformes',
+    reddit: 'Reddit', twitter: 'Twitter', youtube: 'YouTube',
+    telegram: 'Telegram', forums: 'Forums',
+    totalLeads: 'Total Leads', totalConverted: 'Total Convertis',
+    todayLeads: 'Leads Aujourd\'hui', todayConversions: 'Conversions Aujourd\'hui',
+    dailyProgress: 'Progrès Journalier', dailyPercentage: '% Journalier',
+    topSources: 'Top Sources', topPlatforms: 'Top Plateformes',
+    campaigns: 'Campagnes', affiliates: 'Affiliés',
+    contentReady: 'Contenu Prêt', generateContent: 'Générer Contenu',
+    massOutreach: 'Outreach Massif', selectLeads: 'Sélectionner Leads',
+    outreachTemplate: 'Template Outreach', sendOutreach: 'Envoyer Outreach',
+    referrals: 'Parrainages', registerAffiliate: 'Enregistrer Affilié',
+    affiliateName: 'Nom Affilié', affiliateEmail: 'Email Affilié',
+    affiliateCode: 'Code Affilié', earnings: 'Gains',
     templates: 'Templates', templateInjection: 'Injection de Templates',
     templateType: 'Type de Template', templateName: 'Nom du Template',
     templateContent: 'Contenu du Template', templateVariables: 'Variables',
@@ -155,6 +191,16 @@ export default function TitanHub() {
   const [abTestName, setAbTestName] = useState('')
   const [abTestTemplateIds, setAbTestTemplateIds] = useState('')
   const [abTestSplit, setAbTestSplit] = useState('50,50')
+  const [growthStats, setGrowthStats] = useState(null)
+  const [growthLeads, setGrowthLeads] = useState([])
+  const [growthCampaigns, setGrowthCampaigns] = useState([])
+  const [growthContent, setGrowthContent] = useState([])
+  const [selectedGrowthLeads, setSelectedGrowthLeads] = useState([])
+  const [outreachTemplate, setOutreachTemplate] = useState('')
+  const [affiliateName, setAffiliateName] = useState('')
+  const [affiliateEmail, setAffiliateEmail] = useState('')
+  const [affiliatePhone, setAffiliatePhone] = useState('')
+  const [pipelineRunning, setPipelineRunning] = useState(false)
   const bottomRef = useRef(null)
 
   const t = (key) => TITAN_LOCALE[lang]?.[key] || key
@@ -165,6 +211,10 @@ export default function TitanHub() {
     loadStatus()
     loadAgents()
     loadProspects()
+    loadGrowthStats()
+    loadGrowthLeads()
+    loadGrowthCampaigns()
+    loadGrowthContent()
   }, [])
 
   useEffect(() => {
@@ -543,6 +593,128 @@ export default function TitanHub() {
     }
   }
 
+  async function loadGrowthStats() {
+    try {
+      const res = await api.get('/titan-growth/stats')
+      setGrowthStats(res.data)
+    } catch (e) {
+      console.error('Load growth stats error:', e)
+    }
+  }
+
+  async function loadGrowthLeads() {
+    try {
+      const res = await api.get('/titan-growth/leads?status=new&limit=50')
+      setGrowthLeads(res.data)
+    } catch (e) {
+      console.error('Load growth leads error:', e)
+    }
+  }
+
+  async function loadGrowthCampaigns() {
+    try {
+      const res = await api.get('/titan-growth/campaigns')
+      setGrowthCampaigns(res.data)
+    } catch (e) {
+      console.error('Load growth campaigns error:', e)
+    }
+  }
+
+  async function loadGrowthContent() {
+    try {
+      const res = await api.get('/titan-growth/content?status=ready&limit=20')
+      setGrowthContent(res.data)
+    } catch (e) {
+      console.error('Load growth content error:', e)
+    }
+  }
+
+  async function runGrowthPipeline() {
+    setPipelineRunning(true)
+    setLoading(true)
+    try {
+      const res = await api.post('/titan-growth/pipeline')
+      alert(`Pipeline complete! Generated ${res.data.total} leads`)
+      loadGrowthStats()
+      loadGrowthLeads()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+      setPipelineRunning(false)
+    }
+  }
+
+  async function runGrowthScrape(platform) {
+    setLoading(true)
+    try {
+      const res = await api.post(`/titan-growth/scrape/${platform}`, { limit: 50 })
+      alert(`Scraped ${res.data.leads} leads from ${platform}`)
+      loadGrowthLeads()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function sendMassOutreach() {
+    if (selectedGrowthLeads.length === 0) {
+      alert('Select leads first')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await api.post('/titan-growth/outreach', {
+        leadIds: selectedGrowthLeads,
+        template: outreachTemplate,
+      })
+      alert(`Sent ${res.data.sent} messages, ${res.data.failed} failed`)
+      loadGrowthLeads()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function registerAffiliate() {
+    if (!affiliateName || !affiliateEmail) {
+      alert('Name and email required')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await api.post('/titan-growth/affiliates', {
+        name: affiliateName,
+        email: affiliateEmail,
+        phone: affiliatePhone,
+      })
+      alert(`Affiliate registered! Code: ${res.data.code}`)
+      setAffiliateName('')
+      setAffiliateEmail('')
+      setAffiliatePhone('')
+      loadGrowthStats()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function generateGrowthContent() {
+    setLoading(true)
+    try {
+      const res = await api.post('/titan-growth/content/generate', { count: 20 })
+      alert(`Generated ${res.data.count} content pieces`)
+      loadGrowthContent()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const tabs = [
     { id: 'chat', label: t('chat'), icon: '💬' },
     { id: 'system', label: t('system'), icon: '🖥️' },
@@ -550,6 +722,7 @@ export default function TitanHub() {
     { id: 'scanner', label: t('scanner'), icon: '🔍' },
     { id: 'agents', label: t('agents'), icon: '🤖' },
     { id: 'templates', label: t('templates'), icon: '📄' },
+    { id: 'growth', label: t('growth'), icon: '🚀' },
     { id: 'code', label: t('generateCode'), icon: '💻' },
   ]
 
@@ -1144,6 +1317,143 @@ export default function TitanHub() {
                     <div style={{ fontSize: 24, fontWeight: 800, color: '#7b2dff' }}>{templateAnalytics.cvr}</div>
                     <div style={{ fontSize: 11, color: '#888' }}>{t('cvr')}</div>
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CODE GENERATION TAB */}
+        {/* GROWTH ENGINE TAB */}
+        {activeTab === 'growth' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
+            {/* Stats Header */}
+            {growthStats && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#00d4ff' }}>{growthStats.summary?.dailyProgress || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{t('todayLeads')} / {growthStats.summary?.dailyTarget || 1000}</div>
+                  <div style={{ marginTop: 8, height: 6, background: '#2a2a2a', borderRadius: 3 }}>
+                    <div style={{ height: '100%', width: `${growthStats.summary?.dailyPercentage || 0}%`, background: '#00d4ff', borderRadius: 3, transition: 'width 0.3s' }} />
+                  </div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#00ff88' }}>{growthStats.summary?.todayConversions || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{t('todayConversions')}</div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#ffd700' }}>{growthStats.summary?.conversionRate || 0}%</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{t('conversionRate')}</div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6b35' }}>{growthStats.summary?.totalLeads || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{t('totalLeads')}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Pipeline Controls */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#00d4ff', fontSize: 14 }}>🚀 {t('pipeline')}</h4>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <button onClick={runGrowthPipeline} disabled={loading || pipelineRunning} style={{ padding: '12px 24px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {pipelineRunning ? '⚡ Running...' : '🚀 ' + t('runPipeline')}
+                </button>
+                <button onClick={() => runGrowthScrape('reddit')} disabled={loading} style={{ padding: '10px 20px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  🔴 Reddit
+                </button>
+                <button onClick={() => runGrowthScrape('twitter')} disabled={loading} style={{ padding: '10px 20px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  🐦 Twitter
+                </button>
+                <button onClick={() => runGrowthScrape('youtube')} disabled={loading} style={{ padding: '10px 20px', background: '#ff4444', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  📺 YouTube
+                </button>
+                <button onClick={() => runGrowthScrape('telegram')} disabled={loading} style={{ padding: '10px 20px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  ✈️ Telegram
+                </button>
+                <button onClick={() => runGrowthScrape('forums')} disabled={loading} style={{ padding: '10px 20px', background: '#7b2dff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  💬 Forums
+                </button>
+                <button onClick={generateGrowthContent} disabled={loading} style={{ padding: '10px 20px', background: '#ffd700', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  📝 {t('generateContent')}
+                </button>
+              </div>
+            </div>
+
+            {/* Mass Outreach */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#ff6b35', fontSize: 14 }}>📨 {t('massOutreach')}</h4>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginBottom: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('outreachTemplate')}</label>
+                  <textarea value={outreachTemplate} onChange={e => setOutreachTemplate(e.target.value)} placeholder="Enter outreach template..."
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13, minHeight: 60, resize: 'vertical', fontFamily: 'inherit' }} />
+                </div>
+                <button onClick={sendMassOutreach} disabled={loading || selectedGrowthLeads.length === 0} style={{ padding: '10px 24px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                  {t('sendOutreach')} ({selectedGrowthLeads.length})
+                </button>
+              </div>
+              {growthLeads.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflow: 'auto' }}>
+                  {growthLeads.map(lead => (
+                    <div key={lead.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 10, background: '#0f0f0f', borderRadius: 8, border: '1px solid #2a2a2a' }}>
+                      <input type="checkbox" checked={selectedGrowthLeads.includes(lead.id)} onChange={e => {
+                        if (e.target.checked) setSelectedGrowthLeads(prev => [...prev, lead.id])
+                        else setSelectedGrowthLeads(prev => prev.filter(id => id !== lead.id))
+                      }} style={{ cursor: 'pointer' }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 2 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#00d4ff', background: '#00d4ff15', padding: '2px 6px', borderRadius: 4 }}>{lead.platform}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>@{lead.username}</span>
+                          <span style={{ fontSize: 11, color: lead.sentiment === 'high_intent' ? '#00ff88' : lead.sentiment === 'frustrated' ? '#ff4444' : '#ffd700' }}>🔥 {lead.intent_score}/10</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#888', lineHeight: 1.4 }}>{lead.body?.substring(0, 100)}...</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: '#666', textAlign: 'center', padding: 20 }}>
+                  <p>No leads yet. Run a pipeline scan to find prospects.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Affiliate Registration */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#ffd700', fontSize: 14 }}>👥 {t('registerAffiliate')}</h4>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('affiliateName')}</label>
+                  <input value={affiliateName} onChange={e => setAffiliateName(e.target.value)} placeholder="Name"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('affiliateEmail')}</label>
+                  <input value={affiliateEmail} onChange={e => setAffiliateEmail(e.target.value)} placeholder="Email"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>Phone</label>
+                  <input value={affiliatePhone} onChange={e => setAffiliatePhone(e.target.value)} placeholder="Phone"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <button onClick={registerAffiliate} disabled={loading} style={{ padding: '10px 24px', background: '#ffd700', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                  {t('registerAffiliate')}
+                </button>
+              </div>
+            </div>
+
+            {/* Content Ready */}
+            {growthContent.length > 0 && (
+              <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                <h4 style={{ margin: '0 0 12px', color: '#00ff88', fontSize: 14 }}>📝 {t('contentReady')} ({growthContent.length})</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflow: 'auto' }}>
+                  {growthContent.slice(0, 10).map(c => (
+                    <div key={c.id} style={{ padding: 8, background: '#0f0f0f', borderRadius: 6, fontSize: 12, color: '#888' }}>
+                      <span style={{ color: '#00d4ff', fontWeight: 700 }}>{c.platform}</span> — {c.content?.substring(0, 100)}...
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

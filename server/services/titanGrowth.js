@@ -677,10 +677,10 @@ class TitanGrowthEngine {
     `).all();
     
     const totalLeads = db.prepare('SELECT COUNT(*) as count FROM growth_leads').get().count;
-    const totalConverted = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE converted = 1").get().count;
-    const totalContacted = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE contacted = 1").get().count;
+    const totalConverted = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE converted = '1'").get().count;
+    const totalContacted = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE contacted = '1'").get().count;
     const todayLeads = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE date(created_at) = date('now')").get().count;
-    const todayConversions = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE converted = 1 AND date(created_at) = date('now')").get().count;
+    const todayConversions = db.prepare("SELECT COUNT(*) as count FROM growth_leads WHERE converted = '1' AND date(created_at) = date('now')").get().count;
     
     const topSources = db.prepare(`
       SELECT source, COUNT(*) as count 
@@ -698,8 +698,8 @@ class TitanGrowthEngine {
       LIMIT 5
     `).all();
     
-    const campaigns = db.prepare('SELECT * FROM growth_campaigns WHERE status = "active"').all();
-    const affiliates = db.prepare('SELECT * FROM growth_affiliates WHERE active = 1').all();
+    const campaigns = db.prepare("SELECT * FROM growth_campaigns WHERE status = 'active'").all();
+    const affiliates = db.prepare("SELECT * FROM growth_affiliates WHERE active = '1'").all();
     const content = db.prepare("SELECT * FROM growth_content WHERE status = 'ready'").all();
     
     return {
