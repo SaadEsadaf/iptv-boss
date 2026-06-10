@@ -57,6 +57,7 @@ const TITAN_LOCALE = {
     referrals: 'Referrals', registerAffiliate: 'Register Affiliate',
     affiliateName: 'Affiliate Name', affiliateEmail: 'Affiliate Email',
     affiliateCode: 'Affiliate Code', earnings: 'Earnings',
+    intelligence: 'Intelligence', brainCycle: 'Brain Cycle', brainCycles: 'Brain Cycles', validated: 'Validated',
     templates: 'Templates', templateInjection: 'Template Injection',
     templateType: 'Template Type', templateName: 'Template Name',
     templateContent: 'Template Content', templateVariables: 'Variables',
@@ -130,6 +131,7 @@ const TITAN_LOCALE = {
     referrals: 'Parrainages', registerAffiliate: 'Enregistrer Affilié',
     affiliateName: 'Nom Affilié', affiliateEmail: 'Email Affilié',
     affiliateCode: 'Code Affilié', earnings: 'Gains',
+    intelligence: 'Intelligence', brainCycle: 'Cycle Cérébral', brainCycles: 'Cycles Cérébraux', validated: 'Validé',
     templates: 'Templates', templateInjection: 'Injection de Templates',
     templateType: 'Type de Template', templateName: 'Nom du Template',
     templateContent: 'Contenu du Template', templateVariables: 'Variables',
@@ -201,6 +203,9 @@ export default function TitanHub() {
   const [affiliateEmail, setAffiliateEmail] = useState('')
   const [affiliatePhone, setAffiliatePhone] = useState('')
   const [pipelineRunning, setPipelineRunning] = useState(false)
+  const [brainStats, setBrainStats] = useState(null)
+  const [brainCycles, setBrainCycles] = useState([])
+  const [brainLoading, setBrainLoading] = useState(false)
   const bottomRef = useRef(null)
 
   const t = (key) => TITAN_LOCALE[lang]?.[key] || key
@@ -715,6 +720,30 @@ export default function TitanHub() {
     }
   }
 
+  async function loadBrainStats() {
+    try {
+      const res = await api.get('/titan-intelligence/stats')
+      setBrainStats(res.data)
+      const cyclesRes = await api.get('/titan-intelligence/brain-cycles')
+      setBrainCycles(cyclesRes.data || [])
+    } catch (e) {
+      console.error('Load brain stats error:', e)
+    }
+  }
+
+  async function runBrainCycle() {
+    setBrainLoading(true)
+    try {
+      const res = await api.post('/titan-intelligence/brain-cycle')
+      alert(`Brain Cycle complete! Validated: ${res.data.dataValidated}, Campaigns: ${res.data.campaignsExecuted}`)
+      loadBrainStats()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setBrainLoading(false)
+    }
+  }
+
   const tabs = [
     { id: 'chat', label: t('chat'), icon: '💬' },
     { id: 'system', label: t('system'), icon: '🖥️' },
@@ -723,6 +752,7 @@ export default function TitanHub() {
     { id: 'agents', label: t('agents'), icon: '🤖' },
     { id: 'templates', label: t('templates'), icon: '📄' },
     { id: 'growth', label: t('growth'), icon: '🚀' },
+    { id: 'intelligence', label: t('intelligence'), icon: '🧠' },
     { id: 'code', label: t('generateCode'), icon: '💻' },
   ]
 
@@ -1457,6 +1487,85 @@ export default function TitanHub() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* INTELLIGENCE ENGINE TAB */}
+        {activeTab === 'intelligence' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
+            {/* Brain Stats */}
+            {brainStats && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#00d4ff' }}>{brainStats.totalLeads || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{t('totalLeads')}</div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#00ff88' }}>{brainStats.validatedLeads || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Validated Leads</div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#ffd700' }}>{brainStats.highValueLeads || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>High Value Leads</div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6b35' }}>{brainStats.campaignsExecuted || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Campaigns Executed</div>
+                </div>
+                <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#7b2dff' }}>{brainStats.brainCycles || 0}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Brain Cycles</div>
+                </div>
+              </div>
+            )}
+
+            {/* Brain Cycle Controls */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#00d4ff', fontSize: 14 }}>🧠 {t('brainCycle')}</h4>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <button onClick={runBrainCycle} disabled={brainLoading} style={{ padding: '12px 24px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {brainLoading ? '⚡ Running...' : '🧠 Run Brain Cycle'}
+                </button>
+                <button onClick={loadBrainStats} disabled={brainLoading} style={{ padding: '10px 20px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  📊 Refresh Stats
+                </button>
+              </div>
+              <p style={{ color: '#888', fontSize: 12, marginTop: 12 }}>
+                The Brain Cycle: Collect → Validate → Score → Strategize → Execute → Learn
+              </p>
+            </div>
+
+            {/* Brain Cycle History */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a', flex: 1, overflow: 'auto' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#00d4ff', fontSize: 14 }}>📜 Brain Cycle History</h4>
+              {brainCycles.length === 0 ? (
+                <div style={{ color: '#666', textAlign: 'center', padding: 40 }}>
+                  <p>No brain cycles yet. Run the Brain Cycle to start.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {brainCycles.map((cycle, i) => (
+                    <div key={i} style={{ padding: 12, background: '#0f0f0f', borderRadius: 8, border: '1px solid #2a2a2a' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ color: '#00d4ff', fontWeight: 700, fontSize: 13 }}>{cycle.cycle_name || `Brain Cycle #${cycle.id}`}</span>
+                        <span style={{ color: '#888', fontSize: 11 }}>{new Date(cycle.timestamp).toLocaleString()}</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, fontSize: 12, color: '#888' }}>
+                        <div>Collected: <span style={{ color: '#00d4ff' }}>{cycle.data_collected || 0}</span></div>
+                        <div>Validated: <span style={{ color: '#00ff88' }}>{cycle.data_validated || 0}</span></div>
+                        <div>Campaigns: <span style={{ color: '#ffd700' }}>{cycle.campaigns_executed || 0}</span></div>
+                        <div>Converted: <span style={{ color: '#ff6b35' }}>{cycle.leads_converted || 0}</span></div>
+                      </div>
+                      {cycle.insights && (
+                        <div style={{ marginTop: 8, padding: 8, background: '#1a1a1a', borderRadius: 6, fontSize: 11, color: '#888', maxHeight: 80, overflow: 'auto' }}>
+                          <strong style={{ color: '#00d4ff' }}>Insights:</strong> {cycle.insights.substring(0, 200)}...
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
