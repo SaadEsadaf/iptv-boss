@@ -29,6 +29,18 @@ startTwitterSniffer();
 startRankChecker();
 startBrain();
 startSalesEngine();
+
+// Panel Manager & Content Engine
+const panelManager = require('./services/panelManager');
+const contentEngine = require('./services/contentEngine');
+const { titan } = require('./services/titanHub');
+
+// Initialize after DB ready
+setTimeout(() => {
+  panelManager.init();
+  titan.init();
+}, 1000);
+
 const PORT = process.env.PORT || 3001;
 
 app.set('trust proxy', 1);
@@ -66,6 +78,7 @@ app.use('/api/titan', require('./routes/titan'));
 app.use('/api/titan-templates', require('./routes/titanTemplates'));
 app.use('/api/titan-growth', require('./routes/titanGrowth'));
 app.use('/api/titan-intelligence', require('./routes/titanIntelligence'));
+app.use('/api/panel-management', require('./routes/panelManagement'));
 
 app.get('/api/plans', (req, res) => {
   const { getDb } = require('./db');
