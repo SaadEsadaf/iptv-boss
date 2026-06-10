@@ -54,6 +54,36 @@ const LUX_EN = {
   features: 'Features',
   plans: 'Plans',
   faq: 'FAQ',
+  premiumContent: 'Premium Content',
+  everythingWatch: 'Everything You Want to Watch',
+  everythingDesc: 'From live sports to blockbuster movies — LuxStream delivers the ultimate entertainment experience.',
+  watchFreeTrial: 'Watch Free Trial',
+  channelsLabel: 'Channels',
+  qualityLabel: 'Quality',
+  bufferingLabel: 'Zero Buffering',
+  setupLabel: 'Setup',
+  secureLabel: 'Secure & Private',
+  marqueeWorldCup: '⚽ FIFA WC 2026 — All 64 Matches Live in 4K',
+  marqueeMovies: '🎬 10,000+ Movies On Demand',
+  marqueeSeries: '📺 5,000+ TV Series — Full Seasons',
+  marqueePremier: '🔥 Premier League — Every Match Live',
+  marqueeSports: '🎯 NBA, NFL, UFC — All Sports 24/7',
+  marqueeSetup: '⚡ Instant Setup — Under 5 Minutes',
+  marqueeChannels: '🌍 25,000+ Channels — Global Coverage',
+  worldCupLive: 'FIFA 2026 — All 64 Matches Live',
+  groupStage: '🏆 Group Stage',
+  knockout: '⚡ Knockout',
+  final: '🎯 Final',
+  allIn4k: '📺 All in 4K HDR',
+  tagMatches: '64 Matches', tagHdr: '4K HDR', tagLang: 'All Languages', tagReplay: 'Replay',
+  tagNetflix: 'Netflix Style', tagSeasons: 'Full Seasons', tagDaily: 'Daily Updates', tagHd: 'HD',
+  badgeLive: 'LIVE 2026', badgeHot: '🔥 HOT', badgeVod: 'VOD', badgeSeries: 'SERIES', badgeLiveInd: 'LIVE',
+  featChannels: '25,000+ Channels', featChannelsDesc: 'Every country, every category',
+  featQuality: '4K HDR Quality', featQualityDesc: 'Crystal clear streaming',
+  featBuffer: 'Zero Buffering', featBufferDesc: '99.9% uptime guaranteed',
+  featDevices: 'All Devices', featDevicesDesc: 'Smart TV, Firestick, Mobile',
+  featSupport: '24/7 Support', featSupportDesc: 'Real humans, fast replies',
+  featSecure: 'Secure & Private', featSecureDesc: 'No logs, encrypted',
   pricingTitle: 'Choose Your Plan',
   pricingSub: 'All plans include 4K streaming, multi-device support, and 24/7 support.',
   monthly: 'Monthly', yearly: 'Yearly', save: 'Save 20%',
@@ -155,6 +185,36 @@ const LUX_FR = {
   signIn: 'Connexion', emailUs: 'Nous Écrire', liveChat: 'Chat en Direct',
   helpCenter: "Centre d'Aide", terms: "Conditions d'Utilisation", privacy: 'Politique de Confidentialité', refund: 'Politique de Remboursement',
   rights: 'Tous droits réservés.',
+  premiumContent: 'Contenu Premium',
+  everythingWatch: 'Tout ce que Vous Voulez Regarder',
+  everythingDesc: "Des sports en direct aux films à succès — LuxStream offre l'expérience de divertissement ultime.",
+  watchFreeTrial: 'Regarder Essai Gratuit',
+  channelsLabel: 'Chaînes',
+  qualityLabel: 'Qualité',
+  bufferingLabel: 'Zéro Buffering',
+  setupLabel: 'Installation',
+  secureLabel: 'Sécurisé & Privé',
+  marqueeWorldCup: '⚽ Coupe du Monde FIFA 2026 — 64 Matchs en Direct en 4K',
+  marqueeMovies: '🎬 10 000+ Films à la Demande',
+  marqueeSeries: '📺 5 000+ Séries TV — Saisons Complètes',
+  marqueePremier: '🔥 Premier League — Tous les Matchs en Direct',
+  marqueeSports: '🎯 NBA, NFL, UFC — Tous les Sports 24/7',
+  marqueeSetup: '⚡ Installation Instantanée — Moins de 5 Minutes',
+  marqueeChannels: '🌍 25 000+ Chaînes — Couverture Mondiale',
+  worldCupLive: 'FIFA 2026 — Les 64 Matchs en Direct',
+  groupStage: '🏆 Phase de Groupes',
+  knockout: '⚡ Éliminatoires',
+  final: '🎯 Finale',
+  allIn4k: '📺 Tout en 4K HDR',
+  tagMatches: '64 Matchs', tagHdr: '4K HDR', tagLang: 'Toutes Langues', tagReplay: 'Rediffusion',
+  tagNetflix: 'Style Netflix', tagSeasons: 'Saisons Complètes', tagDaily: 'Mises à Jour', tagHd: 'HD',
+  badgeLive: 'DIRECT 2026', badgeHot: '🔥 TENDANCE', badgeVod: 'VOD', badgeSeries: 'SÉRIES', badgeLiveInd: 'DIRECT',
+  featChannels: '25 000+ Chaînes', featChannelsDesc: 'Tous les pays, toutes catégories',
+  featQuality: 'Qualité 4K HDR', featQualityDesc: 'Streaming cristallin',
+  featBuffer: 'Zéro Buffering', featBufferDesc: '99.9% disponibilité garantie',
+  featDevices: 'Tous les Appareils', featDevicesDesc: 'Smart TV, Firestick, Mobile',
+  featSupport: 'Assistance 24/7', featSupportDesc: 'Vrais humains, réponses rapides',
+  featSecure: 'Sécurisé & Privé', featSecureDesc: 'Pas de logs, chiffré',
 }
 
 function FadeSection({ children, delay = 0 }) {
@@ -264,7 +324,7 @@ export default function LuxStreamLanding() {
       {/* Marquee Banner */}
       <div style={{ background: 'linear-gradient(90deg, #ff6b35, #ff2d92, #ff6b35)', padding: '8px 0', overflow: 'hidden', borderBottom: '1px solid #ffffff10' }}>
         <div style={{ display: 'flex', whiteSpace: 'nowrap', animation: 'banner-slide 30s linear infinite' }}>
-          {Array(3).fill(['⚽ FIFA WC 2026 — All 64 Matches Live in 4K', '🎬 10,000+ Movies On Demand', '📺 5,000+ TV Series — Full Seasons', '🔥 Premier League — Every Match Live', '🎯 NBA, NFL, UFC — All Sports 24/7', '⚡ Instant Setup — Under 5 Minutes', '🌍 25,000+ Channels — Global Coverage']).map((items, i) =>
+                      {Array(3).fill([t('marqueeWorldCup'), t('marqueeMovies'), t('marqueeSeries'), t('marqueePremier'), t('marqueeSports'), t('marqueeSetup'), t('marqueeChannels')]).map((items, i) =>
             items.map((item, j) => (
               <span key={`${i}-${j}`} style={{ padding: '0 40px', fontSize: 13, fontWeight: 700, color: '#fff', letterSpacing: '0.5px' }}>{item}</span>
             ))
@@ -363,9 +423,9 @@ export default function LuxStreamLanding() {
           <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
               { num: '25K+', lbl: t('channels'), icon: '📺', color: '#ff6b35' },
-              { num: '4K HDR', lbl: 'Quality', icon: '🎯', color: '#ff2d92' },
+              { num: '4K HDR', lbl: t('qualityLabel'), icon: '🎯', color: '#ff2d92' },
               { num: '99.9%', lbl: t('uptime'), icon: '⚡', color: '#ff6b35' },
-              { num: '<5min', lbl: 'Setup', icon: '🚀', color: '#ff2d92' },
+              { num: '<5min', lbl: t('setupLabel'), icon: '🚀', color: '#ff2d92' },
             ].map((s, i) => (
               <div key={s.lbl} style={{ background: '#ffffff08', border: '1px solid #ffffff12', borderRadius: 14, padding: '16px 24px', textAlign: 'center', backdropFilter: 'blur(12px)', transition: 'all 0.3s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#ffffff12'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = '#ff6b3544' }}
@@ -385,18 +445,18 @@ export default function LuxStreamLanding() {
             <div style={{ width: 56, height: 56, borderRadius: 12, background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>⚽</div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 2 }}>{t('worldCup')}</div>
-              <div style={{ fontSize: 13, color: '#8888aa' }}>FIFA 2026 — All 64 Matches Live</div>
+              <div style={{ fontSize: 13, color: '#8888aa' }}>{t('worldCupLive')}</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            {['🏆 Group Stage', '⚡ Knockout', '🎯 Final', '📺 All in 4K HDR'].map(l => (
+            {[t('groupStage'), t('knockout'), t('final'), t('allIn4k')].map(l => (
               <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ff6b35', fontSize: 13, fontWeight: 700 }}>
                 <span style={{ fontSize: 16 }}>✓</span> {l}
               </div>
             ))}
           </div>
           <button onClick={() => window.__showTrialForm?.()} style={{ padding: '10px 28px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 20px #ff6b3544' }}>
-            Watch Free Trial ⚽
+            {t('watchFreeTrial')} ⚽
           </button>
         </div>
       </section>
@@ -405,9 +465,9 @@ export default function LuxStreamLanding() {
       <section id="features" style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1300, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <span style={{ display: 'inline-block', padding: '4px 16px', borderRadius: 20, background: '#ff6b3515', color: '#ff6b35', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 16 }}>Premium Content</span>
-            <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 3rem)', fontWeight: 900, marginBottom: 12 }}>Everything You Want to Watch</h2>
-            <p style={{ color: '#6666aa', fontSize: 16, maxWidth: 550, margin: '0 auto' }}>From live sports to blockbuster movies — LuxStream delivers the ultimate entertainment experience.</p>
+            <span style={{ display: 'inline-block', padding: '4px 16px', borderRadius: 20, background: '#ff6b3515', color: '#ff6b35', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 16 }}>{t('premiumContent')}</span>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 3rem)', fontWeight: 900, marginBottom: 12 }}>{t('everythingWatch')}</h2>
+            <p style={{ color: '#6666aa', fontSize: 16, maxWidth: 550, margin: '0 auto' }}>{t('everythingDesc')}</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
@@ -418,14 +478,14 @@ export default function LuxStreamLanding() {
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
                 <div style={{ height: 180, background: 'linear-gradient(135deg, #ff6b3520, #ff2d9215)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64, position: 'relative', overflow: 'hidden' }}>
                   <div className="card-img" style={{ fontSize: 72 }}>⚽</div>
-                  <div style={{ position: 'absolute', top: 12, left: 12, background: '#ff6b35', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>LIVE 2026</div>
-                  <div style={{ position: 'absolute', top: 12, right: 12, background: '#ff2d92', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>🔥 HOT</div>
+                  <div style={{ position: 'absolute', top: 12, left: 12, background: '#ff6b35', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>{t('badgeLive')}</div>
+                  <div style={{ position: 'absolute', top: 12, right: 12, background: '#ff2d92', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>{t('badgeHot')}</div>
                 </div>
                 <div style={{ padding: '24px 20px' }}>
                   <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, color: '#fff' }}>{t('worldCupTitle')}</h3>
                   <p style={{ color: '#8888aa', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>{t('worldCupDesc')}</p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {['64 Matches', '4K HDR', 'All Languages', 'Replay'].map(tag => (
+                    {[t('tagMatches'), t('tagHdr'), t('tagLang'), t('tagReplay')].map(tag => (
                       <span key={tag} style={{ background: '#ff6b3515', color: '#ff6b35', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{tag}</span>
                     ))}
                   </div>
@@ -440,14 +500,14 @@ export default function LuxStreamLanding() {
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
                 <div style={{ height: 180, background: 'linear-gradient(135deg, #7b2dff20, #00f0ff15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64, position: 'relative', overflow: 'hidden' }}>
                   <div className="card-img" style={{ fontSize: 72 }}>🎬</div>
-                  <div style={{ position: 'absolute', top: 12, left: 12, background: '#7b2dff', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>VOD</div>
+                  <div style={{ position: 'absolute', top: 12, left: 12, background: '#7b2dff', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>{t('badgeVod')}</div>
                 </div>
                 <div style={{ padding: '24px 20px' }}>
                   <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, color: '#fff' }}>{t('moviesTitle')}</h3>
                   <p style={{ color: '#8888aa', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>{t('moviesDesc')}</p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {['Hollywood', 'Arabic', 'Bollywood', '4K'].map(tag => (
-                      <span key={tag} style={{ background: '#7b2dff15', color: '#7b2dff', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{tag}</span>
+                      <span key={tag} style={{ background: '#7b2dff15', color: '#7b2dff', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{tag === '4K' ? '4K' : tag}</span>
                     ))}
                   </div>
                 </div>
@@ -461,13 +521,13 @@ export default function LuxStreamLanding() {
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
                 <div style={{ height: 180, background: 'linear-gradient(135deg, #00f0ff20, #00ff8815)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64, position: 'relative', overflow: 'hidden' }}>
                   <div className="card-img" style={{ fontSize: 72 }}>📺</div>
-                  <div style={{ position: 'absolute', top: 12, left: 12, background: '#00f0ff', color: '#000', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>SERIES</div>
+                  <div style={{ position: 'absolute', top: 12, left: 12, background: '#00f0ff', color: '#000', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800 }}>{t('badgeSeries')}</div>
                 </div>
                 <div style={{ padding: '24px 20px' }}>
                   <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, color: '#fff' }}>{t('seriesTitle')}</h3>
                   <p style={{ color: '#8888aa', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>{t('seriesDesc')}</p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {['Netflix Style', 'Full Seasons', 'Daily Updates', 'HD'].map(tag => (
+                    {[t('tagNetflix'), t('tagSeasons'), t('tagDaily'), t('tagHd')].map(tag => (
                       <span key={tag} style={{ background: '#00f0ff15', color: '#00f0ff', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{tag}</span>
                     ))}
                   </div>
@@ -483,7 +543,7 @@ export default function LuxStreamLanding() {
                 <div style={{ height: 180, background: 'linear-gradient(135deg, #00ff8820, #ffaa0015)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64, position: 'relative', overflow: 'hidden' }}>
                   <div className="card-img" style={{ fontSize: 72 }}>🏆</div>
                   <div className="live-indicator" style={{ position: 'absolute', top: 12, left: 12, background: '#00ff88', color: '#000', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#000' }} />LIVE
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#000' }} />{t('badgeLiveInd')}
                   </div>
                 </div>
                 <div style={{ padding: '24px 20px' }}>
@@ -506,12 +566,12 @@ export default function LuxStreamLanding() {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             {[
-              { icon: '📺', title: '25,000+ Channels', desc: 'Every country, every category', color: '#ff6b35' },
-              { icon: '🎯', title: '4K HDR Quality', desc: 'Crystal clear streaming', color: '#ff2d92' },
-              { icon: '⚡', title: 'Zero Buffering', desc: '99.9% uptime guaranteed', color: '#00f0ff' },
-              { icon: '📱', title: 'All Devices', desc: 'Smart TV, Firestick, Mobile', color: '#00ff88' },
-              { icon: '🎧', title: '24/7 Support', desc: 'Real humans, fast replies', color: '#ffd700' },
-              { icon: '🔒', title: 'Secure & Private', desc: 'No logs, encrypted', color: '#7b2dff' },
+              { icon: '📺', title: t('featChannels'), desc: t('featChannelsDesc'), color: '#ff6b35' },
+              { icon: '🎯', title: t('featQuality'), desc: t('featQualityDesc'), color: '#ff2d92' },
+              { icon: '⚡', title: t('featBuffer'), desc: t('featBufferDesc'), color: '#00f0ff' },
+              { icon: '📱', title: t('featDevices'), desc: t('featDevicesDesc'), color: '#00ff88' },
+              { icon: '🎧', title: t('featSupport'), desc: t('featSupportDesc'), color: '#ffd700' },
+              { icon: '🔒', title: t('featSecure'), desc: t('featSecureDesc'), color: '#7b2dff' },
             ].map((f, i) => (
               <FadeSection key={f.title} delay={i * 50}>
                 <div style={{ textAlign: 'center', padding: '24px 16px', background: '#ffffff06', border: '1px solid #ffffff10', borderRadius: 16, transition: 'all 0.3s' }}
