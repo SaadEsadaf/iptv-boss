@@ -39,6 +39,23 @@ const TITAN_LOCALE = {
     analyze: 'Analyze Conversations', conversations: 'Conversations',
     optimizeSales: 'Optimize Sales Sequence', sequenceType: 'Sequence Type',
     optimize: 'Optimize',
+    templates: 'Templates', templateInjection: 'Template Injection',
+    templateType: 'Template Type', templateName: 'Template Name',
+    templateContent: 'Template Content', templateVariables: 'Variables',
+    generateTemplate: 'Generate Template', bulkGenerate: 'Bulk Generate',
+    campaignName: 'Campaign Name', count: 'Count',
+    injections: 'Injections', target: 'Target', position: 'Position',
+    abTests: 'A/B Tests', createABTest: 'Create A/B Test',
+    trafficSplit: 'Traffic Split', endTest: 'End Test',
+    winner: 'Winner', analytics: 'Analytics',
+    impressions: 'Impressions', clicks: 'Clicks', conversions: 'Conversions',
+    ctr: 'CTR', cvr: 'CVR', autoOptimize: 'Auto Optimize',
+    renderTemplate: 'Render Template', preview: 'Preview',
+    saveTemplate: 'Save Template', deleteTemplate: 'Delete',
+    active: 'Active', inactive: 'Inactive',
+    allTypes: 'All Types', selectType: 'Select Type',
+    prompt: 'Prompt', injectionTarget: 'Injection Target',
+    injectionPosition: 'Position', conditions: 'Conditions',
   },
   fr: {
     title: 'Titan Hub', subtitle: 'Orchestrateur IA Central',
@@ -77,6 +94,23 @@ const TITAN_LOCALE = {
     analyze: 'Analyser Conversations', conversations: 'Conversations',
     optimizeSales: 'Optimiser Séquence de Ventes', sequenceType: 'Type de Séquence',
     optimize: 'Optimiser',
+    templates: 'Templates', templateInjection: 'Injection de Templates',
+    templateType: 'Type de Template', templateName: 'Nom du Template',
+    templateContent: 'Contenu du Template', templateVariables: 'Variables',
+    generateTemplate: 'Générer Template', bulkGenerate: 'Génération en Masse',
+    campaignName: 'Nom de la Campagne', count: 'Nombre',
+    injections: 'Injections', target: 'Cible', position: 'Position',
+    abTests: 'Tests A/B', createABTest: 'Créer Test A/B',
+    trafficSplit: 'Répartition du Trafic', endTest: 'Terminer Test',
+    winner: 'Gagnant', analytics: 'Analytiques',
+    impressions: 'Impressions', clicks: 'Clics', conversions: 'Conversions',
+    ctr: 'CTR', cvr: 'CVR', autoOptimize: 'Optimisation Auto',
+    renderTemplate: 'Rendre Template', preview: 'Aperçu',
+    saveTemplate: 'Sauvegarder', deleteTemplate: 'Supprimer',
+    active: 'Actif', inactive: 'Inactif',
+    allTypes: 'Tous Types', selectType: 'Choisir Type',
+    prompt: 'Prompt', injectionTarget: 'Cible Injection',
+    injectionPosition: 'Position', conditions: 'Conditions',
   },
 }
 
@@ -101,6 +135,26 @@ export default function TitanHub() {
   const [sequenceType, setSequenceType] = useState('hot_lead')
   const [analysisResult, setAnalysisResult] = useState('')
   const [optimizedSequence, setOptimizedSequence] = useState('')
+  const [templates, setTemplates] = useState([])
+  const [templateTypes, setTemplateTypes] = useState({})
+  const [selectedTemplateType, setSelectedTemplateType] = useState('email_sequence')
+  const [templateName, setTemplateName] = useState('')
+  const [templatePrompt, setTemplatePrompt] = useState('')
+  const [templateContent, setTemplateContent] = useState('')
+  const [templateVariables, setTemplateVariables] = useState('')
+  const [generatedTemplate, setGeneratedTemplate] = useState(null)
+  const [injections, setInjections] = useState([])
+  const [abTests, setAbTests] = useState([])
+  const [campaignName, setCampaignName] = useState('')
+  const [bulkCount, setBulkCount] = useState(5)
+  const [injectionTarget, setInjectionTarget] = useState('')
+  const [injectionPosition, setInjectionPosition] = useState('append')
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null)
+  const [renderedPreview, setRenderedPreview] = useState('')
+  const [templateAnalytics, setTemplateAnalytics] = useState(null)
+  const [abTestName, setAbTestName] = useState('')
+  const [abTestTemplateIds, setAbTestTemplateIds] = useState('')
+  const [abTestSplit, setAbTestSplit] = useState('50,50')
   const bottomRef = useRef(null)
 
   const t = (key) => TITAN_LOCALE[lang]?.[key] || key
@@ -284,12 +338,218 @@ export default function TitanHub() {
     }
   }
 
+  async function loadTemplates() {
+    try {
+      const res = await api.get('/titan-templates/templates')
+      setTemplates(res.data)
+    } catch (e) {
+      console.error('Load templates error:', e)
+    }
+  }
+
+  async function loadTemplateTypes() {
+    try {
+      const res = await api.get('/titan-templates/types')
+      setTemplateTypes(res.data)
+    } catch (e) {
+      console.error('Load template types error:', e)
+    }
+  }
+
+  async function loadInjections() {
+    try {
+      const res = await api.get('/titan-templates/injections')
+      setInjections(res.data)
+    } catch (e) {
+      console.error('Load injections error:', e)
+    }
+  }
+
+  async function loadABTests() {
+    try {
+      const res = await api.get('/titan-templates/ab-tests')
+      setAbTests(res.data)
+    } catch (e) {
+      console.error('Load AB tests error:', e)
+    }
+  }
+
+  async function generateTemplate() {
+    if (!templatePrompt || !selectedTemplateType) return
+    setLoading(true)
+    try {
+      const res = await api.post('/titan-templates/generate', {
+        type: selectedTemplateType,
+        prompt: templatePrompt,
+      })
+      setGeneratedTemplate(res.data)
+      setTemplateContent(res.data.content)
+      setTemplateVariables(JSON.stringify(res.data.variables || []))
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function saveTemplate() {
+    if (!templateName || !templateContent) return
+    setLoading(true)
+    try {
+      await api.post('/titan-templates/save', {
+        name: templateName,
+        type: selectedTemplateType,
+        content: templateContent,
+        variables: JSON.parse(templateVariables || '[]'),
+      })
+      alert('Template saved!')
+      loadTemplates()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function deleteTemplate(id) {
+    if (!confirm('Delete this template?')) return
+    setLoading(true)
+    try {
+      await api.delete(`/titan-templates/templates/${id}`)
+      loadTemplates()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function renderTemplate() {
+    if (!selectedTemplateId) return
+    setLoading(true)
+    try {
+      const template = templates.find(t => t.id === selectedTemplateId)
+      if (!template) return
+      const vars = {}
+      try {
+        const parsedVars = JSON.parse(template.variables || '[]')
+        parsedVars.forEach(v => { vars[v] = `{{${v}}}` })
+      } catch { /* ignore */ }
+      const res = await api.post('/titan-templates/render', {
+        name: template.name,
+        type: template.type,
+        variables: vars,
+      })
+      setRenderedPreview(res.data.rendered)
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function injectTemplate() {
+    if (!selectedTemplateId || !injectionTarget) return
+    setLoading(true)
+    try {
+      await api.post('/titan-templates/inject', {
+        templateId: selectedTemplateId,
+        target: injectionTarget,
+        position: injectionPosition,
+      })
+      alert('Template injected!')
+      loadInjections()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function bulkGenerate() {
+    if (!campaignName || !selectedTemplateType) return
+    setLoading(true)
+    try {
+      const res = await api.post('/titan-templates/bulk-generate', {
+        campaignName,
+        type: selectedTemplateType,
+        count: bulkCount,
+      })
+      alert(`Generated ${res.data.count} templates!`)
+      loadTemplates()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function createABTest() {
+    if (!abTestName || !abTestTemplateIds) return
+    setLoading(true)
+    try {
+      const ids = abTestTemplateIds.split(',').map(id => parseInt(id.trim()))
+      const split = abTestSplit.split(',').map(s => parseInt(s.trim()))
+      await api.post('/titan-templates/ab-tests', {
+        name: abTestName,
+        templateIds: ids,
+        trafficSplit: split,
+      })
+      alert('A/B test created!')
+      loadABTests()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function endABTest(id) {
+    const winnerId = prompt('Enter winner template ID:')
+    if (!winnerId) return
+    setLoading(true)
+    try {
+      await api.post(`/titan-templates/ab-tests/${id}/end`, { winnerId: parseInt(winnerId) })
+      loadABTests()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function autoOptimizeTemplate(id) {
+    setLoading(true)
+    try {
+      const res = await api.post(`/titan-templates/optimize/${id}`)
+      alert(res.data.message || 'Optimized!')
+      loadTemplates()
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function loadAnalytics(id) {
+    setLoading(true)
+    try {
+      const res = await api.get(`/titan-templates/analytics/${id}?days=7`)
+      setTemplateAnalytics(res.data)
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const tabs = [
     { id: 'chat', label: t('chat'), icon: '💬' },
     { id: 'system', label: t('system'), icon: '🖥️' },
     { id: 'security', label: t('security'), icon: '🛡️' },
     { id: 'scanner', label: t('scanner'), icon: '🔍' },
     { id: 'agents', label: t('agents'), icon: '🤖' },
+    { id: 'templates', label: t('templates'), icon: '📄' },
     { id: 'code', label: t('generateCode'), icon: '💻' },
   ]
 
@@ -644,6 +904,249 @@ export default function TitanHub() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TEMPLATES TAB */}
+        {activeTab === 'templates' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
+            {/* Template Generator */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                <h4 style={{ margin: '0 0 12px', color: '#00d4ff', fontSize: 14 }}>📝 {t('generateTemplate')}</h4>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('templateType')}</label>
+                  <select value={selectedTemplateType} onChange={e => setSelectedTemplateType(e.target.value)} style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }}>
+                    <option value="email_sequence">Email Sequence</option>
+                    <option value="landing_page">Landing Page</option>
+                    <option value="chat_response">Chat Response</option>
+                    <option value="social_post">Social Media Post</option>
+                    <option value="whatsapp_message">WhatsApp Message</option>
+                    <option value="ad_copy">Ad Copy</option>
+                    <option value="push_notification">Push Notification</option>
+                    <option value="sms_message">SMS Message</option>
+                    <option value="popup_modal">Popup Modal</option>
+                    <option value="video_script">Video Script</option>
+                  </select>
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('templateName')}</label>
+                  <input value={templateName} onChange={e => setTemplateName(e.target.value)} placeholder="e.g., world_cup_2026_email"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('prompt')}</label>
+                  <textarea value={templatePrompt} onChange={e => setTemplatePrompt(e.target.value)} placeholder="Describe what you want the template to do..."
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13, minHeight: 80, resize: 'vertical', fontFamily: 'inherit' }} />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={generateTemplate} disabled={loading} style={{ padding: '10px 20px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                    {t('generateTemplate')}
+                  </button>
+                  <button onClick={saveTemplate} disabled={loading} style={{ padding: '10px 20px', background: '#00ff88', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                    {t('saveTemplate')}
+                  </button>
+                </div>
+              </div>
+              <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                <h4 style={{ margin: '0 0 12px', color: '#00ff88', fontSize: 14 }}>👁️ {t('preview')}</h4>
+                {templateContent ? (
+                  <div style={{ background: '#0f0f0f', padding: 16, borderRadius: 8, fontSize: 13, color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: 300, overflow: 'auto' }}>
+                    {templateContent}
+                  </div>
+                ) : (
+                  <div style={{ color: '#666', textAlign: 'center', padding: 40 }}>
+                    <p>Generated template will appear here.</p>
+                  </div>
+                )}
+                {templateVariables && (
+                  <div style={{ marginTop: 12, padding: 8, background: '#00d4ff10', borderRadius: 6, fontSize: 11, color: '#00d4ff' }}>
+                    Variables: {templateVariables}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bulk Generate */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#ff6b35', fontSize: 14 }}>🚀 {t('bulkGenerate')}</h4>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('campaignName')}</label>
+                  <input value={campaignName} onChange={e => setCampaignName(e.target.value)} placeholder="e.g., World Cup 2026 Campaign"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ width: 120 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('count')}</label>
+                  <input value={bulkCount} onChange={e => setBulkCount(parseInt(e.target.value) || 5)} type="number" min="1" max="20"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <button onClick={bulkGenerate} disabled={loading} style={{ padding: '10px 24px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  {t('bulkGenerate')}
+                </button>
+              </div>
+            </div>
+
+            {/* Template Injection */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#7b2dff', fontSize: 14 }}>💉 {t('templateInjection')}</h4>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('selectType')}</label>
+                  <select value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(parseInt(e.target.value))}
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }}>
+                    <option value="">{t('selectType')}</option>
+                    {templates.map(t => (
+                      <option key={t.id} value={t.id}>{t.name} ({t.type})</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('injectionTarget')}</label>
+                  <input value={injectionTarget} onChange={e => setInjectionTarget(e.target.value)} placeholder="e.g., landing_page, chat_widget"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ width: 150 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('injectionPosition')}</label>
+                  <select value={injectionPosition} onChange={e => setInjectionPosition(e.target.value)}
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }}>
+                    <option value="append">Append</option>
+                    <option value="prepend">Prepend</option>
+                    <option value="replace">Replace</option>
+                    <option value="before">Before</option>
+                    <option value="after">After</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={injectTemplate} disabled={loading} style={{ padding: '10px 20px', background: '#7b2dff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                    💉 {t('templateInjection')}
+                  </button>
+                  <button onClick={renderTemplate} disabled={loading} style={{ padding: '10px 20px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                    👁️ {t('preview')}
+                  </button>
+                </div>
+              </div>
+              {renderedPreview && (
+                <div style={{ marginTop: 12, padding: 12, background: '#0f0f0f', borderRadius: 8, fontSize: 13, color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', border: '1px solid #2a2a2a' }}>
+                  {renderedPreview}
+                </div>
+              )}
+            </div>
+
+            {/* A/B Tests */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#ffd700', fontSize: 14 }}>🧪 {t('abTests')}</h4>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginBottom: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('abTests')} {t('name')}</label>
+                  <input value={abTestName} onChange={e => setAbTestName(e.target.value)} placeholder="e.g., Email Subject Line Test"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>Template IDs (comma separated)</label>
+                  <input value={abTestTemplateIds} onChange={e => setAbTestTemplateIds(e.target.value)} placeholder="1,2"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <div style={{ width: 120 }}>
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('trafficSplit')}</label>
+                  <input value={abTestSplit} onChange={e => setAbTestSplit(e.target.value)} placeholder="50,50"
+                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
+                </div>
+                <button onClick={createABTest} disabled={loading} style={{ padding: '10px 20px', background: '#ffd700', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  {t('createABTest')}
+                </button>
+              </div>
+              {abTests.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {abTests.map(test => (
+                    <div key={test.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 10, background: '#0f0f0f', borderRadius: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{test.name}</div>
+                        <div style={{ fontSize: 11, color: '#888' }}>Status: {test.status} | Split: {test.traffic_split}</div>
+                      </div>
+                      {test.status === 'running' && (
+                        <button onClick={() => endABTest(test.id)} style={{ padding: '6px 12px', background: '#ff4444', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>
+                          {t('endTest')}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Saved Templates */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h4 style={{ margin: 0, color: '#fff', fontSize: 14 }}>📄 {t('templates')}</h4>
+                <button onClick={() => { loadTemplates(); loadInjections(); loadABTests(); }} style={{ padding: '6px 12px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>
+                  🔄 Refresh
+                </button>
+              </div>
+              {templates.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {templates.map(t => (
+                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: 12, background: '#0f0f0f', borderRadius: 8, border: '1px solid #2a2a2a' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#00d4ff', background: '#00d4ff15', padding: '2px 8px', borderRadius: 4 }}>{t.type}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{t.name}</span>
+                          <span style={{ fontSize: 11, color: t.active ? '#00ff88' : '#666' }}>{t.active ? t('active') : t('inactive')}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5, maxHeight: 60, overflow: 'hidden' }}>{t.content?.substring(0, 150)}...</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, marginLeft: 12 }}>
+                        <button onClick={() => { setSelectedTemplateId(t.id); renderTemplate(); }} style={{ padding: '4px 8px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
+                          👁️
+                        </button>
+                        <button onClick={() => autoOptimizeTemplate(t.id)} style={{ padding: '4px 8px', background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
+                          ⚡
+                        </button>
+                        <button onClick={() => loadAnalytics(t.id)} style={{ padding: '4px 8px', background: '#00ff88', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
+                          📊
+                        </button>
+                        <button onClick={() => deleteTemplate(t.id)} style={{ padding: '4px 8px', background: '#ff4444', color: '#fff', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: '#666', textAlign: 'center', padding: 20 }}>
+                  <p>No templates saved yet. Generate your first template above.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Analytics */}
+            {templateAnalytics && (
+              <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                <h4 style={{ margin: '0 0 12px', color: '#00ff88', fontSize: 14 }}>📊 {t('analytics')}</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+                  <div style={{ textAlign: 'center', padding: 12, background: '#0f0f0f', borderRadius: 8 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#00d4ff' }}>{templateAnalytics.impressions}</div>
+                    <div style={{ fontSize: 11, color: '#888' }}>{t('impressions')}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: 12, background: '#0f0f0f', borderRadius: 8 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#ffd700' }}>{templateAnalytics.clicks}</div>
+                    <div style={{ fontSize: 11, color: '#888' }}>{t('clicks')}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: 12, background: '#0f0f0f', borderRadius: 8 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#00ff88' }}>{templateAnalytics.conversions}</div>
+                    <div style={{ fontSize: 11, color: '#888' }}>{t('conversions')}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: 12, background: '#0f0f0f', borderRadius: 8 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#ff6b35' }}>{templateAnalytics.ctr}</div>
+                    <div style={{ fontSize: 11, color: '#888' }}>{t('ctr')}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: 12, background: '#0f0f0f', borderRadius: 8 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#7b2dff' }}>{templateAnalytics.cvr}</div>
+                    <div style={{ fontSize: 11, color: '#888' }}>{t('cvr')}</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
