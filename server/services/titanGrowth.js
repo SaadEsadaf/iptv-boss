@@ -206,12 +206,32 @@ class TitanGrowthEngine {
 
     const leads = [];
     
+    // Try OAuth if credentials available
+    let accessToken = null;
+    try {
+      if (process.env.REDDIT_CLIENT_ID && process.env.REDDIT_SECRET) {
+        const auth = Buffer.from(`${process.env.REDDIT_CLIENT_ID}:${process.env.REDDIT_SECRET}`).toString('base64');
+        const tokenRes = await axios.post(
+          'https://www.reddit.com/api/v1/access_token',
+          'grant_type=client_credentials',
+          { headers: { Authorization: `Basic ${auth}`, 'User-Agent': 'IPTV-Boss-Growth/1.0' }, timeout: 10000 }
+        );
+        accessToken = tokenRes.data?.access_token;
+      }
+    } catch (e) {
+      console.log('[TITAN-GROWTH] Reddit OAuth failed, using public API');
+    }
+
+    const headers = accessToken
+      ? { Authorization: `Bearer ${accessToken}`, 'User-Agent': 'IPTV-Boss-Growth/1.0' }
+      : { 'User-Agent': 'IPTV-Boss-Growth/1.0' };
+    
     for (const subreddit of subreddits.slice(0, 5)) {
       for (const keyword of keywords.slice(0, 5)) {
         try {
           const res = await axios.get(
             `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(keyword)}&sort=new&limit=25`,
-            { headers: { 'User-Agent': 'IPTV-Boss-Growth/1.0' }, timeout: 10000 }
+            { headers, timeout: 10000 }
           );
           
           const posts = res.data?.data?.children || [];
