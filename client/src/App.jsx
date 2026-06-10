@@ -8,7 +8,8 @@ import PaymentResult from './pages/PaymentResult'
 
 export default function App() {
   const ws = typeof window !== 'undefined' && window.__WEBSITE__
-  const isLuxStream = ws?.site_name?.toLowerCase().includes('lux') || ws?.name?.toLowerCase().includes('lux') || ws?.slug?.toLowerCase().includes('lux')
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+  const isLuxStream = hostname.includes('dalletek.live') || hostname.includes('luxstream') || ws?.site_name?.toLowerCase().includes('lux') || ws?.name?.toLowerCase().includes('lux') || ws?.slug?.toLowerCase().includes('lux')
 
   return (
     <Routes>
