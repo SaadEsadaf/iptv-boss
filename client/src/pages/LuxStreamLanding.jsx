@@ -79,6 +79,17 @@ const LUX_EN = {
   tagNetflix: 'Netflix Style', tagSeasons: 'Full Seasons', tagDaily: 'Daily Updates', tagHd: 'HD',
   badgeLive: 'LIVE 2026', badgeHot: '🔥 HOT', badgeVod: 'VOD', badgeSeries: 'SERIES', badgeLiveInd: 'LIVE',
   featChannels: '25,000+ Channels', featChannelsDesc: 'Every country, every category',
+  trialHeading: "Hey! Let's set up your free trial.",
+  trialDesc: 'Fill in your details below and we\'ll send you your credentials instantly.',
+  nameLabel: 'Your Name (optional)', namePlaceholder: 'John Doe',
+  emailLabel: 'Email Address *', emailPlaceholder: 'john@example.com',
+  whatsappLabel: 'WhatsApp (optional)', whatsappPlaceholder: '+1234567890',
+  providerLabel: 'Choose Provider *', selectProvider: 'Select provider',
+  sendingTrial: 'Sending your trial...', getTrial: '🎁 Get My Free Trial',
+  trialReady: 'Your trial is ready!', sentTo: 'We sent your credentials to:',
+  provider: 'Provider:', duration: 'Duration:', hours: 'hours',
+  upgrade: '💳 Upgrade to Full Plan', close: 'Close',
+  trialFailed: 'Trial request failed', networkError: 'Network error. Please try again.',
   featQuality: '4K HDR Quality', featQualityDesc: 'Crystal clear streaming',
   featBuffer: 'Zero Buffering', featBufferDesc: '99.9% uptime guaranteed',
   featDevices: 'All Devices', featDevicesDesc: 'Smart TV, Firestick, Mobile',
@@ -210,6 +221,17 @@ const LUX_FR = {
   tagNetflix: 'Style Netflix', tagSeasons: 'Saisons Complètes', tagDaily: 'Mises à Jour', tagHd: 'HD',
   badgeLive: 'DIRECT 2026', badgeHot: '🔥 TENDANCE', badgeVod: 'VOD', badgeSeries: 'SÉRIES', badgeLiveInd: 'DIRECT',
   featChannels: '25 000+ Chaînes', featChannelsDesc: 'Tous les pays, toutes catégories',
+  trialHeading: "Hey ! Configurons votre essai gratuit.",
+  trialDesc: 'Remplissez vos informations ci-dessous et nous vous enverrons vos identifiants immédiatement.',
+  nameLabel: 'Votre Nom (facultatif)', namePlaceholder: 'Jean Dupont',
+  emailLabel: 'Adresse Email *', emailPlaceholder: 'jean@exemple.com',
+  whatsappLabel: 'WhatsApp (facultatif)', whatsappPlaceholder: '+212612345678',
+  providerLabel: 'Choisissez le Fournisseur *', selectProvider: 'Sélectionnez un fournisseur',
+  sendingTrial: 'Envoi de votre essai...', getTrial: '🎁 Obtenir Mon Essai Gratuit',
+  trialReady: 'Votre essai est prêt !', sentTo: 'Nous avons envoyé vos identifiants à :',
+  provider: 'Fournisseur :', duration: 'Durée :', hours: 'heures',
+  upgrade: '💳 Passer à un Forfait Complet', close: 'Fermer',
+  trialFailed: 'Échec de la demande d\'essai', networkError: 'Erreur réseau. Veuillez réessayer.',
   featQuality: 'Qualité 4K HDR', featQualityDesc: 'Streaming cristallin',
   featBuffer: 'Zéro Buffering', featBufferDesc: '99.9% disponibilité garantie',
   featDevices: 'Tous les Appareils', featDevicesDesc: 'Smart TV, Firestick, Mobile',
@@ -244,6 +266,11 @@ export default function LuxStreamLanding() {
   const [showAuth, setShowAuth] = useState(false)
   const [settings, setSettings] = useState(null)
   const [videoLoaded, setVideoLoaded] = useState(false)
+  const [showTrialModal, setShowTrialModal] = useState(false)
+  const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '' })
+  const [trialProviders, setTrialProviders] = useState([])
+  const [trialSubmitting, setTrialSubmitting] = useState(false)
+  const [trialSuccess, setTrialSuccess] = useState(null)
 
   const ws = typeof window !== 'undefined' && window.__WEBSITE__
   const siteName = ws?.site_name || ws?.name || 'LuxStream'
@@ -286,6 +313,46 @@ export default function LuxStreamLanding() {
     localStorage.removeItem('user_token')
     setUser(null)
     setSubscriptions([])
+  }
+
+  function getSessionId() {
+    let id = localStorage.getItem('chat_session_id')
+    if (!id) {
+      id = 'ls_' + Math.random().toString(36).slice(2, 10)
+      localStorage.setItem('chat_session_id', id)
+    }
+    return id
+  }
+
+  function openTrialModal() {
+    setShowTrialModal(true)
+    setTrialSuccess(null)
+    setTrialForm({ name: '', email: '', phone: '', providerId: '' })
+    fetch('/api/providers/active').then(r => r.json()).then(setTrialProviders).catch(() => {})
+  }
+
+  async function handleTrialSubmit(e) {
+    e.preventDefault()
+    const { name, email, phone, providerId } = trialForm
+    if (!email || !providerId) return
+    setTrialSubmitting(true)
+    try {
+      const res = await fetch('/api/trial/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), sessionId: getSessionId() }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setTrialSuccess(data)
+      } else {
+        alert(data.error || t('trialFailed'))
+      }
+    } catch {
+      alert(t('networkError'))
+    } finally {
+      setTrialSubmitting(false)
+    }
   }
 
   const getPlanPrice = (p) => planInterval === 'year' ? ((p.price_sell || 0) * 10).toFixed(2) : (p.price_sell || 0).toFixed(2)
@@ -360,7 +427,7 @@ export default function LuxStreamLanding() {
                   {t('signIn')}
                 </button>
               )}
-              <button onClick={() => window.__showTrialForm?.()} style={{ padding: '9px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap', boxShadow: '0 4px 20px #ff6b3533', transition: 'all 0.3s' }}
+              <button onClick={() => openTrialModal()} style={{ padding: '9px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap', boxShadow: '0 4px 20px #ff6b3533', transition: 'all 0.3s' }}
                 onMouseEnter={e => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 30px #ff6b3544' }}
                 onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 4px 20px #ff6b3533' }}>
                 {t('freeTrial')}
@@ -377,7 +444,7 @@ export default function LuxStreamLanding() {
               <a key={l.label} href={l.href} onClick={e => { e.preventDefault(); document.querySelector(l.href)?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false) }}
                 style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, padding: '6px 0' }}>{l.label}</a>
             ))}
-            <button onClick={() => { setMobileMenu(false); window.__showTrialForm?.() }} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, textAlign: 'center', marginTop: 4 }}>
+            <button onClick={() => { setMobileMenu(false); openTrialModal() }} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, textAlign: 'center', marginTop: 4 }}>
               {t('freeTrial')}
             </button>
           </div>
@@ -411,7 +478,7 @@ export default function LuxStreamLanding() {
               onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 4px 30px #ff6b3544' }}>
               ▶ {t('watchNow')}
             </button>
-            <button onClick={() => window.__showTrialForm?.()}
+            <button onClick={() => openTrialModal()}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 40px', background: 'transparent', color: '#fff', borderRadius: 50, fontWeight: 700, fontSize: 15, border: '1.5px solid #ffffff22', cursor: 'pointer', transition: 'all 0.3s' }}
               onMouseEnter={e => { e.target.style.borderColor = '#ff6b3566'; e.target.style.color = '#ff6b35' }}
               onMouseLeave={e => { e.target.style.borderColor = '#ffffff22'; e.target.style.color = '#fff' }}>
@@ -455,7 +522,7 @@ export default function LuxStreamLanding() {
               </div>
             ))}
           </div>
-          <button onClick={() => window.__showTrialForm?.()} style={{ padding: '10px 28px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 20px #ff6b3544' }}>
+          <button onClick={() => openTrialModal()} style={{ padding: '10px 28px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 20px #ff6b3544' }}>
             {t('watchFreeTrial')} ⚽
           </button>
         </div>
@@ -703,7 +770,7 @@ export default function LuxStreamLanding() {
               <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 50%, #ff6b3510, transparent 60%)' }} />
               <h2 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)', fontWeight: 900, marginBottom: 12, position: 'relative', zIndex: 1, color: '#fff' }}>{t('ctaTitle')}</h2>
               <p style={{ color: '#8888aa', marginBottom: 32, position: 'relative', zIndex: 1 }}>{t('ctaDesc')}</p>
-              <button onClick={() => window.__showTrialForm?.()} style={{ padding: '14px 44px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', borderRadius: 50, fontWeight: 800, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 4px 30px #ff6b3544', transition: 'all 0.3s', position: 'relative', zIndex: 1 }}
+              <button onClick={() => openTrialModal()} style={{ padding: '14px 44px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', borderRadius: 50, fontWeight: 800, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 4px 30px #ff6b3544', transition: 'all 0.3s', position: 'relative', zIndex: 1 }}
                 onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 40px #ff6b3566' }}
                 onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 4px 30px #ff6b3544' }}>
                 {t('startFree')}
@@ -771,6 +838,86 @@ export default function LuxStreamLanding() {
       {checkoutPlan && <CheckoutModal plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} userToken={localStorage.getItem('user_token')} />}
       {showAuth && <AuthModal settings={settings} onAuth={handleAuth} onClose={() => setShowAuth(false)} />}
       <ChatWidget />
+
+      {/* Trial Modal */}
+      {showTrialModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(12px)', padding: 24 }}>
+          <div style={{ background: 'linear-gradient(145deg, #0f0f1a, #1a0a1a)', border: '1px solid #ff6b3544', borderRadius: 24, padding: 0, maxWidth: 480, width: '100%', position: 'relative', overflow: 'hidden', boxShadow: '0 20px 80px rgba(0,0,0,0.6)' }}>
+            {/* Header */}
+            <div style={{ padding: '28px 28px 20px', borderBottom: '1px solid #ffffff10', position: 'relative' }}>
+              <button onClick={() => setShowTrialModal(false)} style={{ position: 'absolute', top: 20, right: 20, background: 'transparent', border: 'none', color: '#8888aa', cursor: 'pointer', fontSize: 20, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'all 0.3s' }}>✕</button>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>🎁</div>
+              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{t('trialHeading')}</h2>
+              <p style={{ margin: '8px 0 0', color: '#8888aa', fontSize: 14, lineHeight: 1.6 }}>{t('trialDesc')}</p>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '20px 28px 28px' }}>
+              {!trialSuccess ? (
+                <form onSubmit={handleTrialSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <label style={{ display: 'block', color: '#8888aa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('nameLabel')}</label>
+                    <input value={trialForm.name} onChange={e => setTrialForm(f => ({ ...f, name: e.target.value }))} placeholder={t('namePlaceholder')}
+                      style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ffffff15', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: '#ff6b35', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('emailLabel')}</label>
+                    <input value={trialForm.email} onChange={e => setTrialForm(f => ({ ...f, email: e.target.value }))} placeholder={t('emailPlaceholder')} type="email" required
+                      style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ff6b3544', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: '#8888aa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('whatsappLabel')}</label>
+                    <input value={trialForm.phone} onChange={e => setTrialForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('whatsappPlaceholder')}
+                      style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ffffff15', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: '#ff6b35', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('providerLabel')}</label>
+                    <select value={trialForm.providerId} onChange={e => setTrialForm(f => ({ ...f, providerId: e.target.value }))} required
+                      style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ff6b3544', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit', appearance: 'auto', cursor: 'pointer' }}>
+                      <option value="" style={{ background: '#1a1a2e' }}>{t('selectProvider')}</option>
+                      {trialProviders.map(p => (
+                        <option key={p.id} value={p.id} style={{ background: '#1a1a2e' }}>{p.name} — {p.plan_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button type="submit" disabled={trialSubmitting} style={{
+                    width: '100%', padding: '14px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff',
+                    border: 'none', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: 15,
+                    opacity: trialSubmitting ? 0.6 : 1, marginTop: 8, transition: 'all 0.3s', boxShadow: '0 4px 20px #ff6b3544'
+                  }}>
+                    {trialSubmitting ? t('sendingTrial') : t('getTrial')}
+                  </button>
+                </form>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+                  <h3 style={{ color: '#00ff88', fontWeight: 800, margin: '0 0 12px', fontSize: 20 }}>{t('trialReady')}</h3>
+                  <p style={{ color: '#8888aa', fontSize: 14, margin: '0 0 8px' }}>{t('sentTo')}</p>
+                  <p style={{ color: '#fff', fontSize: 15, fontWeight: 700, margin: '0 0 16px' }}>{trialForm.email}</p>
+                  <div style={{ background: '#ffffff08', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ color: '#8888aa', fontSize: 13 }}>{t('provider')}</span>
+                      <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{trialSuccess.provider_name}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#8888aa', fontSize: 13 }}>{t('duration')}</span>
+                      <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{trialSuccess.duration_hours} {t('hours')}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                    <button onClick={() => { setShowTrialModal(false); document.querySelector('#plans')?.scrollIntoView({ behavior: 'smooth' }) }} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                      {t('upgrade')}
+                    </button>
+                    <button onClick={() => setShowTrialModal(false)} style={{ padding: '12px 24px', background: 'transparent', color: '#8888aa', border: '1px solid #ffffff15', borderRadius: 12, fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                      {t('close')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }}>
