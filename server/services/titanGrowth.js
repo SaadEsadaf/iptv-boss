@@ -236,25 +236,27 @@ class TitanGrowthEngine {
 
     const headers = accessToken
       ? { Authorization: `Bearer ${accessToken}`, 'User-Agent': 'IPTV-Boss-Growth/1.0' }
-      : { 'User-Agent': 'IPTV-Boss-Growth/1.0' };
+      : { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
     
-    // Quick search - just 2 subreddits, 2 keywords
-    const quickSearches = [
-      { sub: 'IPTV', kw: 'best iptv' },
-      { sub: 'cordcutters', kw: 'looking for iptv' },
+    // Try subreddit JSON feeds (public, no auth needed)
+    const subreddits = [
+      'IPTV', 'cordcutters', 'iptvresellers', 'TroyPoint', 'Addons4Kodi', 'iptv4us', 'bestiptv'
     ];
     
-    for (const { sub, kw } of quickSearches) {
+    for (const sub of subreddits) {
+      if (leads.length >= limit) break;
       try {
+        // Use public JSON feed (hot posts) - more reliable than search
         const res = await axios.get(
-          `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(kw)}&sort=new&limit=10`,
+          `https://www.reddit.com/r/${sub}/hot.json?limit=10`,
           { headers, timeout: 8000 }
         );
         
         const posts = res.data?.data?.children || [];
         for (const post of posts) {
           const p = post.data;
-          const intent = this.scoreIntent(p.title + ' ' + (p.selftext || ''));
+          const text = p.title + ' ' + (p.selftext || '');
+          const intent = this.scoreIntent(text);
           
           if (intent.score >= 5) {
             leads.push({
@@ -274,9 +276,11 @@ class TitanGrowthEngine {
             });
           }
         }
+        // Small delay between subreddits
+        await new Promise(r => setTimeout(r, 1000));
       } catch (e) {
-        console.log('[TITAN-GROWTH] Reddit search failed:', e.message);
-        break; // Stop if Reddit blocks us
+        console.log('[TITAN-GROWTH] Reddit r/' + sub + ' failed:', e.message);
+        continue; // Try next subreddit
       }
     }
 
