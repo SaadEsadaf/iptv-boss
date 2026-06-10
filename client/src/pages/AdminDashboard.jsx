@@ -17,12 +17,14 @@ import DeployTargets from '../components/AdminTabs/DeployTargets'
 import Domains from '../components/AdminTabs/Domains'
 import SubAdmins from '../components/AdminTabs/SubAdmins'
 import SalesEngine from '../components/AdminTabs/SalesEngine'
+import TitanHub from '../components/AdminTabs/TitanHub'
 const LOCALE = {
   en: {
     overview: 'Overview', providers: 'Providers', codes: 'Codes', trials: 'Trials',
     orders: 'Orders', chat: 'Chat', pages: 'Pages', seo: 'SEO',
     'agent-log': 'Agent Log', websites: 'Websites', servers: 'Servers',
     domains: 'Domains', 'subadmins': 'Sub-Admins', settings: 'Settings',
+    'titan-hub': 'Titan Hub', sales: 'Sales Engine',
     admin: 'Admin Panel', select: 'Select Website', signOut: 'Sign Out', signIn: 'Sign In',
   },
   fr: {
@@ -30,6 +32,7 @@ const LOCALE = {
     orders: 'Commandes', chat: 'Chat', pages: 'Pages', seo: 'SEO',
     'agent-log': 'Journal IA', websites: 'Sites', servers: 'Serveurs',
     domains: 'Domaines', 'subadmins': 'Sous-Admins', settings: 'Paramètres',
+    'titan-hub': 'Titan Hub', sales: 'Moteur de Ventes',
     admin: 'Panneau Admin', select: 'Choisir un site', signOut: 'Déconnexion', signIn: 'Connexion',
   },
   nl: {
@@ -37,6 +40,7 @@ const LOCALE = {
     orders: 'Bestellingen', chat: 'Chat', pages: 'Pagina\'s', seo: 'SEO',
     'agent-log': 'AI Logboek', websites: 'Websites', servers: 'Servers',
     domains: 'Domeinen', 'subadmins': 'Sub-Admins', settings: 'Instellingen',
+    'titan-hub': 'Titan Hub', sales: 'Verkoopmotor',
     admin: 'Admin Paneel', select: 'Selecteer website', signOut: 'Uitloggen', signIn: 'Inloggen',
   },
 }
@@ -51,6 +55,7 @@ const allTabs = [
   { id: 'pages', label: 'Pages', icon: '📄' },
   { id: 'seo', label: 'SEO', icon: '🎯' },
   { id: 'sales', label: 'Sales Engine', icon: '🚀' },
+  { id: 'titan-hub', label: 'Titan Hub', icon: '🧠' },
   { id: 'agent-log', label: 'Agent Log', icon: '📋' },
   { id: 'websites', label: 'Websites', icon: '🌐' },
   { id: 'servers', label: 'Servers', icon: '🗄️' },
@@ -184,6 +189,7 @@ export default function AdminDashboard() {
     emails: EmailTemplates,
     subadmins: SubAdmins,
     sales: SalesEngine,
+    'titan-hub': TitanHub,
   }[validTab]
 
   const selectedWebsite = websites.find(w => String(w.id) === websiteId)
