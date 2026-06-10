@@ -16,8 +16,10 @@ const { startRedditSniffer } = require('./services/redditSniffer');
 const { startTwitterSniffer } = require('./services/twitterSniffer');
 const { startBrain } = require('./services/businessBrain');
 const { startRankChecker } = require('./services/rankTracker');
+const { startSalesEngine, ensureTables } = require('./services/salesEngine');
 
 initializeDatabase();
+ensureTables();
 
 startStockMonitor();
 startTelegramSniffer();
@@ -26,6 +28,7 @@ startRedditSniffer();
 startTwitterSniffer();
 startRankChecker();
 startBrain();
+startSalesEngine();
 const PORT = process.env.PORT || 3001;
 
 app.set('trust proxy', 1);
@@ -58,6 +61,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use(require('./routes/checkout'));
 app.use('/lp', require('./routes/pages'));
 app.use('/api/demand', require('./routes/demand'));
+app.use('/api/sales-engine', require('./routes/salesEngine'));
 
 app.get('/api/plans', (req, res) => {
   const { getDb } = require('./db');

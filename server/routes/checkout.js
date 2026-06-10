@@ -120,6 +120,11 @@ router.post('/api/trial/claim', async (req, res) => {
     'INSERT INTO agent_log (agent, action, details, order_id, session_id) VALUES (?, ?, ?, ?, ?)'
   ).run('System', 'trial_claim', `Trial claimed by ${email} for ${provider.name}`, orderResult.lastInsertRowid, sessionId || null);
 
+  try {
+    const { enrollTrialUser } = require('../services/salesEngine')
+    enrollTrialUser(orderResult.lastInsertRowid, email, name || null, trialCreds).catch(() => {})
+  } catch (e) {}
+
   res.json({ success: true, provider_name: provider.name, duration_hours: trialCreds.duration_hours || 72 });
 });
 

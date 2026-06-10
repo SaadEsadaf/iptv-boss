@@ -16,6 +16,7 @@ import Websites from '../components/AdminTabs/Websites'
 import DeployTargets from '../components/AdminTabs/DeployTargets'
 import Domains from '../components/AdminTabs/Domains'
 import SubAdmins from '../components/AdminTabs/SubAdmins'
+import SalesEngine from '../components/AdminTabs/SalesEngine'
 const LOCALE = {
   en: {
     overview: 'Overview', providers: 'Providers', codes: 'Codes', trials: 'Trials',
@@ -49,6 +50,7 @@ const allTabs = [
   { id: 'chat', label: 'Chat', icon: '💬' },
   { id: 'pages', label: 'Pages', icon: '📄' },
   { id: 'seo', label: 'SEO', icon: '🎯' },
+  { id: 'sales', label: 'Sales Engine', icon: '🚀' },
   { id: 'agent-log', label: 'Agent Log', icon: '📋' },
   { id: 'websites', label: 'Websites', icon: '🌐' },
   { id: 'servers', label: 'Servers', icon: '🗄️' },
@@ -181,6 +183,7 @@ export default function AdminDashboard() {
     settings: Settings,
     emails: EmailTemplates,
     subadmins: SubAdmins,
+    sales: SalesEngine,
   }[validTab]
 
   const selectedWebsite = websites.find(w => String(w.id) === websiteId)
