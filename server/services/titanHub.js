@@ -110,18 +110,41 @@ class TitanHub {
     return parts.join('\n\n---\n\n');
   }
 
+  tableExists(db, tableName) {
+    try {
+      db.prepare(`SELECT 1 FROM ${tableName} LIMIT 1`).get();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async getSystemState(db) {
     try {
+      const safeCount = (table) => this.tableExists(db, table) ? db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get().count : 0;
+      const safeSum = (table, column, condition) => {
+        if (!this.tableExists(db, table)) return 0;
+        try {
+          const row = db.prepare(`SELECT ${column} as val FROM ${table} WHERE ${condition} LIMIT 1`).get();
+          return row?.val || 0;
+        } catch { return 0; }
+      };
+
       const websites = db.prepare('SELECT COUNT(*) as count FROM websites').get();
-      const customers = db.prepare('SELECT COUNT(*) as count FROM customers').get();
-      const orders = db.prepare('SELECT COUNT(*) as count FROM orders').get();
-      const trials = db.prepare('SELECT COUNT(*) as count FROM trials').get();
-      const providers = db.prepare('SELECT COUNT(*) as count FROM providers_catalog').get();
-      const plans = db.prepare('SELECT COUNT(*) as count FROM provider_plans').get();
-      const todayOrders = db.prepare(`SELECT COUNT(*) as count, SUM(amount) as revenue FROM orders WHERE DATE(created_at) = DATE('now')`).get();
-      const emailQueue = db.prepare('SELECT COUNT(*) as count FROM email_queue WHERE status = "pending"').get();
-      const hotLeads = db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE event_type = "hot_lead"').get();
-      const recentErrors = db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE event_type = "error" AND timestamp > datetime("now", "-1 hour")').get();
+      const customers = safeCount('customers');
+      const orders = safeCount('orders');
+      const trials = safeCount('trials');
+      const providers = safeCount('providers_catalog');
+      const plans = safeCount('provider_plans');
+      let todayOrders = { count: 0, revenue: 0 };
+      if (this.tableExists(db, 'orders')) {
+        try {
+          todayOrders = db.prepare(`SELECT COUNT(*) as count, SUM(amount) as revenue FROM orders WHERE DATE(created_at) = DATE('now')`).get();
+        } catch { /* ignore */ }
+      }
+      const emailQueue = safeCount('email_queue');
+      const hotLeads = this.tableExists(db, 'sales_engine_log') ? db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE event_type = "hot_lead"').get().count : 0;
+      const recentErrors = this.tableExists(db, 'sales_engine_log') ? db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE event_type = "error" AND timestamp > datetime("now", "-1 hour")').get().count : 0;
 
       const uptime = process.uptime();
       const memory = process.memoryUsage();
@@ -139,16 +162,16 @@ class TitanHub {
         cpu: this.getCPUUsage(),
         database: {
           websites: websites.count,
-          customers: customers.count,
-          orders: orders.count,
-          trials: trials.count,
-          providers: providers.count,
-          plans: plans.count,
+          customers: customers,
+          orders: orders,
+          trials: trials,
+          providers: providers,
+          plans: plans,
           todayOrders: todayOrders.count || 0,
           todayRevenue: todayOrders.revenue || 0,
-          pendingEmails: emailQueue.count,
-          hotLeads: hotLeads.count,
-          recentErrors: recentErrors.count,
+          pendingEmails: emailQueue,
+          hotLeads: hotLeads,
+          recentErrors: recentErrors,
         },
         titan: {
           status: 'online',
