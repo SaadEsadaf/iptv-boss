@@ -143,8 +143,8 @@ class TitanHub {
         } catch { /* ignore */ }
       }
       const emailQueue = safeCount('email_queue');
-      const hotLeads = this.tableExists(db, 'sales_engine_log') ? db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE event_type = "hot_lead"').get().count : 0;
-      const recentErrors = this.tableExists(db, 'sales_engine_log') ? db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE event_type = "error" AND timestamp > datetime("now", "-1 hour")').get().count : 0;
+      const hotLeads = this.tableExists(db, 'sales_engine_log') ? db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE action = "hot_lead"').get().count : 0;
+      const recentErrors = this.tableExists(db, 'sales_engine_log') ? db.prepare('SELECT COUNT(*) as count FROM sales_engine_log WHERE action = "error" AND created_at > datetime("now", "-1 hour")').get().count : 0;
 
       const uptime = process.uptime();
       const memory = process.memoryUsage();
