@@ -64,6 +64,7 @@ app.use('/api/demand', require('./routes/demand'));
 app.use('/api/sales-engine', require('./routes/salesEngine'));
 app.use('/api/titan', require('./routes/titan'));
 app.use('/api/titan-templates', require('./routes/titanTemplates'));
+app.use('/api/titan-growth', require('./routes/titanGrowth'));
 
 app.get('/api/plans', (req, res) => {
   const { getDb } = require('./db');
