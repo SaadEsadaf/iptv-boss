@@ -41,7 +41,7 @@ const FR = {
   contactWhatsApp: 'Contactez-nous sur WhatsApp',
 };
 
-async function buildPage({ keyword, audience, providerId, planId, language }) {
+async function buildPage({ keyword, audience, providerId, planId, language, template }) {
   const db = getDb();
   const slug = slugify(keyword);
   const lang = language || 'fr';
@@ -51,14 +51,18 @@ async function buildPage({ keyword, audience, providerId, planId, language }) {
   }
 
   let html;
-  const t = lang === 'fr' ? FR : null; // Only French supported for now
+  const t = lang === 'fr' ? FR : null;
+  const useTemplate = template === 'luxstream' ? buildLuxStreamPage({ keyword, audience, providerId, planId, lang, db, siteName, siteUrl, supportEmail }) : null;
 
-  try {
-    html = await generateText({
-      system: 'You are a senior UI/UX designer at a premium streaming service like Netflix/Videoland. Generate complete, production-ready HTML pages with a stunning, cinematic dark theme.',
-      messages: [{
-        role: 'user',
-        content: `Design a premium streaming landing page for keyword '${keyword}' targeting '${audience || 'general'}'. Style: Netflix/Videoland-grade dark theme, full-screen hero with gradient overlays, large typography, hover animations, card carousels, and smooth scroll transitions.
+  if (useTemplate) {
+    html = useTemplate;
+  } else {
+    try {
+      html = await generateText({
+        system: 'You are a senior UI/UX designer at a premium streaming service like Netflix/Videoland. Generate complete, production-ready HTML pages with a stunning, cinematic dark theme.',
+        messages: [{
+          role: 'user',
+          content: `Design a premium streaming landing page for keyword '${keyword}' targeting '${audience || 'general'}'. Style: Netflix/Videoland-grade dark theme, full-screen hero with gradient overlays, large typography, hover animations, card carousels, and smooth scroll transitions.
 
 Requirements:
 - Hero: Full-viewport with animated gradient background, massive heading (clamp 3-6rem), subtitle, two CTA buttons (primary + outline), floating content cards below
@@ -77,10 +81,11 @@ Return ONLY the raw HTML, no markdown.`
       maxTokens: 4000,
       task: 'page',
     });
-  } catch (e) {
-    if (e.message !== 'AI_NOT_CONFIGURED') {
-      console.error('[PageBuilder] AI error:', e);
-      return { error: 'AI generation failed: ' + e.message };
+    } catch (e) {
+      if (e.message !== 'AI_NOT_CONFIGURED') {
+        console.error('[PageBuilder] AI error:', e);
+        return { error: 'AI generation failed: ' + e.message };
+      }
     }
   }
 

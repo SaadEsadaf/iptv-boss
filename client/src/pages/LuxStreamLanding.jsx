@@ -239,7 +239,7 @@ export default function LuxStreamLanding() {
   ]
 
   return (
-    <div style={{ background: '#050510', color: '#fff', fontFamily: "'Inter", "system-ui", sans-serif", minHeight: '100vh' }}>
+    <div style={{ background: '#050510', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', minHeight: '100vh' }}>
       <style>{`
         .fade-up { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
         .fade-up.visible { opacity: 1; transform: translateY(0); }
@@ -285,7 +285,7 @@ export default function LuxStreamLanding() {
                 <a key={l.label} href={l.href} onClick={e => { e.preventDefault(); document.querySelector(l.href)?.scrollIntoView({ behavior: 'smooth' }) }}
                   style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
                   onMouseEnter={e => e.target.style.color = '#fff'}
-                  onMouseLeave={e => e.target.style.color = '#8888aa' }}>
+                  onMouseLeave={e => e.target.style.color = '#8888aa' }>
                   {l.label}
                 </a>
               ))}
@@ -670,7 +670,7 @@ export default function LuxStreamLanding() {
                 <a key={i} href={l} onClick={e => { e.preventDefault(); document.querySelector(l)?.scrollIntoView({ behavior: 'smooth' }) }}
                   style={{ display: 'block', color: '#6666aa', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                   onMouseEnter={e => e.target.style.color = '#ff6b35'}
-                  onMouseLeave={e => e.target.style.color = '#6666aa'}}>
+                  onMouseLeave={e => e.target.style.color = '#6666aa'}>
                   {[t('features'), t('plans'), t('faq')][i]}
                 </a>
               ))}
@@ -679,17 +679,17 @@ export default function LuxStreamLanding() {
               <h4 style={{ color: '#fff', fontSize: 13, fontWeight: 700, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{t('support')}</h4>
               <a href="mailto:support@luxstream.tv" style={{ display: 'block', color: '#6666aa', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                 onMouseEnter={e => e.target.style.color = '#ff6b35'}
-                onMouseLeave={e => e.target.style.color = '#6666aa'}}>{t('emailUs')}</a>
+                onMouseLeave={e => e.target.style.color = '#6666aa'}>{t('emailUs')}</a>
               <a href="/" style={{ display: 'block', color: '#6666aa', textDecoration: 'none', fontSize: 14, padding: '4px 0', transition: 'color 0.3s' }}
                 onMouseEnter={e => e.target.style.color = '#ff6b35'}
-                onMouseLeave={e => e.target.style.color = '#6666aa'}}>{t('liveChat')}</a>
+                onMouseLeave={e => e.target.style.color = '#6666aa'}>{t('liveChat')}</a>
             </div>
             <div>
               <h4 style={{ color: '#fff', fontSize: 13, fontWeight: 700, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{t('legal')}</h4>
               {['terms', 'privacy', 'refund'].map(k => (
                 <button key={k} onClick={() => setModal(k)} style={{ display: 'block', background: 'transparent', border: 'none', color: '#6666aa', cursor: 'pointer', fontSize: 14, padding: '4px 0', textAlign: 'left', transition: 'color 0.3s' }}
                   onMouseEnter={e => e.target.style.color = '#ff6b35'}
-                  onMouseLeave={e => e.target.style.color = '#6666aa'}}>
+                  onMouseLeave={e => e.target.style.color = '#6666aa'}>
                   {[t('terms'), t('privacy'), t('refund')][['terms', 'privacy', 'refund'].indexOf(k)]}
                 </button>
               ))}
