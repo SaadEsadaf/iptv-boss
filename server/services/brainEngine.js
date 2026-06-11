@@ -222,7 +222,32 @@ async function brainCycle() {
     console.error('Report error:', e.message);
   }
 
-  // 8. Log the cycle
+  // 8. Run health check (every hour)
+  try {
+    const { sendHealthAlert } = require('./healthMonitor');
+    const healthResult = await sendHealthAlert();
+    if (healthResult.sent) {
+      db.prepare("INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)").run('Brain', 'health_alert', `Health status: ${healthResult.check.emoji} ${healthResult.check.label} — ${healthResult.check.count.green}✅ ${healthResult.check.count.orange}⚠️ ${healthResult.check.count.red}❌`);
+    }
+  } catch (e) {
+    console.error('Health check error:', e.message);
+  }
+
+  // 9. Run self-healing (every 6h at hour 0,6,12,18)
+  try {
+    const hour = new Date().getHours();
+    if (hour % 6 === 0) {
+      const { healAndNotify } = require('./healEngine');
+      const healResult = await healAndNotify();
+      if (healResult.totalFixed > 0 || healResult.totalFailed > 0) {
+        db.prepare("INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)").run('Brain', 'heal_cycle', `Heal: ${healResult.totalFixed} fixed, ${healResult.totalFailed} need help`);
+      }
+    }
+  } catch (e) {
+    console.error('Heal engine error:', e.message);
+  }
+
+  // 10. Log the cycle
   const elapsed = Date.now() - startTime;
   db.prepare(
     "INSERT INTO sales_engine_log (action, lead_email, sequence_type, details, lead_id) VALUES (?, ?, ?, ?, ?)"

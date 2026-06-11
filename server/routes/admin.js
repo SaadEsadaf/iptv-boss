@@ -1599,4 +1599,15 @@ router.get('/feed-stock', authMiddleware, (req, res) => {
   });
 });
 
+// Self-healing engine
+router.post('/heal', authMiddleware, async (req, res) => {
+  try {
+    const { healAndNotify } = require('../services/healEngine');
+    const result = await healAndNotify();
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
