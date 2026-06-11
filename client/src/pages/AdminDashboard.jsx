@@ -18,13 +18,14 @@ import Domains from '../components/AdminTabs/Domains'
 import SubAdmins from '../components/AdminTabs/SubAdmins'
 import SalesEngine from '../components/AdminTabs/SalesEngine'
 import TitanHub from '../components/AdminTabs/TitanHub'
+import Campaigns from '../components/AdminTabs/Campaigns'
 const LOCALE = {
   en: {
     overview: 'Overview', providers: 'Providers', codes: 'Codes', trials: 'Trials',
     orders: 'Orders', chat: 'Chat', pages: 'Pages', seo: 'SEO',
     'agent-log': 'Agent Log', websites: 'Websites', servers: 'Servers',
     domains: 'Domains', 'subadmins': 'Sub-Admins', settings: 'Settings',
-    'titan-hub': 'Titan Hub', sales: 'Sales Engine',
+    'titan-hub': 'Titan Hub', sales: 'Sales Engine', campaigns: 'Campaigns',
     admin: 'Admin Panel', select: 'Select Website', signOut: 'Sign Out', signIn: 'Sign In',
   },
   fr: {
@@ -32,7 +33,7 @@ const LOCALE = {
     orders: 'Commandes', chat: 'Chat', pages: 'Pages', seo: 'SEO',
     'agent-log': 'Journal IA', websites: 'Sites', servers: 'Serveurs',
     domains: 'Domaines', 'subadmins': 'Sous-Admins', settings: 'Paramètres',
-    'titan-hub': 'Titan Hub', sales: 'Moteur de Ventes',
+    'titan-hub': 'Titan Hub', sales: 'Moteur de Ventes', campaigns: 'Campagnes',
     admin: 'Panneau Admin', select: 'Choisir un site', signOut: 'Déconnexion', signIn: 'Connexion',
   },
   nl: {
@@ -54,6 +55,7 @@ const allTabs = [
   { id: 'chat', label: 'Chat', icon: '💬' },
   { id: 'pages', label: 'Pages', icon: '📄' },
   { id: 'seo', label: 'SEO', icon: '🎯' },
+  { id: 'campaigns', label: 'Campaigns', icon: '📢' },
   { id: 'sales', label: 'Sales Engine', icon: '🚀' },
   { id: 'titan-hub', label: 'Titan Hub', icon: '🧠' },
   { id: 'agent-log', label: 'Agent Log', icon: '📋' },
@@ -189,6 +191,7 @@ export default function AdminDashboard() {
     emails: EmailTemplates,
     subadmins: SubAdmins,
     sales: SalesEngine,
+    campaigns: Campaigns,
     'titan-hub': TitanHub,
   }[validTab]
 
