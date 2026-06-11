@@ -3,7 +3,7 @@ import api from '../api'
 import CheckoutModal from './CheckoutModal'
 
 const ws = typeof window !== 'undefined' && window.__WEBSITE__
-const lang = ws?.language || 'en'
+const lang = ws?.language || 'fr'
 const FR = {
   online: 'En ligne', contactWhatsApp: 'Contact via WhatsApp',
   hi: "Bonjour ! Je suis Alex, votre assistant commercial.",
@@ -50,7 +50,7 @@ function getSessionId() {
 }
 
 const MAX_IMG_SIZE = 2 * 1024 * 1024
-const BROWSER_LANG = (navigator.language || 'en').split('-')[0]
+const BROWSER_LANG = (navigator.language || 'fr').split('-')[0]
 
 function resizeImage(file, maxBytes, cb) {
   const reader = new FileReader()
