@@ -72,6 +72,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
   const [sent, setSent] = useState(false)
   const [sentUrl, setSentUrl] = useState('')
   const [paid, setPaid] = useState(false)
+  const [trialSuccess, setTrialSuccess] = useState(null)
   const [paypalError, setPaypalError] = useState('')
   const [copied, setCopied] = useState(null)
 
@@ -85,6 +86,29 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
 
   async function handleProceed() {
     if (!selected) return
+
+    // Trial plan — auto-activate, no payment needed
+    if (plan.price_sell === 0 || plan.plan_type === 'trial' || plan.is_trial) {
+      setSending(true)
+      try {
+        const res = await fetch('/api/trial/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email || 'guest@trial.com', name: 'Guest', providerId: plan.provider_id, preferredApp: 'tivimate' }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          if (data.token) localStorage.setItem('customer_token', data.token)
+          setPaid(true)
+          setTrialSuccess(data)
+        } else {
+          alert(data.error || 'Trial unavailable')
+        }
+      } catch { alert('Network error') }
+      finally { setSending(false) }
+      return
+    }
+
     if (selected === 'email' || selected === 'stripe' || selected === 'paypal') return setStep(selected)
     if (selected === 'sellup') {
       const headers = { 'Content-Type': 'application/json' }
@@ -349,7 +373,25 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
           </>
         )}
 
-        {step === 'paypal' && paid && (
+        {trialSuccess && (
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>🧪</div>
+            <h2 style={{ margin: '0 0 4px', fontSize: 20, color: '#00d4ff' }}>Trial Activated!</h2>
+            <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>Your {trialSuccess.duration_hours}h free trial is ready</p>
+            <div style={{ background: '#00d4ff10', border: '1px solid #00d4ff30', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 13 }}>
+              <div style={{ color: '#00d4ff', fontWeight: 600, marginBottom: 4 }}>{trialSuccess.provider_name}</div>
+              <div style={{ color: '#666', fontSize: 12 }}>Credentials sent to your email + dashboard</div>
+            </div>
+            <a href="/dashboard" style={{ display: 'block', padding: '12px', background: 'linear-gradient(135deg, #00d4ff, #0090ff)', color: '#000', borderRadius: 8, fontWeight: 700, textDecoration: 'none', marginBottom: 8 }}>
+              🚀 Open My Dashboard
+            </a>
+            <button onClick={onClose} style={{ padding: '8px 24px', background: 'transparent', border: '1px solid #2a2a2a', borderRadius: 6, color: '#a0a0a0', cursor: 'pointer', fontSize: 13 }}>
+              {t('done')}
+            </button>
+          </div>
+        )}
+
+        {step === 'paypal' && paid && !trialSuccess && (
           <>
             <div style={{ textAlign: 'center', padding: '30px 20px' }}>
               <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>

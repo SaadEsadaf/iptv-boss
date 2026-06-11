@@ -405,24 +405,49 @@ router.get('/codes/stats', authMiddleware, (req, res) => {
 });
 
 router.post('/codes/import', authMiddleware, (req, res) => {
-  const { provider_id, plan_id, codes: input, batch_name, notes } = req.body;
+  const { provider_id, plan_id, codes: input, batch_name, notes, is_trial } = req.body;
   if (!provider_id || !plan_id || !input) return res.status(400).json({ error: 'provider_id, plan_id, and codes are required' });
   const db = getDb();
-  const parsed = parseCodes(input);
+  const { analyzeImport, parseCodes } = require('../utils/codeParser');
+  const analysis = analyzeImport(input);
+  const parsed = analysis.parsed;
   if (parsed.length === 0) return res.status(400).json({ error: 'No valid codes found' });
 
-  const insert = db.prepare(
-    'INSERT INTO activation_codes (provider_id, plan_id, code, username, password, server_url, mac_address, expires_at, notes, batch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  );
-  const batchId = db.prepare('INSERT INTO code_batches (provider_id, plan_id, batch_name, total_codes, import_type, notes) VALUES (?, ?, ?, ?, ?, ?)').run(provider_id, plan_id, batch_name || null, parsed.length, 'paste', notes || null).lastInsertRowid;
+  if (is_trial) {
+    // Import as trial codes
+    const insertTrial = db.prepare(
+      'INSERT INTO trial_codes (provider_id, code, username, password, server_url, duration_hours, expires_at, status) VALUES (?, ?, ?, ?, ?, 24, datetime(\'now\', \'+24 hours\'), \'available\')'
+    );
+    const insertMany = db.transaction(() => {
+      for (const c of parsed) {
+        insertTrial.run(provider_id, c.code || null, c.username || null, c.password || null, c.server_url || null);
+      }
+    });
+    insertMany();
+    res.json({ imported: parsed.length, table: 'trial_codes', analysis: { format: analysis.detectedFormat, fields: analysis.fields, totalLines: analysis.totalLines, sample: analysis.sample } });
+  } else {
+    // Import as activation codes
+    const insert = db.prepare(
+      'INSERT INTO activation_codes (provider_id, plan_id, code, username, password, server_url, mac_address, expires_at, notes, batch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    const batchId = db.prepare('INSERT INTO code_batches (provider_id, plan_id, batch_name, total_codes, import_type, notes) VALUES (?, ?, ?, ?, ?, ?)').run(provider_id, plan_id, batch_name || null, parsed.length, 'paste', notes || null).lastInsertRowid;
+    const insertMany = db.transaction(() => {
+      for (const c of parsed) {
+        insert.run(provider_id, plan_id, c.code || null, c.username || null, c.password || null, c.server_url || null, c.mac_address || null, c.expires_at || null, c.notes || null, batchId);
+      }
+    });
+    insertMany();
+    res.json({ imported: parsed.length, batch_id: batchId, table: 'activation_codes', analysis: { format: analysis.detectedFormat, fields: analysis.fields, totalLines: analysis.totalLines, sample: analysis.sample } });
+  }
+});
 
-  const insertMany = db.transaction(() => {
-    for (const c of parsed) {
-      insert.run(provider_id, plan_id, c.code || null, c.username || null, c.password || null, c.server_url || null, c.mac_address || null, c.expires_at || null, c.notes || null, batchId);
-    }
-  });
-  insertMany();
-  res.json({ imported: parsed.length, batch_id: batchId });
+// Analyze codes format before importing
+router.post('/codes/analyze', authMiddleware, (req, res) => {
+  const { codes: input } = req.body;
+  if (!input) return res.status(400).json({ error: 'codes required' });
+  const { analyzeImport } = require('../utils/codeParser');
+  const analysis = analyzeImport(input);
+  res.json(analysis);
 });
 
 router.post('/codes/import-csv', authMiddleware, upload.single('file'), (req, res) => {
