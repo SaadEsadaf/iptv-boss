@@ -1,26 +1,21 @@
-=== DNS Records for dalletek.live ===
-Add these to your domain DNS (via Namecheap or wherever dalletek.live is managed)
+=== DNS Records for dalletek.live — BREVO ACTIVE ===
+Brevo SMTP is currently active. DKIM already set up via Brevo CNAME records.
+Hold off on other records unless switching to self-hosted Postfix.
 
-1. SPF Record (TXT record)
-   Host: @
-   Value: v=spf1 include:_spf.google.com ip4:167.235.183.179 ~all
+Current Brevo DKIM (already in DNS):
+- brevo1._domainkey CNAME → b1.dalletek-live.dkim.brevo.com.
+- brevo2._domainkey CNAME → b2.dalletek-live.dkim.brevo.com.
+- _dmarc TXT → v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com
 
-2. DKIM Record (TXT record)
-   Host: mail._domainkey
-   Value: v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3h8iRTmP4ue/iZ4NN4AT9vmD2iUqq0ZOq0tXOjgdUpf/n5pLf+H+sKNXy4+/LyYIizX8z0RCHczADBNGwYAFFgFfOpbTJ13D/wFkOEaZM4Whk8pUpFssdVq26iOnZVXPWrF0wXYQGlll41+OSrId5VkoFYKpH/6x0dz/xpAr2XzwuPlVarrzP1we9VAtjOeuOS9yTNDVtricxrmANgtzlFLgXyEN7dPqgjuqgbfo4f41P8zV2iTRMcPpIOR7l3ni5yRBoGILbdl/PwosJGRrs+bf0kYqdLTTXBe3h1CPXBZg15i4gmqx6bTEc9rbg2UBixRDChnnHcXvagV9Pn0EawIDAQAB
+=== If switching to Postfix (self-hosted, ports 25/465 unblocked) ===
+1. SPF (TXT @):
+   v=spf1 ip4:167.235.183.179 ~all
 
-3. DMARC Record (TXT record)
-   Host: _dmarc
-   Value: v=DMARC1; p=quarantine; sp=quarantine; rua=mailto:postmaster@dalletek.live; ruf=mailto:postmaster@dalletek.live; pct=100
+2. DKIM (TXT mail._domainkey):
+   v=DKIM1; h=sha256; k=rsa; p=[paste from /etc/opendkim/keys/dalletek.live/mail.txt]
 
-4. MX Record (not strictly needed but good practice)
-   Host: @
-   Value: ASPMX.L.GOOGLE.com
-   Priority: 10
+3. DMARC (TXT _dmarc):
+   v=DMARC1; p=quarantine; rua=mailto:postmaster@dalletek.live
 
-5. PTR / rDNS (via Hetzner Robot panel)
-   IP: 167.235.183.179 → mail.dalletek.live
-
-=== After ports 25/465 are unblocked ===
-Run: postconf -e 'relayhost =' && systemctl restart postfix
-This removes the Gmail relay, sends directly from server.
+4. MX (not needed for sending, only receiving)
+5. PTR: 167.235.183.179 → boss.dalletek.live (via Hetzner Robot)
