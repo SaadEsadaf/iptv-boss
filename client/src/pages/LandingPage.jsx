@@ -152,7 +152,6 @@ export default function LandingPage() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [modal, setModal] = useState(null)
-  const [planInterval, setPlanInterval] = useState('month')
   const [user, setUser] = useState(null)
   const [subscriptions, setSubscriptions] = useState([])
   const [showAuth, setShowAuth] = useState(false)
@@ -217,10 +216,6 @@ export default function LandingPage() {
     if (months >= 12) return '/an'
     if (months <= 1) return ''
     return `/${months}mois`
-  }
-
-  const isPopular = (p) => {
-    return p.plan_name?.toLowerCase() === 'premium'
   }
 
   function handleBuyNow(plan) {
@@ -435,40 +430,22 @@ export default function LandingPage() {
           <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>{t('pricingTitle')}</h2>
           <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 32px' }}>{t('pricingSub')}</p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
-            <div style={{ display: 'flex', background: '#ffffff08', borderRadius: 50, padding: 3, gap: 2 }}>
-              <button onClick={() => setPlanInterval('month')} style={{
-                padding: '8px 22px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                  background: planInterval === 'month' ? '#00d4ff' : 'transparent',
-                  color: planInterval === 'month' ? '#000' : '#666',
-                  transition: 'all 0.2s',
-                }}>{t('monthly')}</button>
-                <button onClick={() => setPlanInterval('year')} style={{
-                  padding: '8px 22px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                  background: planInterval === 'year' ? '#00d4ff' : 'transparent',
-                  color: planInterval === 'year' ? '#000' : '#666',
-                  transition: 'all 0.2s',
-                }}>{t('yearly')} <span style={{ fontSize: 10, opacity: 0.8 }}>{t('savePct')}</span></button>
-            </div>
-          </div>
+          <div style={{ marginBottom: 40 }}></div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
             {plans.filter(p => p.plan_type !== 'trial').slice(0, 6).map((plan, i) => {
-              const popular = isPopular(plan)
-              const avgPrice = plans.filter(p => p.plan_type !== 'trial').reduce((s, p) => s + (p.price_sell || 0), 0) / plans.filter(p => p.plan_type !== 'trial').length
-              const cheapest = (plan.price_sell || 0) <= avgPrice * 0.7
+              const isMiddle = plans.filter(p => p.plan_type !== 'trial').length > 2 && i === Math.floor(plans.filter(p => p.plan_type !== 'trial').length / 2)
               return (
                 <FadeSection key={plan.id}>
                   <div style={{
-                    background: popular ? 'linear-gradient(145deg, #00d4ff08, #00d4ff04)' : 'linear-gradient(145deg, #ffffff08, #ffffff04)',
-                    border: popular ? '1px solid #00d4ff44' : '1px solid #ffffff15',
+                    background: isMiddle ? 'linear-gradient(145deg, #00d4ff08, #00d4ff04)' : 'linear-gradient(145deg, #ffffff08, #ffffff04)',
+                    border: isMiddle ? '1px solid #00d4ff44' : '1px solid #ffffff15',
                     borderRadius: 20, padding: '36px 28px', textAlign: 'center',
                     transition: 'all 0.4s', position: 'relative',
                   }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; if (!popular) e.currentTarget.style.borderColor = '#ffffff25' }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = ''; if (!popular) e.currentTarget.style.borderColor = '#ffffff15' }}>
-                    {popular && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00d4ff', color: '#000', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>{t('mostPopular')}</div>}
-                    {cheapest && !popular && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00ff8844', color: '#00ff88', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700, border: '1px solid #00ff8844' }}>{t('bestValue')}</div>}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; if (!isMiddle) e.currentTarget.style.borderColor = '#ffffff25' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = ''; if (!isMiddle) e.currentTarget.style.borderColor = '#ffffff15' }}>
+                    {isMiddle && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00d4ff', color: '#000', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>{t('mostPopular')}</div>}
                     <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{plan.plan_name}</div>
                     <div style={{ color: '#888', fontSize: 13, marginBottom: 20 }}>{plan.provider_name} — {plan.specialty || t('general')}</div>
                     <div style={{ fontSize: 42, fontWeight: 800, color: '#fff' }}>
@@ -486,26 +463,26 @@ export default function LandingPage() {
                         <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {t('hd')}
                       </li>
                       <li style={{ padding: '10px 0', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {popular ? t('priority') : t('email')}
+                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {t('email')}
                       </li>
                     </ul>
                     <button onClick={() => handleBuyNow(plan)}
                       style={{
                         display: 'block', width: '100%', padding: 14, borderRadius: 50, border: 'none', fontWeight: 700,
                         fontSize: 15, cursor: 'pointer', transition: 'all 0.3s', marginTop: 16,
-                        background: popular ? '#00d4ff' : 'transparent',
-                        color: popular ? '#000' : '#fff',
-                        border: popular ? 'none' : '1.5px solid #ffffff33',
+                        background: isMiddle ? '#00d4ff' : 'transparent',
+                        color: isMiddle ? '#000' : '#fff',
+                        border: isMiddle ? 'none' : '1.5px solid #ffffff33',
                       }}
                       onMouseEnter={e => {
-                        if (popular) { e.target.style.boxShadow = '0 4px 20px #00d4ff44'; e.target.style.transform = 'translateY(-2px)' }
+                        if (isMiddle) { e.target.style.boxShadow = '0 4px 20px #00d4ff44'; e.target.style.transform = 'translateY(-2px)' }
                         else { e.target.style.borderColor = '#00d4ff'; e.target.style.color = '#00d4ff' }
                       }}
                       onMouseLeave={e => {
-                        if (popular) { e.target.style.boxShadow = ''; e.target.style.transform = '' }
+                        if (isMiddle) { e.target.style.boxShadow = ''; e.target.style.transform = '' }
                         else { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }
                       }}>
-                      {popular ? t('subscribe') : cheapest ? t('bestValue') : t('getStarted')}
+                      {t('subscribe')}
                     </button>
                   </div>
                 </FadeSection>

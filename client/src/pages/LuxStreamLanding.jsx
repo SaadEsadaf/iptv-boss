@@ -260,7 +260,6 @@ export default function LuxStreamLanding() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [modal, setModal] = useState(null)
-  const [planInterval, setPlanInterval] = useState('month')
   const [user, setUser] = useState(null)
   const [subscriptions, setSubscriptions] = useState([])
   const [showAuth, setShowAuth] = useState(false)
@@ -362,8 +361,6 @@ export default function LuxStreamLanding() {
     if (months <= 1) return ''
     return `/${months}mois`
   }
-  const isPopular = (p) => p.plan_name?.toLowerCase() === 'premium' || p.plan_name?.toLowerCase() === 'familial' || p.plan_name?.toLowerCase() === 'famille'
-
   const navLinks = [
     { label: t('features'), href: '#features', page: false },
     { label: t('plans'), href: '#plans', page: false },
@@ -690,22 +687,16 @@ export default function LuxStreamLanding() {
             <p style={{ color: '#6666aa', fontSize: 15, maxWidth: 550, margin: '0 auto' }}>{t('pricingSub')}</p>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
-            <div style={{ display: 'flex', background: '#ffffff08', borderRadius: 50, padding: 4, gap: 4 }}>
-              <button onClick={() => setPlanInterval('month')} style={{ padding: '8px 24px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, background: planInterval === 'month' ? 'linear-gradient(135deg, #ff6b35, #ff2d92)' : 'transparent', color: planInterval === 'month' ? '#fff' : '#6666aa', transition: 'all 0.2s' }}>{t('monthly')}</button>
-              <button onClick={() => setPlanInterval('year')} style={{ padding: '8px 24px', borderRadius: 50, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, background: planInterval === 'year' ? 'linear-gradient(135deg, #ff6b35, #ff2d92)' : 'transparent', color: planInterval === 'year' ? '#fff' : '#6666aa', transition: 'all 0.2s' }}>{t('yearly')} <span style={{ fontSize: 10, opacity: 0.8 }}>{t('save')}</span></button>
-            </div>
-          </div>
+          <div style={{ marginBottom: 40 }}></div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
             {plans.filter(p => p.plan_type !== 'trial').slice(0, 4).map((plan) => {
-              const popular = isPopular(plan)
+              const isMiddle = plans.filter(p => p.plan_type !== 'trial').length > 2
               return (
                 <FadeSection key={plan.id}>
-                  <div style={{ background: popular ? 'linear-gradient(145deg, #ff6b3510, #ff2d9208)' : 'linear-gradient(145deg, #ffffff08, #ffffff04)', border: popular ? '1px solid #ff6b3544' : '1px solid #ffffff15', borderRadius: 24, padding: '36px 28px', textAlign: 'center', transition: 'all 0.4s', position: 'relative' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; if (!popular) e.currentTarget.style.borderColor = '#ffffff25' }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = ''; if (!popular) e.currentTarget.style.borderColor = '#ffffff15' }}>
-                    {popular && <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', padding: '5px 24px', borderRadius: 20, fontSize: 12, fontWeight: 800, boxShadow: '0 4px 20px #ff6b3544' }}>{t('mostPopular')}</div>}
+                  <div style={{ background: 'linear-gradient(145deg, #ffffff08, #ffffff04)', border: '1px solid #ffffff15', borderRadius: 24, padding: '36px 28px', textAlign: 'center', transition: 'all 0.4s', position: 'relative' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = '#ffffff25' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = '#ffffff15' }}>
                     <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 6, color: '#fff' }}>{plan.plan_name}</div>
                     <div style={{ color: '#6666aa', fontSize: 13, marginBottom: 20 }}>{plan.provider_name}</div>
                     <div style={{ fontSize: 44, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
@@ -713,16 +704,16 @@ export default function LuxStreamLanding() {
                       <span style={{ fontSize: 16, color: '#6666aa', fontWeight: 400 }}>{getPlanLabel(plan)}</span>
                     </div>
                     <ul style={{ listStyle: 'none', margin: '24px 0', padding: 0, textAlign: 'left' }}>
-                      {[{ label: `${plan.channels?.toLocaleString() || '?'} ${t('channels')}` }, { label: `${plan.streams} ${t('streams')}` }, { label: t('hd4k') }, { label: popular ? t('support24') : t('emailUs') }].map((item, i) => (
+                      {[{ label: `${plan.channels?.toLocaleString() || '?'} ${t('channels')}` }, { label: `${plan.streams} ${t('streams')}` }, { label: t('hd4k') }, { label: t('emailUs') }].map((item, i) => (
                         <li key={i} style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ color: '#ff6b35', fontWeight: 700 }}>✓</span> {item.label}
                         </li>
                       ))}
                     </ul>
-                    <button onClick={() => setCheckoutPlan(plan)} style={{ display: 'block', width: '100%', padding: 14, borderRadius: 50, fontWeight: 700, fontSize: 15, cursor: 'pointer', transition: 'all 0.3s', marginTop: 8, background: popular ? 'linear-gradient(135deg, #ff6b35, #ff2d92)' : 'transparent', color: popular ? '#fff' : '#fff', border: popular ? 'none' : '1.5px solid #ffffff33' }}
-                      onMouseEnter={e => { if (popular) { e.target.style.boxShadow = '0 4px 20px #ff6b3544'; e.target.style.transform = 'translateY(-2px)' } else { e.target.style.borderColor = '#ff6b35'; e.target.style.color = '#ff6b35' } }}
-                      onMouseLeave={e => { if (popular) { e.target.style.boxShadow = ''; e.target.style.transform = '' } else { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' } }}>
-                      {popular ? t('subscribe') : t('getStarted')}
+                    <button onClick={() => setCheckoutPlan(plan)} style={{ display: 'block', width: '100%', padding: 14, borderRadius: 50, fontWeight: 700, fontSize: 15, cursor: 'pointer', transition: 'all 0.3s', marginTop: 8, background: 'transparent', color: '#fff', border: '1.5px solid #ffffff33' }}
+                      onMouseEnter={e => { e.target.style.borderColor = '#ff6b35'; e.target.style.color = '#ff6b35' }}
+                      onMouseLeave={e => { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }}>
+                      {t('getStarted')}
                     </button>
                   </div>
                 </FadeSection>
