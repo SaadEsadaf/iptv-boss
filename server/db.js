@@ -357,6 +357,8 @@ function initializeDatabase() {
   try { db.exec("ALTER TABLE orders ADD COLUMN source TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE provider_plans ADD COLUMN paypal_link TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE provider_plans ADD COLUMN stripe_price_id TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE provider_plans ADD COLUMN duration_months INTEGER DEFAULT 1"); } catch (e) {}
+  try { db.exec("ALTER TABLE provider_plans ADD COLUMN min_stock INTEGER DEFAULT 5"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN stripe_payment_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN paypal_order_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN paypal_payment_id TEXT"); } catch (e) {}

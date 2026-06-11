@@ -6,10 +6,11 @@ export default function Providers() {
   const [alerts, setAlerts] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [showPlanModal, setShowPlanModal] = useState(null)
+  const [showEditPlanModal, setShowEditPlanModal] = useState(null)
   const [showM3uModal, setShowM3uModal] = useState(null)
   const [showCodesModal, setShowCodesModal] = useState(null)
   const [form, setForm] = useState({ name: '', specialty: '', website: '', panel_url: '', panel_username: '', panel_password: '', notes: '' })
-  const [planForm, setPlanForm] = useState({ plan_name: '', plan_type: 'monthly', duration_days: 30, price_cost: 0, price_sell: 0, channels: 0, streams: 1, paypal_link: '' })
+  const [planForm, setPlanForm] = useState({ plan_name: '', plan_type: 'monthly', duration_months: 1, price_cost: 0, price_sell: 0, channels: 0, streams: 1, paypal_link: '', sellup_product_id: '', min_stock: 5 })
   const [m3uUrl, setM3uUrl] = useState('')
   const [m3uLoading, setM3uLoading] = useState(false)
   const [m3uResult, setM3uResult] = useState(null)
@@ -90,8 +91,37 @@ export default function Providers() {
     api.post(`/admin/providers/${providerId}/plans`, planForm).then(() => {
       load()
       setShowPlanModal(null)
-      setPlanForm({ plan_name: '', plan_type: 'monthly', duration_days: 30, price_cost: 0, price_sell: 0, channels: 0, streams: 1, paypal_link: '' })
+      setPlanForm({ plan_name: '', plan_type: 'monthly', duration_months: 1, price_cost: 0, price_sell: 0, channels: 0, streams: 1, paypal_link: '', sellup_product_id: '', min_stock: 5 })
     }).catch(() => {})
+  }
+
+  function editPlan(plan) {
+    setPlanForm({
+      plan_name: plan.plan_name || '',
+      plan_type: plan.plan_type || 'monthly',
+      duration_months: plan.duration_months || Math.round((plan.duration_days || 30) / 30) || 1,
+      price_cost: plan.price_cost || 0,
+      price_sell: plan.price_sell || 0,
+      channels: plan.channels || 0,
+      streams: plan.streams || 1,
+      paypal_link: plan.paypal_link || '',
+      sellup_product_id: plan.sellup_product_id || '',
+      min_stock: plan.min_stock ?? 5
+    })
+    setShowEditPlanModal(plan.id)
+  }
+
+  function saveEditPlan() {
+    api.put(`/admin/plans/${showEditPlanModal}`, planForm).then(() => {
+      load()
+      setShowEditPlanModal(null)
+      setPlanForm({ plan_name: '', plan_type: 'monthly', duration_months: 1, price_cost: 0, price_sell: 0, channels: 0, streams: 1, paypal_link: '', sellup_product_id: '', min_stock: 5 })
+    }).catch(() => {})
+  }
+
+  function deletePlan(planId) {
+    if (!confirm('Delete this plan?')) return
+    api.delete(`/admin/plans/${planId}`).then(load)
   }
 
   function toggleProvider(id) {
@@ -144,9 +174,14 @@ export default function Providers() {
     }
   }
 
+  function stockColor(available, minStock) {
+    if (available === 0) return '#ff4444'
+    if (available <= minStock) return '#ffd700'
+    return '#00cc66'
+  }
+
   return (
     <div>
-      {/* Alerts */}
       {alerts.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           {alerts.map((a, i) => (
@@ -157,7 +192,6 @@ export default function Providers() {
         </div>
       )}
 
-      {/* Inventory Monitor Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <p style={{ color: '#666', margin: 0 }}>{providers.length} providers</p>
@@ -180,7 +214,6 @@ export default function Providers() {
         </div>
       </div>
 
-      {/* Notifications Panel */}
       {showNotifications && notifications.length > 0 && (
         <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 12, padding: 16, marginBottom: 20, maxHeight: 300, overflow: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -201,7 +234,6 @@ export default function Providers() {
         </div>
       )}
 
-      {/* Inventory Status Grid */}
       {inventoryStatus.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <h4 style={{ margin: '0 0 12px', color: '#00d4ff', fontSize: 14 }}>📦 Inventory Status</h4>
@@ -230,7 +262,7 @@ export default function Providers() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill,minmax(360px,1fr))' }}>
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill,minmax(400px,1fr))' }}>
         {providers.map(p => (
           <div key={p.id} style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 12, padding: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
@@ -249,7 +281,6 @@ export default function Providers() {
               </div>
             </div>
 
-            {/* Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
               <div style={{ background: '#0f0f0f', borderRadius: 8, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: '#00d4ff' }}>{p.activationCodes?.available || 0}</div>
@@ -267,6 +298,37 @@ export default function Providers() {
               <span style={{ fontSize: 12, color: '#00d4ff' }}>Revenue: ${(p.orders?.revenueToday || 0).toFixed(2)}</span>
               <span style={{ fontSize: 12, color: '#888' }}>Orders: {p.orders?.today || 0}</span>
             </div>
+
+            {/* Plans list with stock */}
+            {p.plans && p.plans.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                <p style={{ color: '#888', fontSize: 11, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Plans</p>
+                {p.plans.map(pl => (
+                  <div key={pl.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f0f0f', borderRadius: 8, padding: '8px 12px', marginBottom: 4, fontSize: 12 }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ color: '#fff', fontWeight: 600 }}>{pl.plan_name}</span>
+                      <span style={{ color: '#888', marginLeft: 8 }}>{pl.duration_months || Math.round((pl.duration_days || 30)/30)}mo</span>
+                      <span style={{ color: '#00d4ff', marginLeft: 8 }}>${pl.price_sell}</span>
+                      {!pl.active && <span style={{ color: '#ff4444', marginLeft: 6, fontSize: 10 }}>INACTIF</span>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        background: '#151515', borderRadius: 6, padding: '2px 8px',
+                        color: stockColor(pl.codes_available || 0, pl.min_stock ?? 5),
+                        fontWeight: 700, fontSize: 13
+                      }}>
+                        <span style={{ fontSize: 10 }}>📦</span>
+                        {pl.codes_available || 0}
+                      </span>
+                      <span style={{ color: '#555', fontSize: 10 }}>/ min {pl.min_stock ?? 5}</span>
+                      <button onClick={() => editPlan(pl)} style={{ background: 'transparent', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11, padding: 2 }}>✏️</button>
+                      <button onClick={() => deletePlan(pl.id)} style={{ background: 'transparent', border: 'none', color: '#ff444488', cursor: 'pointer', fontSize: 11, padding: 2 }}>🗑</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               <button onClick={() => { setShowCodesModal(p.id); setSelectedProvider(p) }} style={{ background: '#00d4ff15', color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
@@ -289,13 +351,13 @@ export default function Providers() {
       {/* Add Provider Modal */}
       {showModal && (
         <Modal onClose={() => setShowModal(false)} title="Add Provider">
-          <input placeholder="Provider Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} />
-          <input placeholder="Specialty (e.g. Sports, Arabic)" value={form.specialty} onChange={e => setForm(f => ({ ...f, specialty: e.target.value }))} style={inputStyle} />
-          <input placeholder="Website URL" value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} style={inputStyle} />
-          <input placeholder="Panel URL (e.g. https://panel.example.com)" value={form.panel_url} onChange={e => setForm(f => ({ ...f, panel_url: e.target.value }))} style={inputStyle} />
-          <input placeholder="Panel Username" value={form.panel_username} onChange={e => setForm(f => ({ ...f, panel_username: e.target.value }))} style={inputStyle} />
-          <input type="password" placeholder="Panel Password" value={form.panel_password} onChange={e => setForm(f => ({ ...f, panel_password: e.target.value }))} style={inputStyle} />
-          <textarea placeholder="Notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={{ ...inputStyle, resize: 'vertical' }} />
+          <Field label="Provider Name" desc="Le nom du fournisseur IPTV (ex: Atlas Pro, StreamMax)" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <Field label="Specialty" desc="Spécialité (ex: Sports, Arabic, General, VOD)" value={form.specialty} onChange={e => setForm(f => ({ ...f, specialty: e.target.value }))} />
+          <Field label="Website URL" desc="Site web du fournisseur" value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} />
+          <Field label="Panel URL" desc="URL du panneau de gestion Xtream UI ou autre" value={form.panel_url} onChange={e => setForm(f => ({ ...f, panel_url: e.target.value }))} />
+          <Field label="Panel Username" desc="Nom d'utilisateur pour le panneau" value={form.panel_username} onChange={e => setForm(f => ({ ...f, panel_username: e.target.value }))} />
+          <Field label="Panel Password" desc="Mot de passe pour le panneau" type="password" value={form.panel_password} onChange={e => setForm(f => ({ ...f, panel_password: e.target.value }))} />
+          <TextareaField label="Notes" desc="Notes internes sur ce fournisseur" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
           <button onClick={addProvider} style={btnStyle}>Save Provider</button>
         </Modal>
       )}
@@ -303,17 +365,47 @@ export default function Providers() {
       {/* Add Plan Modal */}
       {showPlanModal && (
         <Modal onClose={() => setShowPlanModal(null)} title="Add Plan">
-          <input placeholder="Plan Name" value={planForm.plan_name} onChange={e => setPlanForm(f => ({ ...f, plan_name: e.target.value }))} style={inputStyle} />
-          <select value={planForm.plan_type} onChange={e => setPlanForm(f => ({ ...f, plan_type: e.target.value }))} style={inputStyle}>
-            <option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="trial">Trial</option>
-          </select>
-          <input type="number" placeholder="Duration (days)" value={planForm.duration_days} onChange={e => setPlanForm(f => ({ ...f, duration_days: parseInt(e.target.value) || 0 }))} style={inputStyle} />
-          <input type="number" placeholder="Cost Price" value={planForm.price_cost} onChange={e => setPlanForm(f => ({ ...f, price_cost: parseFloat(e.target.value) || 0 }))} style={inputStyle} />
-          <input type="number" placeholder="Sell Price" value={planForm.price_sell} onChange={e => setPlanForm(f => ({ ...f, price_sell: parseFloat(e.target.value) || 0 }))} style={inputStyle} />
-          <input type="number" placeholder="Channels" value={planForm.channels} onChange={e => setPlanForm(f => ({ ...f, channels: parseInt(e.target.value) || 0 }))} style={inputStyle} />
-          <input type="number" placeholder="Streams" value={planForm.streams} onChange={e => setPlanForm(f => ({ ...f, streams: parseInt(e.target.value) || 1 }))} style={inputStyle} />
-          <input placeholder="PayPal Link (e.g. https://paypal.me/...)" value={planForm.paypal_link} onChange={e => setPlanForm(f => ({ ...f, paypal_link: e.target.value }))} style={inputStyle} />
+          <Field label="Plan Name" desc="Nom du plan (ex: Premium, Ultimate, Trial 72h)" value={planForm.plan_name} onChange={e => setPlanForm(f => ({ ...f, plan_name: e.target.value }))} />
+          <SelectField label="Plan Type" desc="Type d'abonnement" value={planForm.plan_type} onChange={e => setPlanForm(f => ({ ...f, plan_type: e.target.value }))} options={[
+            { value: 'monthly', label: 'Monthly (Mensuel)' },
+            { value: 'quarterly', label: 'Quarterly (Trimestriel)' },
+            { value: 'yearly', label: 'Yearly (Annuel)' },
+            { value: 'trial', label: 'Trial (Essai gratuit)' }
+          ]} />
+          <Field label="Duration (Months)" desc="Nombre de mois (ex: 1 pour 1 mois, 3 pour 3 mois, 12 pour 1 an)" type="number" min={1} value={planForm.duration_months} onChange={e => setPlanForm(f => ({ ...f, duration_months: parseInt(e.target.value) || 1, duration_days: (parseInt(e.target.value) || 1) * 30 }))} />
+          <Field label="Cost Price (€)" desc="Prix d'achat / coût du plan auprès du fournisseur" type="number" min={0} step={0.01} value={planForm.price_cost} onChange={e => setPlanForm(f => ({ ...f, price_cost: parseFloat(e.target.value) || 0 }))} />
+          <Field label="Sell Price (€)" desc="Prix de vente au client final" type="number" min={0} step={0.01} value={planForm.price_sell} onChange={e => setPlanForm(f => ({ ...f, price_sell: parseFloat(e.target.value) || 0 }))} />
+          <Field label="Channels" desc="Nombre de chaînes incluses" type="number" min={0} value={planForm.channels} onChange={e => setPlanForm(f => ({ ...f, channels: parseInt(e.target.value) || 0 }))} />
+          <Field label="Streams" desc="Nombre d'écrans simultanés autorisés" type="number" min={1} value={planForm.streams} onChange={e => setPlanForm(f => ({ ...f, streams: parseInt(e.target.value) || 1 }))} />
+          <Field label="Minimum Stock" desc="Stock minimum avant alerte (nombre de codes d'activation)" type="number" min={0} value={planForm.min_stock} onChange={e => setPlanForm(f => ({ ...f, min_stock: parseInt(e.target.value) || 5 }))} />
+          <Field label="Sellup Product ID" desc="ID produit Sellup (pour les paiements via Sellup)" value={planForm.sellup_product_id} onChange={e => setPlanForm(f => ({ ...f, sellup_product_id: e.target.value }))} />
+          <Field label="PayPal Link" desc="Lien PayPal pour paiement direct (ex: https://paypal.me/...)" value={planForm.paypal_link} onChange={e => setPlanForm(f => ({ ...f, paypal_link: e.target.value }))} />
           <button onClick={() => addPlan(showPlanModal)} style={btnStyle}>Save Plan</button>
+        </Modal>
+      )}
+
+      {/* Edit Plan Modal */}
+      {showEditPlanModal && (
+        <Modal onClose={() => setShowEditPlanModal(null)} title="Edit Plan">
+          <Field label="Plan Name" desc="Nom du plan" value={planForm.plan_name} onChange={e => setPlanForm(f => ({ ...f, plan_name: e.target.value }))} />
+          <SelectField label="Plan Type" desc="Type d'abonnement" value={planForm.plan_type} onChange={e => setPlanForm(f => ({ ...f, plan_type: e.target.value }))} options={[
+            { value: 'monthly', label: 'Monthly (Mensuel)' },
+            { value: 'quarterly', label: 'Quarterly (Trimestriel)' },
+            { value: 'yearly', label: 'Yearly (Annuel)' },
+            { value: 'trial', label: 'Trial (Essai gratuit)' }
+          ]} />
+          <Field label="Duration (Months)" desc="Nombre de mois" type="number" min={1} value={planForm.duration_months} onChange={e => setPlanForm(f => ({ ...f, duration_months: parseInt(e.target.value) || 1, duration_days: (parseInt(e.target.value) || 1) * 30 }))} />
+          <Field label="Cost Price (€)" desc="Prix d'achat" type="number" min={0} step={0.01} value={planForm.price_cost} onChange={e => setPlanForm(f => ({ ...f, price_cost: parseFloat(e.target.value) || 0 }))} />
+          <Field label="Sell Price (€)" desc="Prix de vente" type="number" min={0} step={0.01} value={planForm.price_sell} onChange={e => setPlanForm(f => ({ ...f, price_sell: parseFloat(e.target.value) || 0 }))} />
+          <Field label="Channels" desc="Nombre de chaînes" type="number" min={0} value={planForm.channels} onChange={e => setPlanForm(f => ({ ...f, channels: parseInt(e.target.value) || 0 }))} />
+          <Field label="Streams" desc="Écrans simultanés" type="number" min={1} value={planForm.streams} onChange={e => setPlanForm(f => ({ ...f, streams: parseInt(e.target.value) || 1 }))} />
+          <Field label="Minimum Stock" desc="Stock minimum avant alerte" type="number" min={0} value={planForm.min_stock} onChange={e => setPlanForm(f => ({ ...f, min_stock: parseInt(e.target.value) || 5 }))} />
+          <Field label="Sellup Product ID" desc="ID produit Sellup" value={planForm.sellup_product_id} onChange={e => setPlanForm(f => ({ ...f, sellup_product_id: e.target.value }))} />
+          <Field label="PayPal Link" desc="Lien PayPal" value={planForm.paypal_link} onChange={e => setPlanForm(f => ({ ...f, paypal_link: e.target.value }))} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={saveEditPlan} style={{ ...btnStyle, flex: 1 }}>💾 Save Changes</button>
+            <button onClick={() => setShowEditPlanModal(null)} style={{ ...btnStyle, flex: 1, background: '#2a2a2a', color: '#888' }}>Cancel</button>
+          </div>
         </Modal>
       )}
 
@@ -397,10 +489,42 @@ export default function Providers() {
   )
 }
 
+function Field({ label, desc, type, min, step, value, onChange }) {
+  return (
+    <div>
+      <label style={{ color: '#fff', fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 2 }}>{label}</label>
+      <p style={{ color: '#888', fontSize: 11, margin: '0 0 6px' }}>{desc}</p>
+      <input type={type || 'text'} min={min} step={step} value={value} onChange={onChange} style={inputStyle} />
+    </div>
+  )
+}
+
+function SelectField({ label, desc, value, onChange, options }) {
+  return (
+    <div>
+      <label style={{ color: '#fff', fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 2 }}>{label}</label>
+      <p style={{ color: '#888', fontSize: 11, margin: '0 0 6px' }}>{desc}</p>
+      <select value={value} onChange={onChange} style={inputStyle}>
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  )
+}
+
+function TextareaField({ label, desc, value, onChange }) {
+  return (
+    <div>
+      <label style={{ color: '#fff', fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 2 }}>{label}</label>
+      <p style={{ color: '#888', fontSize: 11, margin: '0 0 6px' }}>{desc}</p>
+      <textarea value={value} onChange={onChange} style={{ ...inputStyle, resize: 'vertical', minHeight: 60 }} />
+    </div>
+  )
+}
+
 function Modal({ onClose, title, children }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 16, padding: 24, width: 420, maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 16, padding: 24, width: 480, maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h2 style={{ margin: 0, fontSize: 18 }}>{title}</h2>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#a0a0a0', cursor: 'pointer', fontSize: 20 }}>✕</button>

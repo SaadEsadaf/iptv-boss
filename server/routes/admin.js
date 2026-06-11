@@ -297,27 +297,41 @@ router.get('/providers/:id/stats', authMiddleware, (req, res) => {
 
 router.get('/providers/:id/plans', authMiddleware, (req, res) => {
   const db = getDb();
-  const plans = db.prepare('SELECT * FROM provider_plans WHERE provider_id = ? ORDER BY price_sell').all(req.params.id);
+  const plans = db.prepare(`
+    SELECT pp.*,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.plan_id = pp.id AND ac.status = 'available') as codes_available,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.plan_id = pp.id) as codes_total,
+      (SELECT COUNT(*) FROM trial_codes tc WHERE tc.provider_id = pp.provider_id AND tc.status = 'available') as trials_available,
+      (SELECT COUNT(*) FROM orders o WHERE o.plan_id = pp.id AND o.status IN ('pending','completed')) as order_count,
+      (SELECT COALESCE(SUM(o.amount), 0) FROM orders o WHERE o.plan_id = pp.id AND o.status = 'completed') as revenue
+    FROM provider_plans pp WHERE pp.provider_id = ? ORDER BY pp.price_sell
+  `).all(req.params.id);
   res.json(plans);
 });
 
 router.post('/providers/:id/plans', authMiddleware, (req, res) => {
-  const { plan_name, plan_type, duration_days, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link } = req.body;
-  if (!plan_name || !plan_type || !duration_days || !price_sell) return res.status(400).json({ error: 'Missing required fields' });
+  let { plan_name, plan_type, duration_days, duration_months, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, min_stock } = req.body;
+  if (!plan_name || !plan_type || !price_sell) return res.status(400).json({ error: 'Missing required fields: plan_name, plan_type, price_sell' });
+  if (!duration_days && !duration_months) return res.status(400).json({ error: 'Duration required: either duration_days or duration_months' });
+  if (duration_months && !duration_days) duration_days = duration_months * 30;
+  if (!duration_months && duration_days) duration_months = Math.round(duration_days / 30) || 1;
+  min_stock = min_stock ?? 5;
   const db = getDb();
   const wid = websiteId(req);
   const result = db.prepare(
-    'INSERT INTO provider_plans (provider_id, plan_name, plan_type, duration_days, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, website_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(req.params.id, plan_name, plan_type, duration_days, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, wid);
+    'INSERT INTO provider_plans (provider_id, plan_name, plan_type, duration_days, duration_months, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, min_stock, website_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(req.params.id, plan_name, plan_type, duration_days, duration_months, price_cost || 0, price_sell, channels || 0, streams || 1, sellup_product_id, paypal_link, min_stock, wid);
   res.json({ id: result.lastInsertRowid });
 });
 
 router.put('/plans/:id', authMiddleware, (req, res) => {
   const db = getDb();
-  const { plan_name, plan_type, duration_days, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, active } = req.body;
+  let { plan_name, plan_type, duration_days, duration_months, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, min_stock, active } = req.body;
+  if (duration_months && !duration_days) duration_days = duration_months * 30;
+  if (duration_days && !duration_months) duration_months = Math.round(duration_days / 30) || 1;
   db.prepare(
-    'UPDATE provider_plans SET plan_name = COALESCE(?, plan_name), plan_type = COALESCE(?, plan_type), duration_days = COALESCE(?, duration_days), price_cost = COALESCE(?, price_cost), price_sell = COALESCE(?, price_sell), channels = COALESCE(?, channels), streams = COALESCE(?, streams), sellup_product_id = COALESCE(?, sellup_product_id), paypal_link = COALESCE(?, paypal_link), active = COALESCE(?, active) WHERE id = ?'
-  ).run(plan_name, plan_type, duration_days, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, active ?? null, req.params.id);
+    `UPDATE provider_plans SET plan_name = COALESCE(?, plan_name), plan_type = COALESCE(?, plan_type), duration_days = COALESCE(?, duration_days), duration_months = COALESCE(?, duration_months), price_cost = COALESCE(?, price_cost), price_sell = COALESCE(?, price_sell), channels = COALESCE(?, channels), streams = COALESCE(?, streams), sellup_product_id = COALESCE(?, sellup_product_id), paypal_link = COALESCE(?, paypal_link), min_stock = COALESCE(?, min_stock), active = COALESCE(?, active) WHERE id = ?`
+  ).run(plan_name, plan_type, duration_days, duration_months, price_cost, price_sell, channels, streams, sellup_product_id, paypal_link, min_stock, active ?? null, req.params.id);
   res.json({ success: true });
 });
 
