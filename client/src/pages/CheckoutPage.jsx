@@ -42,6 +42,7 @@ export default function CheckoutPage() {
     provider_name: order.provider_name,
     price_sell: order.amount,
     duration_days: order.duration_days || 30,
+    duration_months: order.duration_months || Math.round((order.duration_days || 30) / 30) || 1,
   }
 
   return (

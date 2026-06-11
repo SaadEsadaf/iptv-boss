@@ -214,7 +214,9 @@ export default function LandingPage() {
 
   const getPlanLabel = (p) => {
     const months = p.duration_months || Math.round((p.duration_days || 30) / 30)
-    return months >= 12 ? '/an' : `/${months}mois`
+    if (months >= 12) return '/an'
+    if (months <= 1) return ''
+    return `/${months}mois`
   }
 
   const isPopular = (p) => {

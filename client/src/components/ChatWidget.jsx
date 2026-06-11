@@ -426,7 +426,7 @@ export default function ChatWidget({ onBuyPlan }) {
                         </div>
                         {!m.recommendation.is_trial && (
                           <div style={{ fontSize: 11, color: '#666' }}>
-                            {m.recommendation.duration_days}{t('day')}
+                            {m.recommendation.duration_months > 1 ? `${m.recommendation.duration_months}mois` : `${m.recommendation.duration_days}${t('day')}`}
                           </div>
                         )}
                       </div>

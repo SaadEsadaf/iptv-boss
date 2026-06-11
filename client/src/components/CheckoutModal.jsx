@@ -204,7 +204,7 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
               <div style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 16 }}>{plan.provider_name}</div>
               <div style={{ fontSize: 42, fontWeight: 800, color: '#00d4ff', lineHeight: 1 }}>
                 {lang === 'fr' ? '€' : '$'}{plan.price_sell}
-                <span style={{ fontSize: 14, color: '#666', fontWeight: 400 }}> / {plan.duration_days}{t('day')}</span>
+                {plan.duration_months > 1 && <span style={{ fontSize: 14, color: '#666', fontWeight: 400 }}> / {plan.duration_months}mois</span>}
               </div>
               {plan.duration_days >= 90 && (
                 <div style={{
