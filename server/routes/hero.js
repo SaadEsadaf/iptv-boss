@@ -34,11 +34,11 @@ router.get('/events', async (req, res) => {
       FROM epg_programs ep
       JOIN epg_channels ec ON ep.epg_channel_id = ec.epg_id
       WHERE 
-        LOWER(ep.title) LIKE '%' || ANY($1) || '%'
-        OR LOWER(ec.display_name) LIKE '%' || ANY($1) || '%'
+        LOWER(ep.title) LIKE ANY(ARRAY['%sport%','%football%','%world cup%','%nba%','%ufc%','%boxing%','%tennis%','%formula%','%champions league%','%fifa%','%match%','%game%','%nfl%','%mlb%','%hockey%','%wrestling%','%super bowl%','%olympic%','%racing%'])
+        OR LOWER(ec.display_name) LIKE ANY(ARRAY['%sport%','%football%','%nba%','%ufc%','%boxing%','%tennis%','%fifa%','%nfl%','%mlb%'])
       ORDER BY ep.start_ts DESC
       LIMIT 40
-    `, [['sport', 'football', 'world cup', 'nba', 'ufc', 'boxing', 'tennis', 'formula', 'champions league', 'fifa', 'match', 'game', 'nfl', 'mlb', 'hockey', 'wrestling']])
+    `)
 
     const movies = await queryPG(`
       SELECT ep.title, ec.display_name as channel, ep.source,
@@ -46,9 +46,8 @@ router.get('/events', async (req, res) => {
       FROM epg_programs ep
       JOIN epg_channels ec ON ep.epg_channel_id = ec.epg_id
       WHERE 
-        (LOWER(ep.title) LIKE '%movie%' OR LOWER(ep.title) LIKE '%film%'
-         OR LOWER(ec.display_name) LIKE '%movie%' OR LOWER(ec.display_name) LIKE '%cinema%'
-         OR LOWER(ec.display_name) LIKE '%film%')
+        LOWER(ep.title) LIKE ANY(ARRAY['%movie%','%film%'])
+        OR LOWER(ec.display_name) LIKE ANY(ARRAY['%movie%','%cinema%','%film%'])
       ORDER BY ep.start_ts DESC
       LIMIT 20
     `)
