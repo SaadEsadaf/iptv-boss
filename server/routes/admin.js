@@ -533,6 +533,74 @@ router.get('/orders/:id', authMiddleware, (req, res) => {
   res.json({ ...order, chat_session: chatSession });
 });
 
+// Get available codes for fulfilling an order
+router.get('/orders/:id/available-codes', authMiddleware, (req, res) => {
+  const db = getDb();
+  const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Not found' });
+
+  const activationCodes = db.prepare(`
+    SELECT ac.*, pp.plan_name FROM activation_codes ac
+    JOIN provider_plans pp ON ac.plan_id = pp.id
+    WHERE ac.provider_id = ? AND ac.plan_id = ? AND ac.status = 'available'
+    ORDER BY ac.id
+  `).all(order.provider_id, order.plan_id);
+
+  const trialCodes = db.prepare(`
+    SELECT tc.* FROM trial_codes tc
+    WHERE tc.provider_id = ? AND tc.status = 'available'
+    ORDER BY tc.id
+  `).all(order.provider_id);
+
+  res.json({ activationCodes, trialCodes, order });
+});
+
+// Fulfill order: assign a specific code, send email, mark complete
+router.post('/orders/:id/fulfill', authMiddleware, async (req, res) => {
+  const db = getDb();
+  const { codeId, codeType } = req.body; // codeType: 'activation' or 'trial'
+  const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+
+  let credentials = null;
+
+  if (codeType === 'activation' && codeId) {
+    const code = db.prepare('SELECT * FROM activation_codes WHERE id = ? AND status = ?').get(codeId, 'available');
+    if (!code) return res.status(400).json({ error: 'Code not available' });
+    db.prepare("UPDATE activation_codes SET status = 'used', used_by_order_id = ?, assigned_at = datetime('now') WHERE id = ?").run(order.id, code.id);
+    db.prepare('UPDATE orders SET activation_code_id = ?, status = ?, credentials_sent_at = datetime(\'now\') WHERE id = ?').run(code.id, 'completed', order.id);
+    credentials = { code: code.code, username: code.username, password: code.password, server_url: code.server_url };
+  } else if (codeType === 'trial' && codeId) {
+    const trial = db.prepare('SELECT * FROM trial_codes WHERE id = ? AND status = ?').get(codeId, 'available');
+    if (!trial) return res.status(400).json({ error: 'Trial code not available' });
+    const expiresAt = new Date(Date.now() + (trial.duration_hours || 24) * 60 * 60 * 1000).toISOString();
+    db.prepare("UPDATE trial_codes SET status = 'used', used_by_order_id = ?, assigned_at = datetime('now'), expires_at = ? WHERE id = ?").run(order.id, expiresAt, trial.id);
+    db.prepare('UPDATE orders SET trial_code_id = ?, status = ?, credentials_sent_at = datetime(\'now\') WHERE id = ?').run(trial.id, 'completed', order.id);
+    credentials = { code: trial.code, username: trial.username, password: trial.password, server_url: trial.server_url };
+  } else {
+    return res.status(400).json({ error: 'codeId and codeType required' });
+  }
+
+  try {
+    const { sendCredentials } = require('../services/emailService');
+    await sendCredentials({
+      email: order.customer_email,
+      name: order.customer_name,
+      credentials,
+      providerName: order.provider_name,
+      planName: order.plan_name,
+    });
+  } catch (e) {
+    console.error('Fulfill email error:', e);
+  }
+
+  db.prepare(
+    'INSERT INTO agent_log (agent, action, details, order_id) VALUES (?, ?, ?, ?)'
+  ).run('Admin', 'order_fulfilled', `Order #${order.id} fulfilled manually by admin with code #${codeId}`, order.id);
+
+  res.json({ success: true, credentials_sent: true });
+});
+
 router.post('/orders/:id/resend-email', authMiddleware, async (req, res) => {
   const db = getDb();
   const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
