@@ -278,11 +278,12 @@ export default function CustomerDashboard() {
       <header style={{ background: '#1a1a1a', borderBottom: '1px solid #2a2a2a', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 24 }}>📺</span>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>My Dashboard</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('myDashboard')}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <a href="/" style={{ padding: '6px 14px', background: 'transparent', border: '1px solid #2a2a2a', borderRadius: 6, color: '#a0a0a0', textDecoration: 'none', cursor: 'pointer', fontSize: 12 }}>🏠 Accueil</a>
           {profile && <span style={{ color: '#a0a0a0', fontSize: 13 }}>{profile.email}</span>}
-          <button onClick={logout} style={{ padding: '6px 14px', background: '#2a2a2a', border: 'none', borderRadius: 6, color: '#a0a0a0', cursor: 'pointer', fontSize: 12 }}>Logout</button>
+          <button onClick={logout} style={{ padding: '6px 14px', background: '#2a2a2a', border: 'none', borderRadius: 6, color: '#a0a0a0', cursor: 'pointer', fontSize: 12 }}>{t('logout')}</button>
         </div>
       </header>
 

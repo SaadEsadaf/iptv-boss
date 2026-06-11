@@ -206,7 +206,23 @@ async function brainCycle() {
     console.error('Event campaign error:', e.message);
   }
 
-  // 7. Log the cycle
+  // 7. Send business report every 2 hours
+  try {
+    const hour = new Date().getHours();
+    if (hour % 2 === 0) { // Runs at 0,2,4,6,8,10,12,14,16,18,20,22
+      const { sendBusinessReport } = require('./businessReport');
+      const db2 = getDb();
+      const adminEmail = (db2.prepare("SELECT value FROM app_settings WHERE key = 'admin_email'").get() || {}).value || 'babilon26@gmail.com';
+      const result = await sendBusinessReport(adminEmail);
+      if (result.sent) {
+        db.prepare("INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)").run('Brain', 'report_sent', `Business report sent to ${adminEmail}`);
+      }
+    }
+  } catch (e) {
+    console.error('Report error:', e.message);
+  }
+
+  // 8. Log the cycle
   const elapsed = Date.now() - startTime;
   db.prepare(
     "INSERT INTO sales_engine_log (action, lead_email, sequence_type, details, lead_id) VALUES (?, ?, ?, ?, ?)"
