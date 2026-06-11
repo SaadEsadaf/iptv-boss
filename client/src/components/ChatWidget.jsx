@@ -186,7 +186,14 @@ export default function ChatWidget({ onBuyPlan }) {
   const [loading, setLoading] = useState(false)
   const [autoOpened, setAutoOpened] = useState(false)
   const [showTrialForm, setShowTrialForm] = useState(false)
-  const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '' })
+  const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '', preferredApp: 'tivimate' })
+
+  const APPS_LIST = [
+    { id: 'tivimate', icon: '🔥', name: 'TiviMate', desc: 'Firestick / Android TV' },
+    { id: 'smarters', icon: '📱', name: 'IPTV Smarters', desc: 'Android / iOS' },
+    { id: 'gse', icon: '🍎', name: 'GSE Smart IPTV', desc: 'iPhone / Apple TV' },
+    { id: 'vlc', icon: '💻', name: 'VLC / M3U', desc: 'PC / Mac / Universal' },
+  ]
   const [trialProviders, setTrialProviders] = useState([])
   const [trialSubmitting, setTrialSubmitting] = useState(false)
   const [trialSuccess, setTrialSuccess] = useState(null)
@@ -333,18 +340,21 @@ export default function ChatWidget({ onBuyPlan }) {
 
   async function handleTrialSubmit(e) {
     e.preventDefault()
-    const { name, email, phone, providerId } = trialForm
+    const { name, email, phone, providerId, preferredApp } = trialForm
     if (!email || !providerId) return
     setTrialSubmitting(true)
     try {
       const res = await fetch('/api/trial/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), sessionId: getSessionId() }),
+        body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), sessionId: getSessionId(), preferredApp }),
       })
       const data = await res.json()
       if (data.success) {
         setTrialSuccess(data)
+        if (data.token) {
+          localStorage.setItem('customer_token', data.token)
+        }
       } else {
         alert(data.error || t('trialFailed'))
       }
@@ -464,6 +474,23 @@ export default function ChatWidget({ onBuyPlan }) {
                     <input value={trialForm.phone} onChange={e => setTrialForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('whatsappPlaceholder')}
                       style={inputStyle} />
                   </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={{ color: '#a0a0a0', fontSize: 12, display: 'block', marginBottom: 6 }}>📱 Your Device</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                      {APPS_LIST.map(a => (
+                        <button key={a.id} type="button" onClick={() => setTrialForm(f => ({ ...f, preferredApp: a.id }))} style={{
+                          padding: '6px 8px', background: trialForm.preferredApp === a.id ? '#00d4ff20' : '#0f0f0f',
+                          border: trialForm.preferredApp === a.id ? '1.5px solid #00d4ff' : '1px solid #333',
+                          borderRadius: 8, cursor: 'pointer', color: trialForm.preferredApp === a.id ? '#00d4ff' : '#a0a0a0',
+                          fontSize: 11, textAlign: 'center', transition: 'all 0.15s',
+                        }}>
+                          <div style={{ fontSize: 16 }}>{a.icon}</div>
+                          <div style={{ fontWeight: 600, marginTop: 2 }}>{a.name}</div>
+                          <div style={{ fontSize: 9, color: '#666' }}>{a.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div style={{ marginBottom: 14 }}>
                     <label style={{ color: '#a0a0a0', fontSize: 12, display: 'block', marginBottom: 4 }}>{t('providerLabel')}</label>
                     <select value={trialForm.providerId} onChange={e => setTrialForm(f => ({ ...f, providerId: e.target.value }))} required
@@ -499,6 +526,9 @@ export default function ChatWidget({ onBuyPlan }) {
                 <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
                   {t('duration')} <span style={{ color: '#fff' }}>{trialSuccess.duration_hours} {t('hours')}</span>
                 </p>
+                <a href="/dashboard" style={{ display: 'inline-block', background: '#00cc66', color: '#000', border: 'none', padding: '10px 20px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14, textDecoration: 'none', marginBottom: 8 }}>
+                  🚀 Open My Dashboard
+                </a>
                 <button onClick={() => sendMessage("I'd like to upgrade to a full plan")} style={{
                   background: '#00d4ff', color: '#000', border: 'none', padding: '10px 24px',
                   borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14,

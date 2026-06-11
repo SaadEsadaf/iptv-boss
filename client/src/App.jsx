@@ -9,6 +9,7 @@ import ActivationPage from './pages/ActivationPage'
 import BlogPage from './pages/BlogPage'
 import SupportPage from './pages/SupportPage'
 import DownloadsPage from './pages/DownloadsPage'
+import CustomerDashboard from './pages/CustomerDashboard'
 
 export default function App() {
   const ws = typeof window !== 'undefined' && window.__WEBSITE__
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/support" element={<SupportPage />} />
       <Route path="/downloads" element={<DownloadsPage />} />
+      <Route path="/dashboard" element={<CustomerDashboard />} />
     </Routes>
   )
 }

@@ -363,6 +363,13 @@ function initializeDatabase() {
   try { db.exec("ALTER TABLE orders ADD COLUMN paypal_order_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN paypal_payment_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN user_id INTEGER REFERENCES users(id)"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN preferred_app TEXT DEFAULT 'tivimate'"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN magic_link_token TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN magic_link_expires TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN credentials_sent_at TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN activation_code_id INTEGER"); } catch (e) {}
+  try { db.exec("ALTER TABLE trial_codes ADD COLUMN preferred_app TEXT DEFAULT NULL"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN preferred_app TEXT DEFAULT 'tivimate'"); } catch (e) {}
 
   try { db.exec("ALTER TABLE providers_catalog ADD COLUMN website_id INTEGER DEFAULT 1"); } catch (e) {}
   try { db.exec("ALTER TABLE provider_plans ADD COLUMN website_id INTEGER DEFAULT 1"); } catch (e) {}

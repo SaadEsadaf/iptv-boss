@@ -68,12 +68,23 @@ router.post('/api/checkout/direct', async (req, res) => {
 });
 
 router.post('/api/trial/claim', async (req, res) => {
-  const { name, email, phone, providerId, sessionId } = req.body;
+  const { name, email, phone, providerId, sessionId, preferredApp } = req.body;
   if (!email || !providerId) {
     return res.status(400).json({ error: 'email and providerId required' });
   }
+  const app = preferredApp || 'tivimate';
 
   const db = getDb();
+
+  // Auto-create user account
+  let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (!user) {
+    const wid = req.website ? req.website.id : 1;
+    const userResult = db.prepare(
+      'INSERT INTO users (name, email, provider, preferred_app, website_id) VALUES (?, ?, ?, ?, ?)'
+    ).run(name || email.split('@')[0], email, 'email', app, wid);
+    user = db.prepare('SELECT * FROM users WHERE id = ?').get(userResult.lastInsertRowid);
+  }
 
   const provider = db.prepare('SELECT id, name FROM providers_catalog WHERE id = ? AND active = 1').get(providerId);
   if (!provider) return res.status(404).json({ error: 'Provider not found' });
@@ -85,8 +96,8 @@ router.post('/api/trial/claim', async (req, res) => {
 
   const wid = req.website ? req.website.id : 1;
   const orderResult = db.prepare(
-    "INSERT INTO orders (session_id, customer_name, customer_email, customer_phone, provider_id, plan_id, is_trial, status, website_id) VALUES (?, ?, ?, ?, ?, ?, 1, 'completed', ?)"
-  ).run(sessionId || null, name || null, email, phone || null, providerId, trialPlan.id, wid);
+    "INSERT INTO orders (session_id, customer_name, customer_email, customer_phone, provider_id, plan_id, is_trial, status, website_id, user_id, preferred_app) VALUES (?, ?, ?, ?, ?, ?, 1, 'completed', ?, ?, ?)"
+  ).run(sessionId || null, name || null, email, phone || null, providerId, trialPlan.id, wid, user.id, app);
 
   const trialCreds = assignTrial(orderResult.lastInsertRowid, providerId);
   if (!trialCreds) {
@@ -108,7 +119,7 @@ router.post('/api/trial/claim', async (req, res) => {
       email,
       name,
       credentials: trialCreds,
-      durationHours: trialCreds.duration_hours || 72,
+      durationHours: trialCreds.duration_hours || 24,
       providerName: provider.name,
       planName: trialPlan.plan_name,
     });
@@ -118,14 +129,35 @@ router.post('/api/trial/claim', async (req, res) => {
 
   db.prepare(
     'INSERT INTO agent_log (agent, action, details, order_id, session_id) VALUES (?, ?, ?, ?, ?)'
-  ).run('System', 'trial_claim', `Trial claimed by ${email} for ${provider.name}`, orderResult.lastInsertRowid, sessionId || null);
+  ).run('System', 'trial_claim', `Trial claimed by ${email} for ${provider.name} (app: ${app})`, orderResult.lastInsertRowid, sessionId || null);
 
   try {
     const { enrollTrialUser } = require('../services/salesEngine')
     enrollTrialUser(orderResult.lastInsertRowid, email, name || null, trialCreds).catch(() => {})
   } catch (e) {}
 
-  res.json({ success: true, provider_name: provider.name, duration_hours: trialCreds.duration_hours || 72 });
+  // Generate JWT for auto-login
+  const { signToken } = require('../services/auth');
+  const authToken = signToken(user);
+
+  const m3uUrl = trialCreds.server_url
+    ? `${trialCreds.server_url}/get.php?username=${trialCreds.username}&password=${trialCreds.password}&type=m3u_plus&output=ts`
+    : null;
+
+  res.json({
+    success: true,
+    provider_name: provider.name,
+    duration_hours: trialCreds.duration_hours || 24,
+    token: authToken,
+    order_id: orderResult.lastInsertRowid,
+    credentials: {
+      type: 'xtream',
+      server_url: trialCreds.server_url,
+      username: trialCreds.username,
+      password: trialCreds.password,
+      m3u_url: m3uUrl,
+    },
+  });
 });
 
 router.get('/api/checkout/settings', (req, res) => {
