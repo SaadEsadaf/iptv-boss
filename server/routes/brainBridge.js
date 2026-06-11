@@ -39,6 +39,30 @@ router.post('/event', async (req, res) => {
       case 'leads_sync': {
         db.prepare(`INSERT INTO activity_log (type, action, details, created_at) VALUES ('leads', 'Import de leads depuis JobTools', ?, ?)`)
           .run(JSON.stringify(payload), new Date().toISOString())
+        const leads = payload?.leads || []
+        let inserted = 0
+        const insertStmt = db.prepare(`
+          INSERT INTO demand_signals (source, source_name, content, author, email, phone, intent_score, language, status, pain_point, opportunity, groups_mentioned, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new', '', '', '', ?)
+        `)
+        for (const lead of leads) {
+          try {
+            insertStmt.run(
+              'jobtools_' + (lead.source || 'general'),
+              lead.campaign_name || lead.source || '',
+              lead.content || '',
+              lead.name || lead.author || '',
+              lead.email || '',
+              lead.phone || '',
+              lead.intent_score || 50,
+              lead.language || 'en',
+              new Date().toISOString()
+            )
+            inserted++
+          } catch (e) { /* skip duplicates */ }
+        }
+        db.prepare(`INSERT INTO activity_log (type, action, details, created_at) VALUES ('leads', 'Leads insérés dans demand_signals', ?, ?)`)
+          .run(JSON.stringify({ inserted, total: leads.length }), new Date().toISOString())
         break
       }
       case 'campaigns_sync': {
