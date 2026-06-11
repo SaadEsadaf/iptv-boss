@@ -332,12 +332,39 @@ function buildCustomerContext(customerData) {
   return ctx
 }
 
+const GREETINGS = [
+  'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening',
+  'bonjour', 'salut', 'bonsoir', 'coucou',
+  'hola', 'buenos dias', 'buenas tardes',
+  'hallo', 'guten tag', 'guten morgen', 'guten abend',
+  'ciao', 'salve', 'buongiorno', 'buonasera',
+  'hallo', 'goedemorgen', 'goedenavond',
+  'marhaba', 'ahlan', 'salam',
+  'merhaba', 'selam',
+  'ola', 'bom dia', 'boa tarde',
+  'privet', 'zdravstvuyte',
+  'annyeong', 'konnichiwa', 'nihao', 'nin hao',
+]
+
+function isGreetingOnly(msg) {
+  const clean = msg.toLowerCase().trim().replace(/[?!.,;:]+/g, '').replace(/\s+/g, ' ').trim()
+  if (clean.length > 20) return false
+  const words = clean.split(/\s+/).filter(w => w.length > 1)
+  if (words.length > 3) return false
+  return words.some(w => GREETINGS.includes(w))
+}
+
 async function getAlexReply({ message, history, providers, language, customerData, isExisting, previousSessions }) {
   const { detect } = require('./languageDetector')
   const { buildContext } = require('../data/iptvKnowledge')
 
   const langInfo = detect(message, language)
   const effectiveLang = langInfo.code
+
+  // Fast path: pure greeting → skip AI entirely
+  if (isGreetingOnly(message) && history.length < 2) {
+    return { reply: getFallback('welcome', effectiveLang), actions: [], language: effectiveLang }
+  }
 
   const kbContext = buildContext(message, isExisting ? 'existing' : 'new')
 

@@ -64,45 +64,49 @@ async function callProvider(providerKey, { system, messages, maxTokens }) {
 
   if (!apiKey) throw new Error('NO_KEY');
 
-  if (provider.sdk === 'openai') {
-    const { default: OpenAI } = require('openai');
-    const client = new OpenAI({ apiKey, baseURL: apiUrl });
-    const response = await client.chat.completions.create({
-      model,
-      max_tokens: maxTokens,
-      messages: [
-        ...(system ? [{ role: 'system', content: system }] : []),
-        ...messages,
-      ],
-    });
-    return response.choices[0].message.content;
-  }
+  const TIMEOUT_MS = 10000;
+  try {
+    if (provider.sdk === 'openai') {
+      const { default: OpenAI } = require('openai');
+      const client = new OpenAI({ apiKey, baseURL: apiUrl, timeout: TIMEOUT_MS, maxRetries: 0 });
+      const response = await client.chat.completions.create({
+        model,
+        max_tokens: maxTokens,
+        messages: [
+          ...(system ? [{ role: 'system', content: system }] : []),
+          ...messages,
+        ],
+      });
+      return response.choices[0].message.content;
+    }
 
-  if (provider.sdk === 'gemini') {
-    const { GoogleGenerativeAI } = require('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const geminiModel = genAI.getGenerativeModel({ model });
-    const contents = messages.map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }));
-    const result = await geminiModel.generateContent({
-      contents,
-      systemInstruction: system ? { parts: [{ text: system }] } : undefined,
-    });
-    return result.response.text();
-  }
+    if (provider.sdk === 'gemini') {
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const geminiModel = genAI.getGenerativeModel({ model });
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+      const result = await geminiModel.generateContent({
+        contents,
+        systemInstruction: system ? { parts: [{ text: system }] } : undefined,
+        requestOptions: { timeout: TIMEOUT_MS },
+      });
+      return result.response.text();
+    }
 
-  if (provider.sdk === 'anthropic') {
-    const { Anthropic } = require('@anthropic-ai/sdk');
-    const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
-      model,
-      max_tokens: maxTokens,
-      system: system || undefined,
-      messages,
-    });
-    return response.content[0].text;
+    if (provider.sdk === 'anthropic') {
+      const { Anthropic } = require('@anthropic-ai/sdk');
+      const client = new Anthropic({ apiKey, timeout: TIMEOUT_MS });
+      const response = await client.messages.create({
+        model,
+        max_tokens: maxTokens,
+        system: system || undefined,
+        messages,
+      });
+      return response.content[0].text;
+    }
   }
 
   throw new Error('UNSUPPORTED_SDK');
