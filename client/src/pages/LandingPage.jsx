@@ -209,13 +209,12 @@ export default function LandingPage() {
   }, [])
 
   const getPlanPrice = (p) => {
-    if (planInterval === 'year') return ((p.price_sell || 0) * 10).toFixed(2)
     return (p.price_sell || 0).toFixed(2)
   }
 
   const getPlanLabel = (p) => {
-    if (planInterval === 'year') return t('yearlyLabel')
-    return p.duration_days <= 31 ? t('monthlyLabel') : `/${p.duration_days}d`
+    const months = p.duration_months || Math.round((p.duration_days || 30) / 30)
+    return months >= 12 ? '/an' : `/${months}mois`
   }
 
   const isPopular = (p) => {

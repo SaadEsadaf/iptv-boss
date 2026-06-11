@@ -354,9 +354,12 @@ export default function LuxStreamLanding() {
       setTrialSubmitting(false)
     }
   }
+  const getPlanPrice = (p) => (p.price_sell || 0).toFixed(2)
 
-  const getPlanPrice = (p) => planInterval === 'year' ? ((p.price_sell || 0) * 10).toFixed(2) : (p.price_sell || 0).toFixed(2)
-  const getPlanLabel = (p) => planInterval === 'year' ? `/${t('yearly').toLowerCase().replace(' ', '')}` : (p.duration_days <= 31 ? `/${t('monthly').toLowerCase()}` : `/${p.duration_days}d`)
+  const getPlanLabel = (p) => {
+    const months = p.duration_months || Math.round((p.duration_days || 30) / 30)
+    return months >= 12 ? '/an' : `/${months}mois`
+  }
   const isPopular = (p) => p.plan_name?.toLowerCase() === 'premium' || p.plan_name?.toLowerCase() === 'familial' || p.plan_name?.toLowerCase() === 'famille'
 
   const navLinks = [
