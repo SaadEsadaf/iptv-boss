@@ -394,7 +394,7 @@ async function getAlexReply({ message, history, providers, language, customerDat
     const reply = await generateText({
       system: sysPrompt,
       messages: msgs,
-      maxTokens: 800,
+      maxTokens: 400,
       task: 'chat',
     })
 

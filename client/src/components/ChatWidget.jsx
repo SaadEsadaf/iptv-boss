@@ -3,38 +3,132 @@ import api from '../api'
 import CheckoutModal from './CheckoutModal'
 
 const ws = typeof window !== 'undefined' && window.__WEBSITE__
-const lang = ws?.language || 'fr'
-const FR = {
-  online: 'En ligne', contactWhatsApp: 'Contact via WhatsApp',
-  hi: "Bonjour ! Je suis Alex, votre assistant commercial.",
-  lookingFor: 'Vous cherchez un essai ou un forfait payant ?',
-  contentInterests: 'Quel type de contenu vous intéresse ?',
-  trialHeading: 'Hey ! Configurons votre essai gratuit.',
-  trialDesc: 'Remplissez les détails ci-dessous et je vous enverrai vos identifiants immédiatement.',
-  nameLabel: 'Votre Nom (facultatif)', namePlaceholder: 'Jean Dupont',
-  emailLabel: 'Adresse Email *', emailPlaceholder: 'jean@exemple.com',
-  whatsappLabel: 'WhatsApp (facultatif)', whatsappPlaceholder: '+212612345678',
-  providerLabel: 'Choisissez le Fournisseur *',
-  selectProvider: 'Sélectionnez un fournisseur',
-  sendingTrial: 'Envoi de votre essai...',
-  getTrial: '🎁 Obtenir Mon Essai Gratuit',
-  trialReady: 'Votre essai est prêt !',
-  sentTo: 'Nous avons envoyé vos identifiants à :',
-  provider: 'Fournisseur :', duration: 'Durée :',
-  upgrade: '💳 Passer à un Forfait Complet',
-  hours: 'heures',
-  completePayment: 'Paiement Complet',
-  trialActivated: '✅ Essai Activé — Vérifiez vos emails !',
-  free: 'Gratuit', channels: 'chaînes', stream: 'flux', streams: 'flux', day: 'j',
-  startFreeTrial: 'Essai Gratuit', selectThisPlan: 'Sélectionner cette Offre',
-  buyNow: '💰 Acheter Maintenant',
-  imageReady: 'image prête', typeMessage: 'Écrivez un message...', send: 'Envoyer',
-  credentialsSent: 'Identifiants envoyés par email !',
-  sorry: "Désolé, j'ai un problème. Veuillez réessayer.",
-  trialFailed: 'Échec de la demande d\'essai',
-  networkError: 'Erreur réseau. Veuillez réessayer.',
+const TRANSLATIONS = {
+  fr: {
+    online: 'En ligne', contactWhatsApp: 'Contact via WhatsApp',
+    hi: "Bonjour ! Je suis Alex, votre assistant commercial.",
+    lookingFor: 'Vous cherchez un essai ou un forfait payant ?',
+    contentInterests: 'Quel type de contenu vous intéresse ?',
+    trialHeading: 'Hey ! Configurons votre essai gratuit.',
+    trialDesc: 'Remplissez les détails ci-dessous et je vous enverrai vos identifiants immédiatement.',
+    nameLabel: 'Votre Nom (facultatif)', namePlaceholder: 'Jean Dupont',
+    emailLabel: 'Adresse Email *', emailPlaceholder: 'jean@exemple.com',
+    whatsappLabel: 'WhatsApp (facultatif)', whatsappPlaceholder: '+212612345678',
+    providerLabel: 'Choisissez le Fournisseur *',
+    selectProvider: 'Sélectionnez un fournisseur',
+    sendingTrial: 'Envoi de votre essai...',
+    getTrial: '🎁 Obtenir Mon Essai Gratuit',
+    trialReady: 'Votre essai est prêt !',
+    sentTo: 'Nous avons envoyé vos identifiants à :',
+    provider: 'Fournisseur :', duration: 'Durée :',
+    upgrade: '💳 Passer à un Forfait Complet',
+    hours: 'heures',
+    completePayment: 'Paiement Complet',
+    trialActivated: '✅ Essai Activé — Vérifiez vos emails !',
+    free: 'Gratuit', channels: 'chaînes', stream: 'flux', streams: 'flux', day: 'j',
+    startFreeTrial: 'Essai Gratuit', selectThisPlan: 'Sélectionner cette Offre',
+    buyNow: '💰 Acheter Maintenant',
+    imageReady: 'image prête', typeMessage: 'Écrivez un message...', send: 'Envoyer',
+    credentialsSent: 'Identifiants envoyés par email !',
+    sorry: "Désolé, j'ai un problème. Veuillez réessayer.",
+    trialFailed: 'Échec de la demande d\'essai',
+    networkError: 'Erreur réseau. Veuillez réessayer.',
+    selectLang: 'Langue',
+  },
+  en: {
+    online: 'Online', contactWhatsApp: 'Contact via WhatsApp',
+    hi: "Hi! I'm Alex, your sales assistant.",
+    lookingFor: 'Looking for a trial or a paid plan?',
+    contentInterests: 'What type of content interests you?',
+    trialHeading: 'Hey! Let\'s set up your free trial.',
+    trialDesc: 'Fill in the details below and I\'ll send your credentials immediately.',
+    nameLabel: 'Your Name (optional)', namePlaceholder: 'John Doe',
+    emailLabel: 'Email Address *', emailPlaceholder: 'john@example.com',
+    whatsappLabel: 'WhatsApp (optional)', whatsappPlaceholder: '+212612345678',
+    providerLabel: 'Choose Provider *',
+    selectProvider: 'Select a provider',
+    sendingTrial: 'Sending your trial...',
+    getTrial: '🎁 Get My Free Trial',
+    trialReady: 'Your trial is ready!',
+    sentTo: 'We sent your credentials to:',
+    provider: 'Provider:', duration: 'Duration:',
+    upgrade: '💳 Upgrade to Full Plan',
+    hours: 'hours',
+    completePayment: 'Complete Payment',
+    trialActivated: '✅ Trial Activated — Check your emails!',
+    free: 'Free', channels: 'channels', stream: 'stream', streams: 'streams', day: 'd',
+    startFreeTrial: 'Free Trial', selectThisPlan: 'Select This Plan',
+    buyNow: '💰 Buy Now',
+    imageReady: 'image ready', typeMessage: 'Type a message...', send: 'Send',
+    credentialsSent: 'Credentials sent by email!',
+    sorry: "Sorry, I'm having an issue. Please try again.",
+    trialFailed: 'Trial request failed',
+    networkError: 'Network error. Please try again.',
+    selectLang: 'Language',
+  },
+  ar: {
+    online: 'متصل', contactWhatsApp: 'تواصل عبر واتساب',
+    hi: "مرحباً! أنا أليكس، مساعد المبيعات الخاص بك.",
+    lookingFor: 'هل تبحث عن تجربة أو خطة مدفوعة؟',
+    contentInterests: 'ما نوع المحتوى الذي يهمك؟',
+    trialHeading: 'دعنا نعد تجربتك المجانية!',
+    trialDesc: 'املأ التفاصيل أدناه وسأرسل لك بيانات الدخول فوراً.',
+    nameLabel: 'اسمك (اختياري)', namePlaceholder: 'أحمد',
+    emailLabel: 'البريد الإلكتروني *', emailPlaceholder: 'ahmed@example.com',
+    whatsappLabel: 'واتساب (اختياري)', whatsappPlaceholder: '+212612345678',
+    providerLabel: 'اختر المزود *',
+    selectProvider: 'اختر مزوداً',
+    sendingTrial: 'جارٍ إرسال تجربتك...',
+    getTrial: '🎁 احصل على تجربتي المجانية',
+    trialReady: 'تجربتك جاهزة!',
+    sentTo: 'أرسلنا بيانات الدخول إلى:',
+    provider: 'المزود:', duration: 'المدة:',
+    upgrade: '💳 الترقية إلى خطة كاملة',
+    hours: 'ساعة',
+    completePayment: 'إتمام الدفع',
+    trialActivated: '✅ تم تفعيل التجربة — تحقق من بريدك الإلكتروني!',
+    free: 'مجاني', channels: 'قناة', stream: 'بث', streams: 'بث', day: 'ي',
+    startFreeTrial: 'تجربة مجانية', selectThisPlan: 'اختيار هذه الخطة',
+    buyNow: '💰 اشتر الآن',
+    imageReady: 'الصورة جاهزة', typeMessage: 'اكتب رسالة...', send: 'إرسال',
+    credentialsSent: 'تم إرسال بيانات الدخول عبر البريد الإلكتروني!',
+    sorry: 'عذراً، هنالك مشكلة. حاول مرة أخرى.',
+    trialFailed: 'فشل طلب التجربة',
+    networkError: 'خطأ في الشبكة. حاول مرة أخرى.',
+    selectLang: 'اللغة',
+  },
+  nl: {
+    online: 'Online', contactWhatsApp: 'Contact via WhatsApp',
+    hi: "Hallo! Ik ben Alex, uw verkoopassistent.",
+    lookingFor: 'Op zoek naar een proefperiode of een betaald abonnement?',
+    contentInterests: 'Welk type inhoud interesseert u?',
+    trialHeading: 'Hey! Laten we uw gratis proefperiode instellen.',
+    trialDesc: 'Vul de gegevens hieronder in en ik stuur uw inloggegevens direct.',
+    nameLabel: 'Uw naam (optioneel)', namePlaceholder: 'Jan Jansen',
+    emailLabel: 'E-mailadres *', emailPlaceholder: 'jan@example.com',
+    whatsappLabel: 'WhatsApp (optioneel)', whatsappPlaceholder: '+212612345678',
+    providerLabel: 'Kies Provider *',
+    selectProvider: 'Selecteer een provider',
+    sendingTrial: 'Uw proefperiode wordt verzonden...',
+    getTrial: '🎁 Ontvang Mijn Gratis Proefperiode',
+    trialReady: 'Uw proefperiode is klaar!',
+    sentTo: 'We hebben uw inloggegevens gestuurd naar:',
+    provider: 'Provider:', duration: 'Duur:',
+    upgrade: '💳 Upgrade naar Volledig Abonnement',
+    hours: 'uur',
+    completePayment: 'Betaling Voltooien',
+    trialActivated: '✅ Proefperiode Geactiveerd — Controleer uw e-mail!',
+    free: 'Gratis', channels: 'kanalen', stream: 'stream', streams: 'streams', day: 'd',
+    startFreeTrial: 'Gratis Proefperiode', selectThisPlan: 'Selecteer Dit Plan',
+    buyNow: '💰 Nu Kopen',
+    imageReady: 'afbeelding gereed', typeMessage: 'Typ een bericht...', send: 'Verzenden',
+    credentialsSent: 'Inloggegevens verzonden via e-mail!',
+    sorry: 'Sorry, er is een probleem. Probeer het opnieuw.',
+    trialFailed: 'Proefperiode aanvraag mislukt',
+    networkError: 'Netwerkfout. Probeer het opnieuw.',
+    selectLang: 'Taal',
+  },
 }
-const t = (key) => lang === 'fr' ? (FR[key] || key) : key
 
 function generateId() {
   return 'chat_' + Math.random().toString(36).slice(2, 10)
@@ -50,7 +144,6 @@ function getSessionId() {
 }
 
 const MAX_IMG_SIZE = 2 * 1024 * 1024
-const BROWSER_LANG = (navigator.language || 'fr').split('-')[0]
 
 function resizeImage(file, maxBytes, cb) {
   const reader = new FileReader()
@@ -83,6 +176,10 @@ function resizeImage(file, maxBytes, cb) {
 }
 
 export default function ChatWidget({ onBuyPlan }) {
+  const savedLang = localStorage.getItem('chat_lang') || (navigator.language || 'fr').split('-')[0]
+  const supportedLangs = ['fr', 'en', 'ar', 'nl']
+  const defaultLang = supportedLangs.includes(savedLang) ? savedLang : 'fr'
+  const [chatLang, setChatLang] = useState(defaultLang)
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -96,8 +193,12 @@ export default function ChatWidget({ onBuyPlan }) {
   const [imageToSend, setImageToSend] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [checkoutPlan, setCheckoutPlan] = useState(null)
+  const [showLangPicker, setShowLangPicker] = useState(false)
   const bottomRef = useRef(null)
   const fileInputRef = useRef(null)
+  const t = (key) => TRANSLATIONS[chatLang]?.[key] || TRANSLATIONS.fr[key] || key
+  const langNames = { fr: 'FR', en: 'EN', ar: 'AR', nl: 'NL' }
+  const langFlags = { fr: '🇫🇷', en: '🇬🇧', ar: '🇸🇦', nl: '🇳🇱' }
 
   useEffect(() => {
     window.openChatWithMessage = (msg) => {
@@ -159,7 +260,7 @@ export default function ChatWidget({ onBuyPlan }) {
       sessionId: getSessionId(),
       message: text.trim() || '(See screenshot)',
       pageUrl: window.location.href,
-      language: BROWSER_LANG,
+      language: chatLang,
     }
 
     if (imageToSend) {
@@ -309,9 +410,22 @@ export default function ChatWidget({ onBuyPlan }) {
               <div style={{ fontWeight: 600 }}>Alex</div>
               <div style={{ fontSize: 12, color: '#00d4ff' }}>{t('online')}</div>
             </div>
-            <span style={{ fontSize: 11, color: '#666', background: '#0f0f0f', padding: '2px 8px', borderRadius: 10, border: '1px solid #2a2a2a' }}>
-              🌐 {BROWSER_LANG.toUpperCase()}
-            </span>
+            <div style={{ position: 'relative' }}>
+              <span onClick={() => setShowLangPicker(!showLangPicker)} style={{ fontSize: 11, color: '#00d4ff', background: '#0f0f0f', padding: '2px 8px', borderRadius: 10, border: '1px solid #00d4ff33', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                {langFlags[chatLang] || '🌐'} {langNames[chatLang] || chatLang.toUpperCase()} <span style={{ fontSize: 8 }}>▼</span>
+              </span>
+              {showLangPicker && (
+                <div style={{ position: 'absolute', top: 28, right: 0, background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 10, padding: 4, zIndex: 20, minWidth: 80, boxShadow: '0 8px 30px rgba(0,0,0,0.4)' }}>
+                  {supportedLangs.map(l => (
+                    <div key={l} onClick={() => { setChatLang(l); localStorage.setItem('chat_lang', l); setShowLangPicker(false) }} style={{ padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: chatLang === l ? '#00d4ff' : '#aaa', background: chatLang === l ? '#00d4ff10' : 'transparent', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+                      onMouseEnter={e => e.target.style.background = '#ffffff08'}
+                      onMouseLeave={e => e.target.style.background = chatLang === l ? '#00d4ff10' : 'transparent'}>
+                      {langFlags[l]} {langNames[l]}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -64,7 +64,7 @@ async function callProvider(providerKey, { system, messages, maxTokens }) {
 
   if (!apiKey) throw new Error('NO_KEY');
 
-  const TIMEOUT_MS = 10000;
+  const TIMEOUT_MS = 5000;
   if (provider.sdk === 'openai') {
     const { default: OpenAI } = require('openai');
     const client = new OpenAI({ apiKey, baseURL: apiUrl, timeout: TIMEOUT_MS, maxRetries: 0 });
