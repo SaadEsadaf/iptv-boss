@@ -34,4 +34,23 @@ router.post('/convert', async (req, res) => {
   }
 });
 
+// Test trial: simulates a customer signing up
+router.post('/test', async (req, res) => {
+  try {
+    const testEmail = req.body.email || 'test@luxstream.live';
+    const testName = req.body.name || 'Test Client';
+    
+    const result = await trialEngine.createTrial({
+      name: testName,
+      email: testEmail,
+      source: 'api_test',
+      country: 'MA',
+    });
+    
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
