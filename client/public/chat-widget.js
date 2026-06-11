@@ -55,6 +55,17 @@
     sendBtn.disabled = true;
     sendBtn.style.opacity = '0.5';
 
+    // Client-side escalation detection
+    var textLower = text.toLowerCase();
+    var escalateWords = ['human','agent','real person','speak to someone','talk to human','personne','humain','conseiller','شخص','بشري'];
+    if (escalateWords.some(function(w) { return textLower.includes(w); })) {
+      addMsg('assistant', "I understand you'd like to speak with a real person. Click the WhatsApp button below to chat with Alex directly! 👇");
+      addWhatsAppButton();
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = '1';
+      return;
+    }
+
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,9 +74,13 @@
       .then(function (r) { return r.json() })
       .then(function (data) {
         addMsg('assistant', data.reply || "I'm here to help! What are you looking for?");
+        if (data.can_escalate) {
+          addWhatsAppButton();
+        }
       })
       .catch(function () {
         addMsg('assistant', "Sorry, I'm having trouble. Please try again.");
+        addWhatsAppButton();
       })
       .finally(function () {
         sendBtn.disabled = false;
@@ -83,6 +98,22 @@
         : 'align-self:flex-start;background:#2a2a2a;color:#fff');
     div.textContent = text;
     msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function addWhatsAppButton() {
+    var msgs = document.getElementById('cw-msgs');
+    var existing = document.getElementById('cw-wa-btn');
+    if (existing) return;
+    var wa = document.createElement('a');
+    wa.id = 'cw-wa-btn';
+    wa.href = 'https://wa.me/31687402093';
+    wa.target = '_blank';
+    wa.rel = 'noreferrer';
+    wa.textContent = '💬 Talk to Alex (WhatsApp)';
+    wa.style.cssText =
+      'display:block;text-align:center;margin:8px 0;padding:10px 14px;background:#25D366;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;align-self:center;max-width:90%';
+    msgs.appendChild(wa);
     msgs.scrollTop = msgs.scrollHeight;
   }
 

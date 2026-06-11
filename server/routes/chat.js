@@ -401,7 +401,8 @@ router.post('/', async (req, res) => {
     JSON.stringify(messages), orderId, sessionId
   )
 
-  res.json({ reply, actions, sessionId, language: replyLang })
+  const canEscalate = actions.some(a => a.action === 'escalate_to_human')
+  res.json({ reply, actions, sessionId, language: replyLang, can_escalate: canEscalate })
 })
 
 module.exports = router;

@@ -34,6 +34,7 @@ const TRANSLATIONS = {
     trialFailed: 'Échec de la demande d\'essai',
     networkError: 'Erreur réseau. Veuillez réessayer.',
     selectLang: 'Langue',
+    talkToHuman: '💬 Parler à Alex (WhatsApp)',
   },
   en: {
     online: 'Online', contactWhatsApp: 'Contact via WhatsApp',
@@ -65,6 +66,7 @@ const TRANSLATIONS = {
     trialFailed: 'Trial request failed',
     networkError: 'Network error. Please try again.',
     selectLang: 'Language',
+    talkToHuman: '💬 Talk to Alex (WhatsApp)',
   },
   ar: {
     online: 'متصل', contactWhatsApp: 'تواصل عبر واتساب',
@@ -96,6 +98,7 @@ const TRANSLATIONS = {
     trialFailed: 'فشل طلب التجربة',
     networkError: 'خطأ في الشبكة. حاول مرة أخرى.',
     selectLang: 'اللغة',
+    talkToHuman: '💬 التحدث إلى أليكس (واتساب)',
   },
   nl: {
     online: 'Online', contactWhatsApp: 'Contact via WhatsApp',
@@ -127,6 +130,7 @@ const TRANSLATIONS = {
     trialFailed: 'Proefperiode aanvraag mislukt',
     networkError: 'Netwerkfout. Probeer het opnieuw.',
     selectLang: 'Taal',
+    talkToHuman: '💬 Praat met Alex (WhatsApp)',
   },
 }
 
@@ -285,7 +289,7 @@ export default function ChatWidget({ onBuyPlan }) {
 
     try {
       const res = await api.post('/chat', payload)
-      const botMsg = { role: 'assistant', text: res.data.reply, paymentLink: null, trialCredentials: null, recommendation: null, showCheckoutData: null }
+      const botMsg = { role: 'assistant', text: res.data.reply, paymentLink: null, trialCredentials: null, recommendation: null, showCheckoutData: null, canEscalate: res.data.can_escalate }
       if (res.data.actions) {
         for (const a of res.data.actions) {
           if (a.action === 'recommend_plan') {
@@ -650,6 +654,15 @@ export default function ChatWidget({ onBuyPlan }) {
                     }}>
                       {t('trialActivated')}
                     </div>
+                  )}
+                  {m.canEscalate && (
+                    <a href="https://wa.me/31687402093" target="_blank" rel="noreferrer" style={{
+                      display: 'block', textAlign: 'center', marginTop: 10,
+                      background: '#25D366', color: '#fff', padding: '10px 14px',
+                      borderRadius: 8, fontWeight: 700, textDecoration: 'none', fontSize: 13,
+                    }}>
+                      {t('talkToHuman')}
+                    </a>
                   )}
                 </div>
                 {m.recommendation && (

@@ -107,6 +107,7 @@ Our WhatsApp number is {WHATSAPP_NUMBER} — share it when customers want direct
 
 const FALLBACKS = {
   en: {
+    escalate: "I understand you'd like to speak with a real person. Click the WhatsApp button below to chat with Alex directly! 👇",
     welcome: "Welcome to Dalletek! 👋 I'm Alex. Are you looking for a free trial or ready to subscribe? What kind of content do you enjoy?",
     trial: "You can click on 'Get Free Trial' and fill in your info, and you will get your trial instantly! 🎉",
     trialReady: "Great! Click on the 'Get Free Trial' button above to fill in your info and get started instantly! 🎉",
@@ -122,6 +123,7 @@ const FALLBACKS = {
     choosePlan: "Here's what I'd recommend:\n\n📺 {plan_name}\n💶 €{price_sell}\n📅 {duration_days} days\n📡 {streams} device(s)\n\nJust click the button below to checkout! 👇",
   },
   fr: {
+    escalate: "Je comprends que vous souhaitiez parler à une vraie personne. Cliquez sur le bouton WhatsApp ci-dessous pour discuter directement avec Alex ! 👇",
     welcome: "Bienvenue chez Atlas Pro IPTV France ! 👋 Je suis Alex. Cherchez-vous un essai gratuit ou êtes-vous prêt à vous abonner ? Quel type de contenu aimez-vous (sport, films, séries, etc.) ?",
     trial: "Vous pouvez cliquer sur 'Obtenir un Essai Gratuit' et remplir vos informations, et vous recevrez votre essai instantanément ! 🎉",
     trialReady: "Parfait ! Cliquez sur le bouton 'Obtenir un Essai Gratuit' ci-dessus pour remplir vos informations et commencer instantanément ! 🎉",
@@ -138,6 +140,7 @@ const FALLBACKS = {
     choosePlan: "Voici ce que je vous recommande :\n\n📺 {plan_name}\n💶 {price_sell}€\n📅 {duration_days} jours\n📡 {streams} appareil(s)\n\nCliquez sur le bouton ci-dessous pour commander ! 👇",
   },
   es: {
+    escalate: "Entiendo que quieres hablar con una persona real. ¡Haz clic en el botón de WhatsApp abajo para chatear directamente con Alex! 👇",
     welcome: "¡Bienvenido a Dalletek! 👋 Soy Alex. ¿Buscas una prueba gratuita o estás listo para suscribirte? ¿Qué tipo de contenido te gusta?",
     trial: "¡Puedes hacer clic en 'Obtener Prueba Gratis' y llenar tus datos, y recibirás tu prueba al instante! 🎉",
     trialReady: "¡Genial! Haz clic en el botón 'Obtener Prueba Gratis' arriba para llenar tus datos y empezar al instante! 🎉",
@@ -150,6 +153,7 @@ const FALLBACKS = {
     technical: "¡Con gusto te ayudaré! Primero, ¿podrías decirme qué dispositivo usas (Firestick, Android TV, iPhone, etc.) y qué ves exactamente en la pantalla?",
   },
   ar: {
+    escalate: "!👇 أفهم أنك تريد التحدث مع شخص حقيقي. انقر على زر واتساب أدناه للتحدث مباشرة مع أليكس",
     welcome: "!👋 مرحباً بك في Dalletek. أنا أليكس. هل تبحث عن نسخة تجريبية مجانية أم أنك مستعد للاشتراك؟ ما نوع المحتوى الذي تستمتع به؟",
     trial: "!🎉 يمكنك النقر على 'الحصول على نسخة تجريبية مجانية' وملء معلوماتك، وستحصل على نسختك التجريبية فوراً",
     trialReady: "!🎉 رائع! انقر على زر 'الحصول على نسخة تجريبية مجانية' أعلاه لملء معلوماتك والبدء فوراً",
@@ -162,6 +166,7 @@ const FALLBACKS = {
     technical: "يسعدني مساعدتك في ذلك! أولاً، هل يمكنك إخباري بالجهاز الذي تستخدمه (Firestick أو Android TV أو iPhone أو غيره) وماذا ترى بالضبط على الشاشة؟",
   },
   de: {
+    escalate: "Ich verstehe, dass Sie mit einer echten Person sprechen möchten. Klicken Sie unten auf den WhatsApp-Button, um direkt mit Alex zu chatten! 👇",
     welcome: "Willkommen bei Dalletek! 👋 Ich bin Alex. Suchen Sie eine kostenlose Testversion oder möchten Sie gleich abonnieren? Welche Inhalte interessieren Sie?",
     trial: "Sie können auf 'Kostenlosen Test erhalten' klicken und Ihre Daten eingeben, und Sie erhalten Ihren Test sofort! 🎉",
     trialReady: "Toll! Klicken Sie oben auf 'Kostenlosen Test erhalten', um Ihre Daten einzugeben und sofort zu starten! 🎉",
@@ -174,6 +179,7 @@ const FALLBACKS = {
     technical: "Ich helfe Ihnen gerne! Können Sie mir zuerst sagen, welches Gerät Sie verwenden (Firestick, Android TV, iPhone usw.) und was genau Sie auf dem Bildschirm sehen?",
   },
   nl: {
+    escalate: "Ik begrijp dat u met een echt persoon wilt spreken. Klik op de WhatsApp-knop hieronder om direct met Alex te chatten! 👇",
     welcome: "Welkom bij Dalletek! 👋 Ik ben Alex. Zoekt u een gratis proefversie of wilt u zich abonneren? Welke inhoud vindt u leuk?",
     trial: "U kunt klikken op 'Gratis proefversie krijgen' en uw gegevens invullen, en u ontvangt uw proefversie direct! 🎉",
     trialReady: "Geweldig! Klik op de knop 'Gratis proefversie krijgen' hierboven om uw gegevens in te vullen en meteen te starten! 🎉",
@@ -235,6 +241,14 @@ function getFallback(key, langCode, replacements = {}) {
 function fallbackReply(lower, langCode, isExisting) {
   const actions = []
   let reply
+
+  // Escalate to human — user wants to speak to a real person
+  const escalateKeywords = ['human', 'agent', 'real person', 'speak to someone', 'talk to human', 'real agent', 'personne', 'humain', 'conseiller', 'opérateur', 'persona real', 'agente real', 'شخص', 'بشري', 'موظف']
+  if (escalateKeywords.some(k => lower.includes(k))) {
+    actions.push({ action: 'escalate_to_human' })
+    reply = getFallback('escalate', langCode)
+    return { reply, actions }
+  }
 
   // Existing customer asking for help
   if (isExisting && (lower.includes('help') || lower.includes('not working') || lower.includes('error') || lower.includes('problem') || lower.includes('fix') || lower.includes('setup') || lower.includes('how'))) {
@@ -360,6 +374,17 @@ async function getAlexReply({ message, history, providers, language, customerDat
 
   const langInfo = detect(message, language)
   const effectiveLang = langInfo.code
+
+  // Fast path: user wants to speak to a human
+  const lower = message.toLowerCase()
+  const escalateKeywords = ['human', 'agent', 'real person', 'speak to someone', 'talk to human', 'real agent', 'personne', 'humain', 'conseiller', 'opérateur', 'persona real', 'agente real', 'شخص', 'بشري', 'موظف']
+  if (escalateKeywords.some(k => lower.includes(k))) {
+    return {
+      reply: getFallback('escalate', effectiveLang),
+      actions: [{ action: 'escalate_to_human' }],
+      language: effectiveLang
+    }
+  }
 
   // Fast path: pure greeting → skip AI entirely
   if (isGreetingOnly(message) && history.length < 2) {

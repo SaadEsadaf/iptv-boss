@@ -46,11 +46,12 @@ function checkTrialCodes() {
 function checkActivationCodes() {
   const db = getDb();
   const rows = db.prepare(`
-    SELECT pp.plan_name, pc.name as provider, 
-      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.plan_id = pp.id AND ac.status = 'available') as avail
-    FROM provider_plans pp JOIN providers_catalog pc ON pp.provider_id = pc.id
-    WHERE pp.active = 1 AND pp.plan_type != 'trial'
-    HAVING avail < 5
+    SELECT * FROM (
+      SELECT pp.plan_name, pc.name as provider, 
+        (SELECT COUNT(*) FROM activation_codes ac WHERE ac.plan_id = pp.id AND ac.status = 'available') as avail
+      FROM provider_plans pp JOIN providers_catalog pc ON pp.provider_id = pc.id
+      WHERE pp.active = 1 AND pp.plan_type != 'trial'
+    ) WHERE avail < 5
   `).all();
   if (rows.length === 0) return { status: 'green', message: 'Tous les plans ont du stock' };
   const low = rows.filter(r => r.avail > 0);
