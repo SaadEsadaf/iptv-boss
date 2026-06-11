@@ -19,6 +19,26 @@ export default function Providers() {
   const [codeResult, setCodeResult] = useState(null)
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [inventoryStatus, setInventoryStatus] = useState([])
+  const [inventorySettings, setInventorySettings] = useState({})
+  const [showInventoryModal, setShowInventoryModal] = useState(false)
+  const [inventoryThreshold, setInventoryThreshold] = useState({ providerId: '', type: 'activation', threshold: 5 })
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [showNotifications, setShowNotifications] = useState(false)
+
+  function loadInventory() {
+    api.get('/inventory/status').then(r => {
+      setInventoryStatus(r.data.status || [])
+    }).catch(() => {})
+    api.get('/inventory/settings').then(r => {
+      setInventorySettings(r.data.settings || {})
+    }).catch(() => {})
+    api.get('/inventory/notifications').then(r => {
+      setNotifications(r.data.notifications || [])
+      setUnreadCount(r.data.unread || 0)
+    }).catch(() => {})
+  }
 
   function load() {
     api.get('/panel-management/panels').then(r => {
@@ -27,6 +47,36 @@ export default function Providers() {
     }).catch(() => {})
   }
   useEffect(load, [])
+  useEffect(loadInventory, [])
+
+  function runInventoryCheck() {
+    setLoading(true)
+    api.post('/inventory/check').then(r => {
+      alert(`Check complete! ${r.data.alerts?.length || 0} alerts found, ${r.data.notifications?.length || 0} sent`)
+      loadInventory()
+    }).catch(() => {}).finally(() => setLoading(false))
+  }
+
+  function updateThreshold() {
+    const { providerId, type, threshold } = inventoryThreshold
+    if (!providerId) return alert('Select a provider first')
+    api.post('/inventory/threshold', { providerId, type, threshold }).then(() => {
+      alert('Threshold updated')
+      loadInventory()
+    }).catch(() => {})
+  }
+
+  function updateSettings() {
+    api.post('/inventory/settings', inventorySettings).then(() => {
+      alert('Settings saved')
+    }).catch(() => {})
+  }
+
+  function markNotificationsRead() {
+    api.post('/inventory/notifications/read', { ids: 'all' }).then(() => {
+      loadInventory()
+    }).catch(() => {})
+  }
 
   function addProvider() {
     api.post('/panel-management/panels', form).then(() => {
@@ -107,12 +157,78 @@ export default function Providers() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <p style={{ color: '#666', margin: 0 }}>{providers.length} providers</p>
-        <button onClick={() => setShowModal(true)} style={{ background: '#00d4ff', color: '#000', border: 'none', padding: '8px 20px', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
-          + Add Provider
-        </button>
+      {/* Inventory Monitor Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <p style={{ color: '#666', margin: 0 }}>{providers.length} providers</p>
+          {unreadCount > 0 && (
+            <button onClick={() => setShowNotifications(!showNotifications)} style={{ background: '#ff444415', border: '1px solid #ff4444', color: '#ff4444', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+              🔴 {unreadCount} unread alerts
+            </button>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => setShowInventoryModal(true)} style={{ background: '#1a1a1a', color: '#00d4ff', border: '1px solid #00d4ff', padding: '8px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
+            ⚙️ Inventory Settings
+          </button>
+          <button onClick={runInventoryCheck} disabled={loading} style={{ background: '#00d4ff', color: '#000', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
+            {loading ? '⏳ Checking...' : '🔍 Check Now'}
+          </button>
+          <button onClick={() => setShowModal(true)} style={{ background: '#00d4ff', color: '#000', border: 'none', padding: '8px 20px', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
+            + Add Provider
+          </button>
+        </div>
       </div>
+
+      {/* Notifications Panel */}
+      {showNotifications && notifications.length > 0 && (
+        <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 12, padding: 16, marginBottom: 20, maxHeight: 300, overflow: 'auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h4 style={{ margin: 0, color: '#00d4ff', fontSize: 14 }}>🔔 Recent Alerts</h4>
+            <button onClick={markNotificationsRead} style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#888', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 11 }}>
+              Mark all read
+            </button>
+          </div>
+          {notifications.map((n, i) => (
+            <div key={i} style={{ padding: 8, borderBottom: '1px solid #2a2a2a', fontSize: 12, color: n.read ? '#888' : '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: n.type === 'urgent_stock' ? '#ff4444' : '#ffd700', fontWeight: 600 }}>{n.title}</span>
+                <span style={{ color: '#555', fontSize: 10 }}>{new Date(n.created_at).toLocaleString()}</span>
+              </div>
+              <div style={{ color: '#888', marginTop: 2 }}>{n.message}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Inventory Status Grid */}
+      {inventoryStatus.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <h4 style={{ margin: '0 0 12px', color: '#00d4ff', fontSize: 14 }}>📦 Inventory Status</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+            {inventoryStatus.map((inv, i) => (
+              <div key={i} style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontWeight: 700, color: '#00d4ff', marginBottom: 8, fontSize: 14 }}>{inv.provider.name}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  <div style={{ background: '#0f0f0f', borderRadius: 6, padding: 8, textAlign: 'center' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: inv.activation.low ? '#ff4444' : '#00d4ff' }}>{inv.activation.available}</div>
+                    <div style={{ fontSize: 10, color: '#888' }}>Activation</div>
+                    <div style={{ fontSize: 9, color: '#555' }}>threshold: {inv.activation.threshold}</div>
+                  </div>
+                  <div style={{ background: '#0f0f0f', borderRadius: 6, padding: 8, textAlign: 'center' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: inv.trials.low ? '#ff4444' : '#ffd700' }}>{inv.trials.available}</div>
+                    <div style={{ fontSize: 10, color: '#888' }}>Trials</div>
+                    <div style={{ fontSize: 9, color: '#555' }}>threshold: {inv.trials.threshold}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: '#888' }}>
+                  Total sold: {inv.activation.sold} activation, {inv.trials.used} trials
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill,minmax(360px,1fr))' }}>
         {providers.map(p => (
@@ -234,6 +350,47 @@ export default function Providers() {
             </div>
           )}
           <button onClick={addCodes} disabled={codeLoading} style={btnStyle}>{codeLoading ? 'Adding...' : `Add ${codeType === 'activation' ? 'Activation' : 'Trial'} Codes`}</button>
+        </Modal>
+      )}
+
+      {/* Inventory Settings Modal */}
+      {showInventoryModal && (
+        <Modal onClose={() => setShowInventoryModal(null)} title="Inventory Monitor Settings">
+          <div style={{ marginBottom: 16 }}>
+            <h4 style={{ margin: '0 0 8px', color: '#00d4ff', fontSize: 13 }}>📊 Set Thresholds</h4>
+            <p style={{ color: '#888', fontSize: 11, margin: '0 0 8px' }}>Alert when stock falls below threshold</p>
+            <select value={inventoryThreshold.providerId} onChange={e => setInventoryThreshold(t => ({ ...t, providerId: e.target.value }))} style={inputStyle}>
+              <option value="">Select Provider</option>
+              {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            <select value={inventoryThreshold.type} onChange={e => setInventoryThreshold(t => ({ ...t, type: e.target.value }))} style={inputStyle}>
+              <option value="activation">Activation Codes</option>
+              <option value="trial">Trial Codes</option>
+            </select>
+            <input type="number" placeholder="Threshold (e.g. 5)" value={inventoryThreshold.threshold} onChange={e => setInventoryThreshold(t => ({ ...t, threshold: parseInt(e.target.value) || 5 }))} style={inputStyle} />
+            <button onClick={updateThreshold} style={btnStyle}>Update Threshold</button>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <h4 style={{ margin: '0 0 8px', color: '#00d4ff', fontSize: 13 }}>🔔 Notifications</h4>
+            <p style={{ color: '#888', fontSize: 11, margin: '0 0 8px' }}>Configure where to send alerts</p>
+            <input placeholder="Email address" value={inventorySettings.email || ''} onChange={e => setInventorySettings(s => ({ ...s, email: e.target.value }))} style={inputStyle} />
+            <input placeholder="Telegram Bot Token" value={inventorySettings.telegram || ''} onChange={e => setInventorySettings(s => ({ ...s, telegram: e.target.value }))} style={inputStyle} />
+            <input placeholder="Webhook URL" value={inventorySettings.webhook || ''} onChange={e => setInventorySettings(s => ({ ...s, webhook: e.target.value }))} style={inputStyle} />
+            <button onClick={updateSettings} style={btnStyle}>Save Settings</button>
+          </div>
+
+          <div>
+            <h4 style={{ margin: '0 0 8px', color: '#00d4ff', fontSize: 13 }}>📈 Current Thresholds</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12 }}>
+              {inventoryStatus.map((inv, i) => (
+                <div key={i} style={{ background: '#0f0f0f', borderRadius: 6, padding: 8 }}>
+                  <div style={{ color: '#00d4ff', fontWeight: 600 }}>{inv.provider.name}</div>
+                  <div style={{ color: '#888' }}>Activation: {inv.activation.threshold} | Trial: {inv.trials.threshold}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </Modal>
       )}
     </div>

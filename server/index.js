@@ -39,6 +39,10 @@ const { titan } = require('./services/titanHub');
 setTimeout(() => {
   panelManager.init();
   titan.init();
+  
+  // Inventory Monitor
+  const inventoryMonitor = require('./services/inventoryMonitor');
+  inventoryMonitor.start();
 }, 1000);
 
 const PORT = process.env.PORT || 3001;
@@ -79,6 +83,7 @@ app.use('/api/titan-templates', require('./routes/titanTemplates'));
 app.use('/api/titan-growth', require('./routes/titanGrowth'));
 app.use('/api/titan-intelligence', require('./routes/titanIntelligence'));
 app.use('/api/panel-management', require('./routes/panelManagement'));
+app.use('/api/inventory', require('./routes/inventoryManagement'));
 
 app.get('/api/plans', (req, res) => {
   const { getDb } = require('./db');
