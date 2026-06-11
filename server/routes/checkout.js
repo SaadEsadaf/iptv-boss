@@ -67,6 +67,144 @@ router.post('/api/checkout/direct', async (req, res) => {
   }
 });
 
+// Guest trial: init a €1 payment + create user placeholder
+router.post('/api/trial/guest-init', async (req, res) => {
+  try {
+    const { name, email, phone, providerId, preferredApp } = req.body;
+    if (!email || !providerId) return res.status(400).json({ error: 'email and providerId required' });
+
+    const db = getDb();
+    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || 'Dalletek';
+    const paypalEmail = (db.prepare("SELECT value FROM app_settings WHERE key = 'paypal_email'").get() || {}).value || 'iboplayer.service@gmail.com';
+    const wid = req.website ? req.website.id : 1;
+    const app = preferredApp || 'tivimate';
+
+    // Create a pending €1 order
+    const orderResult = db.prepare(`
+      INSERT INTO orders (customer_name, customer_email, customer_phone, provider_id, is_trial, amount, status, source, website_id, preferred_app)
+      VALUES (?, ?, ?, ?, 1, 1.00, 'pending', 'guest_trial', ?, ?)
+    `).run(name || email.split('@')[0], email, phone || null, parseInt(providerId), wid, app);
+
+    res.json({
+      success: true,
+      order_id: orderResult.lastInsertRowid,
+      amount: '1.00',
+      currency: 'EUR',
+      paypal_email: paypalEmail,
+      site_name: siteName,
+      message: `Send €1 via PayPal Friends & Family to ${paypalEmail}`,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Confirm guest trial payment + activate
+router.post('/api/trial/guest-confirm', async (req, res) => {
+  try {
+    const { name, email, phone, providerId, sessionId, preferredApp, orderId } = req.body;
+    if (!email || !providerId) return res.status(400).json({ error: 'email and providerId required' });
+
+    const db = getDb();
+    const app = preferredApp || 'tivimate';
+
+    // Rate limit: check if this email already has an active trial
+    const activeTrial = db.prepare(`
+      SELECT id FROM orders WHERE customer_email = ? AND is_trial = 1 AND status IN ('completed', 'pending') AND created_at > datetime('now', '-48 hours')
+    `).get(email);
+    if (activeTrial) return res.status(400).json({ error: 'You already have an active trial' });
+
+    // Mark the €1 order as completed
+    if (orderId) {
+      db.prepare("UPDATE orders SET status = 'completed', payment_confirmed_at = datetime('now') WHERE id = ?").run(orderId);
+    }
+
+    // Get or create user
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    if (!user) {
+      const wid = req.website ? req.website.id : 1;
+      const userResult = db.prepare(
+        'INSERT INTO users (name, email, provider, preferred_app, website_id) VALUES (?, ?, ?, ?, ?)'
+      ).run(name || email.split('@')[0], email, 'email', app, wid);
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(userResult.lastInsertRowid);
+    }
+
+    const provider = db.prepare('SELECT id, name FROM providers_catalog WHERE id = ? AND active = 1').get(providerId);
+    if (!provider) return res.status(404).json({ error: 'Provider not found' });
+
+    const trialPlan = db.prepare(
+      "SELECT id, plan_name FROM provider_plans WHERE provider_id = ? AND plan_type = 'trial' AND active = 1 LIMIT 1"
+    ).get(providerId);
+    if (!trialPlan) return res.status(400).json({ error: 'No trial plan for this provider' });
+
+    const wid = req.website ? req.website.id : 1;
+    const orderResult = db.prepare(
+      "INSERT INTO orders (session_id, customer_name, customer_email, customer_phone, provider_id, plan_id, is_trial, status, website_id, user_id, preferred_app) VALUES (?, ?, ?, ?, ?, ?, 1, 'completed', ?, ?, ?)"
+    ).run(sessionId || null, name || null, email, phone || null, providerId, trialPlan.id, wid, user.id, app);
+
+    const trialCreds = assignTrial(orderResult.lastInsertRowid, providerId);
+    if (!trialCreds) {
+      db.prepare('UPDATE orders SET status = ? WHERE id = ?').run('failed', orderResult.lastInsertRowid);
+      db.prepare(
+        "INSERT INTO admin_notifications (type, title, message, related_id) VALUES (?, ?, ?, ?)"
+      ).run('trial_stockout', 'Trial codes exhausted',
+        `Visitor ${name || email} paid €1 but no codes available.`, orderResult.lastInsertRowid);
+      return res.status(400).json({ error: 'No trial codes available' });
+    }
+
+    db.prepare('UPDATE orders SET trial_code_id = (SELECT id FROM trial_codes WHERE used_by_order_id = ?) WHERE id = ?').run(
+      orderResult.lastInsertRowid, orderResult.lastInsertRowid
+    );
+
+    try {
+      await sendTrial({
+        email,
+        name,
+        credentials: trialCreds,
+        durationHours: trialCreds.duration_hours || 24,
+        providerName: provider.name,
+        planName: trialPlan.plan_name,
+      });
+    } catch (e) {
+      console.error('Trial email error:', e);
+    }
+
+    db.prepare(
+      'INSERT INTO agent_log (agent, action, details, order_id, session_id) VALUES (?, ?, ?, ?, ?)'
+    ).run('System', 'guest_trial_paid', `Guest trial paid €1 by ${email} for ${provider.name} (app: ${app})`, orderResult.lastInsertRowid, sessionId || null);
+
+    try {
+      const { enrollTrialUser } = require('../services/salesEngine')
+      enrollTrialUser(orderResult.lastInsertRowid, email, name || null, trialCreds).catch(() => {})
+    } catch (e) {}
+
+    const { signToken } = require('../services/auth');
+    const authToken = signToken(user);
+
+    const m3uUrl = trialCreds.server_url
+      ? `${trialCreds.server_url}/get.php?username=${trialCreds.username}&password=${trialCreds.password}&type=m3u_plus&output=ts`
+      : null;
+
+    res.json({
+      success: true,
+      provider_name: provider.name,
+      duration_hours: trialCreds.duration_hours || 24,
+      token: authToken,
+      order_id: orderResult.lastInsertRowid,
+      guest_order_id: orderId,
+      credentials: {
+        type: 'xtream',
+        server_url: trialCreds.server_url,
+        username: trialCreds.username,
+        password: trialCreds.password,
+        m3u_url: m3uUrl,
+      },
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.post('/api/trial/claim', async (req, res) => {
   const { name, email, phone, providerId, sessionId, preferredApp } = req.body;
   if (!email || !providerId) {
@@ -75,6 +213,12 @@ router.post('/api/trial/claim', async (req, res) => {
   const app = preferredApp || 'tivimate';
 
   const db = getDb();
+
+  // Rate limit: check if this email already has an active trial
+  const activeTrial = db.prepare(`
+    SELECT id FROM orders WHERE customer_email = ? AND is_trial = 1 AND status IN ('completed', 'pending') AND created_at > datetime('now', '-48 hours')
+  `).get(email);
+  if (activeTrial) return res.status(400).json({ error: 'You already have an active trial' });
 
   // Auto-create user account
   let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);

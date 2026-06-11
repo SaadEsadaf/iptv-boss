@@ -187,6 +187,9 @@ export default function ChatWidget({ onBuyPlan }) {
   const [autoOpened, setAutoOpened] = useState(false)
   const [showTrialForm, setShowTrialForm] = useState(false)
   const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '', preferredApp: 'tivimate' })
+  const [showGuestPayment, setShowGuestPayment] = useState(false)
+  const [guestPaymentInfo, setGuestPaymentInfo] = useState(null)
+  const [copied, setCopied] = useState(null)
 
   const APPS_LIST = [
     { id: 'tivimate', icon: '🔥', name: 'TiviMate', desc: 'Firestick / Android TV' },
@@ -342,7 +345,33 @@ export default function ChatWidget({ onBuyPlan }) {
     e.preventDefault()
     const { name, email, phone, providerId, preferredApp } = trialForm
     if (!email || !providerId) return
+    const isLoggedIn = !!localStorage.getItem('customer_token')
     setTrialSubmitting(true)
+
+    // Guest flow: pay €1 first
+    if (!isLoggedIn) {
+      try {
+        const res = await fetch('/api/trial/guest-init', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), preferredApp }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setGuestPaymentInfo(data)
+          setShowGuestPayment(true)
+        } else {
+          alert(data.error || t('trialFailed'))
+        }
+      } catch {
+        alert(t('networkError'))
+      } finally {
+        setTrialSubmitting(false)
+      }
+      return
+    }
+
+    // Logged-in flow: free trial
     try {
       const res = await fetch('/api/trial/claim', {
         method: 'POST',
@@ -365,8 +394,35 @@ export default function ChatWidget({ onBuyPlan }) {
     }
   }
 
-  const showEmpty = messages.length === 0 && !showTrialForm && !trialSuccess
-  const showTrialCard = showTrialForm && !trialSuccess
+  async function handleGuestConfirm() {
+    if (!guestPaymentInfo) return
+    setTrialSubmitting(true)
+    const { name, email, phone, providerId, preferredApp } = trialForm
+    try {
+      const res = await fetch('/api/trial/guest-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), sessionId: getSessionId(), preferredApp, orderId: guestPaymentInfo.order_id }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setShowGuestPayment(false)
+        setTrialSuccess(data)
+        if (data.token) {
+          localStorage.setItem('customer_token', data.token)
+        }
+      } else {
+        alert(data.error || t('trialFailed'))
+      }
+    } catch {
+      alert(t('networkError'))
+    } finally {
+      setTrialSubmitting(false)
+    }
+  }
+
+  const showEmpty = messages.length === 0 && !showTrialForm && !trialSuccess && !showGuestPayment
+  const showTrialCard = showTrialForm && !trialSuccess && !showGuestPayment
 
   const whatsappNumber = window.__WEBSITE__?.whatsapp || ''
 
@@ -509,6 +565,36 @@ export default function ChatWidget({ onBuyPlan }) {
                     {trialSubmitting ? t('sendingTrial') : t('getTrial')}
                   </button>
                 </form>
+              </div>
+            )}
+
+            {showGuestPayment && guestPaymentInfo && (
+              <div style={{ background: '#1a1a2e', border: '2px solid #ffd70030', borderRadius: 12, padding: 16, fontSize: 14 }}>
+                <div style={{ fontSize: 28, textAlign: 'center', marginBottom: 4 }}>💳</div>
+                <p style={{ color: '#ffd700', fontWeight: 700, margin: '0 0 4px', textAlign: 'center', fontSize: 15 }}>Pay €1 to unlock your trial</p>
+                <p style={{ color: '#a0a0a0', margin: '0 0 12px', fontSize: 12, textAlign: 'center' }}>One-time fee to verify you're real — your trial is €0 after that</p>
+                <div style={{ background: '#0f0f0f', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+                  <div style={{ color: '#666', fontSize: 11, marginBottom: 4 }}>Send via PayPal Friends & Family to:</div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <code style={{ flex: 1, color: '#00d4ff', fontSize: 14, fontWeight: 600, wordBreak: 'break-all' }}>{guestPaymentInfo.paypal_email}</code>
+                    <button onClick={() => { navigator.clipboard.writeText(guestPaymentInfo.paypal_email); setCopied('paypal') }} style={{ background: 'transparent', border: '1px solid #333', borderRadius: 6, padding: '4px 10px', color: copied === 'paypal' ? '#00cc66' : '#00d4ff', cursor: 'pointer', fontSize: 11, whiteSpace: 'nowrap' }}>
+                      {copied === 'paypal' ? '✓' : 'Copy'}
+                    </button>
+                  </div>
+                  <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#a0a0a0' }}>
+                    <span>Amount: <strong style={{ color: '#fff' }}>€{guestPaymentInfo.amount}</strong></span>
+                    <span>Order: <strong style={{ color: '#666' }}>#{guestPaymentInfo.order_id}</strong></span>
+                  </div>
+                </div>
+                <a href="https://paypal.com" target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#ffd700', color: '#000', borderRadius: 8, fontWeight: 700, fontSize: 14, textDecoration: 'none', marginBottom: 8 }}>
+                  💳 Open PayPal to Pay €1
+                </a>
+                <button onClick={handleGuestConfirm} disabled={trialSubmitting} style={{ width: '100%', padding: '10px', background: '#00cc66', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14, opacity: trialSubmitting ? 0.6 : 1 }}>
+                  {trialSubmitting ? 'Activating...' : "✅ I've Sent €1 — Activate My Trial"}
+                </button>
+                <button onClick={() => { setShowGuestPayment(false); setGuestPaymentInfo(null) }} style={{ width: '100%', padding: '6px', marginTop: 6, background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: 12 }}>
+                  Cancel
+                </button>
               </div>
             )}
 

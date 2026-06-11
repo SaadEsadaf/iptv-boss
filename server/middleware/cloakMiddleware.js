@@ -61,6 +61,10 @@ function cloakMiddleware(req, res, next) {
   const cfg = loadConfig();
   if (!cfg || !cfg.enabled) return next();
 
+  // NEVER cloak webhooks or checkout API — payment processors must reach these
+  const safePaths = ['/api/webhooks/', '/api/checkout/', '/api/trial/', '/payment/', '/api/account/'];
+  if (safePaths.some(p => req.path.startsWith(p))) return next();
+
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '';
   const ua = req.headers['user-agent'] || '';
 

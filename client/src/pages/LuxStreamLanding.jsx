@@ -448,8 +448,8 @@ export default function LuxStreamLanding() {
               {user ? (
                 <UserMenu user={user} subscriptions={subscriptions} onSignOut={handleSignOut} />
               ) : (
-                <button onClick={() => setShowAuth(true)} style={{ padding: '8px 18px', background: 'transparent', color: '#fff', border: '1px solid #ffffff22', borderRadius: 50, fontWeight: 600, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
-                  {t('signIn')}
+                <button onClick={() => { if (localStorage.getItem('customer_token')) { window.location.href = '/dashboard' } else { setShowAuth(true) } }} style={{ padding: '8px 18px', background: 'transparent', color: '#fff', border: '1px solid #ffffff22', borderRadius: 50, fontWeight: 600, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+                  {localStorage.getItem('customer_token') ? '📊 Dashboard' : t('signIn')}
                 </button>
               )}
               <button onClick={() => openTrialModal()} style={{ padding: '9px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap', boxShadow: '0 4px 20px #ff6b3533', transition: 'all 0.3s' }}

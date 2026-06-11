@@ -277,13 +277,13 @@ export default function LandingPage() {
               {user ? (
                 <UserMenu user={user} subscriptions={subscriptions} onSignOut={handleSignOut} />
               ) : (
-                <button onClick={() => setShowAuth(true)} style={{
+                <button onClick={() => { if (localStorage.getItem('customer_token')) { window.location.href = '/dashboard' } else { setShowAuth(true) } }} style={{
                   padding: '8px 18px', background: 'transparent', color: '#fff', border: '1px solid #ffffff33',
                   borderRadius: 50, fontWeight: 600, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap', marginLeft: 'auto',
                   transition: 'all 0.2s',
                 }} onMouseEnter={e => { e.target.style.borderColor = '#ffffff66'; e.target.style.color = '#00d4ff' }}
                   onMouseLeave={e => { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }}>
-                  {t('signIn')}
+                  {localStorage.getItem('customer_token') ? '📊 Dashboard' : t('signIn')}
                 </button>
               )}
               <button onClick={() => window.__showTrialForm?.()} style={{
