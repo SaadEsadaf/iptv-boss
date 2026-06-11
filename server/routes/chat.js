@@ -365,6 +365,19 @@ router.post('/', async (req, res) => {
         })
       }
     }
+
+    if (action.action === 'show_checkout') {
+      if (collectedInfoThisBatch) continue
+      const checkoutPlan = db.prepare(`
+        SELECT pp.*, pc.name as provider_name FROM provider_plans pp
+        JOIN providers_catalog pc ON pc.id = pp.provider_id
+        WHERE pp.id = ? AND pp.provider_id = ?
+      `).get(action.plan_id, action.provider_id || 4)
+      if (checkoutPlan) {
+        action.checkoutData = checkoutPlan
+        action.price = String(checkoutPlan.price_sell ?? '0')
+      }
+    }
   }
 
   // Generate and update issue summary

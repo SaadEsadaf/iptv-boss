@@ -50,14 +50,28 @@ Be specific about what you observe in the image.
 When a visitor asks for a trial, tell them to click the "Get Free Trial" button and fill in their info. Do NOT collect their email or offer to send trial yourself.
 
 # SALES FLOW
-When recommending plans, output JSON in this format:
+When a visitor says they want to buy or subscribe, ASK qualifying questions FIRST:
+1. "What content do you watch? (sports, movies, series, all)"
+2. "How many devices will you use? (1, 2, or 4?)"
+3. "How long do you need? (1 month at €9.99, 3 months at €29.99, 6 months at €49.99, 12 months at €69.99)"
+
+After they answer, RECOMMEND the perfect plan with a_recommend action:
+{"action": "a_recommend", "provider_id": 4, "plan_id": X, "by": "for you — plan_name — price_sell€ — duration_days days — channels channels — streams streams"}
+
+When recommending plans in a card, use:
 {"action": "recommend_plan", "provider_id": X, "plan_id": X, "provider_name": "X", "plan_name": "X", "price": "X.XX", "is_trial": true/false, "channels": X, "streams": X}
-When ready to collect info:
+
+When ready to show checkout popup:
+{"action": "show_checkout", "plan_id": X, "provider_id": X}
+
+When ready to collect info for order:
 {"action": "collect_info", "plan_id": X, "provider_id": X, "is_trial": true/false}
+
 When payment link needed:
 {"action": "create_sellup_order", "order_id": X, "plan_id": X, "amount": X.XX}
+
 NOTE: For trials, do NOT output any action JSON. Just tell them to click the "Get Free Trial" button.
-IMPORTANT Only output action JSON when you're ready to perform the action. Do not output multiple actions in one message.
+IMPORTANT: Only output ONE action JSON per message. A_recommend outputs your recommendation text. Show_checkout triggers the popup.
 
 # CUSTOMER DATA (when available)
 Below you'll find the customer's order history and past sessions.
@@ -81,6 +95,8 @@ const FALLBACKS = {
     abuse: "It looks like you've already used your free trial. You can still click 'Get Free Trial' to see available options, or I can help you with a paid plan from just $9.99/month!",
     contact: "For direct support, you can also reach us on WhatsApp at {whatsapp} — we're here to help!",
     technical: "I'd be happy to help you with that! First, could you tell me what device you're using (Firestick, Android TV, iPhone, etc.) and what exactly you're seeing on screen?",
+    qualify: "To help you pick the perfect plan:\n\n1️⃣ What content do you watch? (Sports, Movies, Series, or All)\n2️⃣ How many devices? (1, 2, or 4)\n3️⃣ How long? (1 month = €9.99, 3 months = €29.99, 6 months = €49.99, 12 months = €69.99)\n\nTell me a bit about what you need!",
+    choosePlan: "Here's what I'd recommend:\n\n📺 {plan_name}\n💶 €{price_sell}\n📅 {duration_days} days\n📡 {streams} device(s)\n\nJust click the button below to checkout! 👇",
   },
   fr: {
     welcome: "Bienvenue chez Atlas Pro IPTV France ! 👋 Je suis Alex. Cherchez-vous un essai gratuit ou êtes-vous prêt à vous abonner ? Quel type de contenu aimez-vous (sport, films, séries, etc.) ?",
@@ -95,6 +111,8 @@ const FALLBACKS = {
     abuse: "Vous avez déjà utilisé votre essai gratuit. Vous pouvez toujours cliquer sur 'Obtenir un Essai Gratuit' ou choisir un abonnement payant à partir de 9,99 €/mois !",
     contact: "Pour un support direct, vous pouvez aussi nous contacter sur WhatsApp au {whatsapp} — nous sommes là pour vous aider !",
     technical: "Je serai heureux de vous aider ! D'abord, pourriez-vous me dire quel appareil vous utilisez (Firestick, Android TV, iPhone, etc.) et ce que vous voyez à l'écran ?",
+    qualify: "Pour vous aider à choisir le plan parfait :\n\n1️⃣ Quel contenu regardez-vous ? (Sport, Films, Séries, ou Tout)\n2️⃣ Combien d'appareils ? (1, 2, ou 4)\n3️⃣ Pour combien de temps ? (1 mois = 9,99€, 3 mois = 29,99€, 6 mois = 49,99€, 12 mois = 69,99€)\n\nDites-m'en un peu plus sur vos besoins !",
+    choosePlan: "Voici ce que je vous recommande :\n\n📺 {plan_name}\n💶 {price_sell}€\n📅 {duration_days} jours\n📡 {streams} appareil(s)\n\nCliquez sur le bouton ci-dessous pour commander ! 👇",
   },
   es: {
     welcome: "¡Bienvenido a Dalletek! 👋 Soy Alex. ¿Buscas una prueba gratuita o estás listo para suscribirte? ¿Qué tipo de contenido te gusta?",
@@ -216,19 +234,35 @@ function fallbackReply(lower, langCode, isExisting) {
   if (lower.includes('trial') || lower.includes('try') || lower.includes('test') || lower.includes('free')) {
     reply = getFallback('trial', langCode)
   } else if (lower.includes('sport')) {
-      actions.push({ action: 'recommend_plan', provider_id: 1, plan_id: 2, provider_name: 'StreamMax', plan_name: 'Basic', price: '14.99', is_trial: false, channels: 10000, streams: 1 })
-      reply = getFallback('sports', langCode)
-    } else if (lower.includes('atlas')) {
-      reply = getFallback('atlas', langCode)
-    } else if (lower.includes('arabic') || lower.includes('arab')) {
-    actions.push({ action: 'recommend_plan', provider_id: 2, plan_id: 6, provider_name: 'UltraTV', plan_name: 'Basic', price: '12.99', is_trial: false, channels: 8000, streams: 1 })
+    actions.push({ action: 'recommend_plan', provider_id: 4, plan_id: 17, provider_name: 'Atlas', plan_name: 'Premium 3 Mois', price: '29.99', is_trial: false, channels: 179915, streams: 4 })
+    reply = getFallback('sports', langCode)
+  } else if (lower.includes('atlas')) {
+    reply = getFallback('atlas', langCode)
+  } else if (lower.includes('arabic') || lower.includes('arab')) {
+    actions.push({ action: 'recommend_plan', provider_id: 4, plan_id: 15, provider_name: 'Atlas', plan_name: 'Premium', price: '14.99', is_trial: false, channels: 20000, streams: 2 })
     reply = getFallback('arabic', langCode)
   } else if (lower.includes('europe')) {
-    actions.push({ action: 'recommend_plan', provider_id: 3, plan_id: 10, provider_name: 'ClearStream', plan_name: 'Basic', price: '9.99', is_trial: false, channels: 12000, streams: 1 })
+    actions.push({ action: 'recommend_plan', provider_id: 4, plan_id: 17, provider_name: 'Atlas', plan_name: 'Premium 3 Mois', price: '29.99', is_trial: false, channels: 179915, streams: 4 })
     reply = getFallback('europe', langCode)
   } else if (lower.includes('price') || lower.includes('cost') || lower.includes('how much') || lower.includes('premium') || lower.includes('basic') || lower.includes('buy') || lower.includes('subscribe')) {
-    actions.push({ action: 'collect_info', plan_id: 3, provider_id: 1, is_trial: false })
-    reply = getFallback('pricing', langCode)
+    // Qualifying questions for purchase intent
+    const hasAnswered = lower.includes('1') || lower.includes('2') || lower.includes('3') || lower.includes('4 stream') || lower.includes('2 stream') || lower.includes('1 stream') || lower.includes('stream') || lower.includes('device') || lower.includes('month') || lower.includes('year') || lower.includes('week') || lower.includes('jour') || lower.includes('mois') || lower.includes('semaine') || lower.includes('device') || lower.includes('appareil')
+    if (hasAnswered) {
+      // Pick best plan based on keywords
+      const wantsYear = lower.includes('year') || lower.includes('annuel') || lower.includes('an') || lower.includes('12') || lower.includes('12 mois') || lower.includes('365')
+      const wantsQuarter = lower.includes('3 month') || lower.includes('3 mois') || lower.includes('quarter') || lower.includes('trimestre') || lower.includes('90')
+      const wantsSemester = lower.includes('6 month') || lower.includes('6 mois') || lower.includes('semestre') || lower.includes('semester') || lower.includes('180')
+      const wantsPremium = lower.includes('4k') || lower.includes('4 devices') || lower.includes('4 appareil') || lower.includes('premium')
+      let planId = 15, planName = 'Premium', price = '14.99', dur = '30', streams = '2', channels = '20000'
+      if (wantsYear) { planId = 16; planName = 'Annuel 12 Mois'; price = '69.99'; dur = '365'; streams = '4'; channels = '25000' }
+      else if (wantsSemester) { planId = 18; planName = 'Semestre 6 Mois'; price = '49.99'; dur = '180'; streams = '4'; channels = '179915' }
+      else if (wantsQuarter && wantsPremium) { planId = 17; planName = 'Premium 3 Mois'; price = '29.99'; dur = '90'; streams = '4'; channels = '179915' }
+      else if (wantsQuarter) { planId = 17; planName = 'Premium 3 Mois'; price = '29.99'; dur = '90'; streams = '4'; channels = '179915' }
+      actions.push({ action: 'recommend_plan', provider_id: 4, plan_id: planId, provider_name: 'Atlas', plan_name: planName, price, is_trial: false, channels: Number(channels), streams: Number(streams) })
+      reply = getFallback('choosePlan', langCode, { plan_name: planName, price_sell: price, duration_days: dur, streams })
+    } else {
+      reply = getFallback('qualify', langCode)
+    }
   } else if (isExisting) {
     reply = getFallback('existing', langCode)
   } else {

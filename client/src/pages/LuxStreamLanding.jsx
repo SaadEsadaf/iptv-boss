@@ -837,7 +837,7 @@ export default function LuxStreamLanding() {
 
       {checkoutPlan && <CheckoutModal plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} userToken={localStorage.getItem('user_token')} />}
       {showAuth && <AuthModal settings={settings} onAuth={handleAuth} onClose={() => setShowAuth(false)} />}
-      <ChatWidget />
+      <ChatWidget onBuyPlan={(plan) => setCheckoutPlan(plan)} />
 
       {/* Trial Modal */}
       {showTrialModal && (

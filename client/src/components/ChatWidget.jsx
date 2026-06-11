@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import api from '../api'
+import CheckoutModal from './CheckoutModal'
 
 const ws = typeof window !== 'undefined' && window.__WEBSITE__
 const lang = ws?.language || 'en'
@@ -26,6 +27,7 @@ const FR = {
   trialActivated: '✅ Essai Activé — Vérifiez vos emails !',
   free: 'Gratuit', channels: 'chaînes', stream: 'flux', streams: 'flux', day: 'j',
   startFreeTrial: 'Essai Gratuit', selectThisPlan: 'Sélectionner cette Offre',
+  buyNow: '💰 Acheter Maintenant',
   imageReady: 'image prête', typeMessage: 'Écrivez un message...', send: 'Envoyer',
   credentialsSent: 'Identifiants envoyés par email !',
   sorry: "Désolé, j'ai un problème. Veuillez réessayer.",
@@ -80,7 +82,7 @@ function resizeImage(file, maxBytes, cb) {
   reader.readAsDataURL(file)
 }
 
-export default function ChatWidget() {
+export default function ChatWidget({ onBuyPlan }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -93,6 +95,7 @@ export default function ChatWidget() {
   const [trialSuccess, setTrialSuccess] = useState(null)
   const [imageToSend, setImageToSend] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
+  const [checkoutPlan, setCheckoutPlan] = useState(null)
   const bottomRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -166,7 +169,7 @@ export default function ChatWidget() {
 
     try {
       const res = await api.post('/chat', payload)
-      const botMsg = { role: 'assistant', text: res.data.reply, paymentLink: null, trialCredentials: null, recommendation: null }
+      const botMsg = { role: 'assistant', text: res.data.reply, paymentLink: null, trialCredentials: null, recommendation: null, showCheckoutData: null }
       if (res.data.actions) {
         for (const a of res.data.actions) {
           if (a.action === 'recommend_plan') {
@@ -177,6 +180,13 @@ export default function ChatWidget() {
           }
           if (a.action === 'send_trial') {
             botMsg.trialCredentials = { text: t('credentialsSent') }
+          }
+          if (a.action === 'show_checkout' && (onBuyPlan || a.checkoutData)) {
+            if (onBuyPlan && a.checkoutData) {
+              onBuyPlan(a.checkoutData)
+            } else {
+              botMsg.showCheckoutData = a.checkoutData || { plan_id: a.plan_id, provider_id: a.provider_id }
+            }
           }
         }
       }
@@ -196,8 +206,23 @@ export default function ChatWidget() {
   }
 
   function handleSelectPlan(rec) {
-    const msg = rec.is_trial ? `I'd like the free trial for ${rec.provider_name} ${rec.plan_name}` : `I'd like to subscribe to ${rec.provider_name} ${rec.plan_name}`
-    sendMessage(msg)
+    if (onBuyPlan && !rec.is_trial) {
+      const plan = {
+        id: rec.plan_id,
+        plan_name: rec.plan_name,
+        price_sell: rec.price || rec.price_sell || 0,
+        duration_days: rec.duration_days || 30,
+        channels: rec.channels || 0,
+        streams: rec.streams || 1,
+        provider_name: rec.provider_name || 'Atlas',
+        provider_id: rec.provider_id || 4,
+        plan_type: rec.is_trial ? 'trial' : 'monthly',
+      }
+      onBuyPlan(plan)
+    } else {
+      const msg = rec.is_trial ? `I'd like the free trial for ${rec.provider_name} ${rec.plan_name}` : `I'd like to subscribe to ${rec.provider_name} ${rec.plan_name}`
+      sendMessage(msg)
+    }
   }
 
   async function handleTrialSubmit(e) {
@@ -378,36 +403,55 @@ export default function ChatWidget() {
                 </div>
                 {m.recommendation && (
                   <div style={{
-                    marginTop: 8, background: '#0f0f0f', border: '1px solid #333',
-                    borderRadius: 12, padding: 14, width: '90%',
+                    marginTop: 8, background: 'linear-gradient(135deg, #0a1628, #1a1a2e)',
+                    border: '1.5px solid #00d4ff40', borderRadius: 14, padding: 16, width: '90%',
+                    boxShadow: '0 0 20px rgba(0,212,255,0.1)',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                       <div style={{
-                        width: 36, height: 36, borderRadius: 8,
-                        background: '#00d4ff20', color: '#00d4ff',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, fontSize: 16, flexShrink: 0,
+                        width: 38, height: 38, borderRadius: 10,
+                        background: 'linear-gradient(135deg, #00d4ff, #0090ff)',
+                        color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 700, fontSize: 18, flexShrink: 0,
                       }}>
                         {m.recommendation.provider_name?.[0] || 'P'}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{m.recommendation.provider_name}</div>
-                        <div style={{ color: '#00d4ff', fontSize: 13 }}>{m.recommendation.plan_name}</div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>{m.recommendation.provider_name}</div>
+                        <div style={{ color: '#00d4ff', fontSize: 13, fontWeight: 600 }}>{m.recommendation.plan_name}</div>
                       </div>
-                      <div style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 700, color: '#00d4ff' }}>
-                        {m.recommendation.is_trial ? t('free') : `${lang === 'fr' ? '€' : '$'}${m.recommendation.price}`}
+                      <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: '#00d4ff' }}>
+                          {m.recommendation.is_trial ? t('free') : `${lang === 'fr' ? '€' : '$'}${m.recommendation.price}`}
+                        </div>
+                        {!m.recommendation.is_trial && (
+                          <div style={{ fontSize: 11, color: '#666' }}>
+                            {m.recommendation.duration_days}{t('day')}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#a0a0a0', marginBottom: 10 }}>
-                      <span>📺 {m.recommendation.channels} {t('channels')}</span>
+                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#a0a0a0', marginBottom: 12 }}>
+                      <span>📺 {m.recommendation.channels?.toLocaleString()} {t('channels')}</span>
                       <span>📡 {m.recommendation.streams} {m.recommendation.streams > 1 ? t('streams') : t('stream')}</span>
-                      <span>📅 {m.recommendation.duration_days}{t('day')}</span>
+                      <span>⚡ 4K</span>
                     </div>
-                    <button onClick={() => handleSelectPlan(m.recommendation)} style={{
-                      width: '100%', padding: '8px', background: '#00d4ff', color: '#000',
-                      border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13,
-                    }}>
-                      {m.recommendation.is_trial ? t('startFreeTrial') : t('selectThisPlan')}
+                    <button
+                      onClick={() => handleSelectPlan(m.recommendation)}
+                      style={{
+                        width: '100%', padding: '10px',
+                        background: m.recommendation.is_trial
+                          ? 'linear-gradient(135deg, #00d4ff, #0090ff)'
+                          : 'linear-gradient(135deg, #ff6b35, #ff2d92)',
+                        color: '#fff', border: 'none', borderRadius: 10,
+                        fontWeight: 700, cursor: 'pointer', fontSize: 14,
+                        boxShadow: m.recommendation.is_trial
+                          ? '0 4px 15px rgba(0,212,255,0.3)'
+                          : '0 4px 15px rgba(255,45,146,0.3)',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {m.recommendation.is_trial ? t('startFreeTrial') : t('buyNow')}
                     </button>
                   </div>
                 )}
@@ -462,6 +506,14 @@ export default function ChatWidget() {
             </button>
           </div>
         </div>
+      )}
+
+      {checkoutPlan && (
+        <CheckoutModal
+          plan={checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+          userToken={localStorage.getItem('user_token')}
+        />
       )}
     </>
   )

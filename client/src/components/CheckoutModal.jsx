@@ -50,6 +50,7 @@ const FR = {
   sepaDesc2: 'Virez le montant exact sur le compte ci-dessous.',
   sepaAmount: 'Montant', sepaIban: 'IBAN', sepaBic: 'BIC', sepaBank: 'Banque',
   sepaNotConfigured: 'Coordonnées SEPA non configurées.',
+  buyNow: '💰 Acheter Maintenant',
 }
 const t = (key) => lang === 'fr' ? (FR[key] || key) : key
 
@@ -171,8 +172,9 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex',
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 2000,
+      backdropFilter: 'blur(8px)',
     }}>
       <div style={{
         background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 16,
@@ -186,15 +188,43 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
 
         {step === 'methods' && (
           <>
-            <h2 style={{ margin: '0 0 4px', fontSize: 20, color: '#00d4ff' }}>{t('completePurchase')}</h2>
-            <p style={{ color: '#a0a0a0', fontSize: 13, margin: '0 0 16px' }}>
-              {plan.provider_name} — {plan.plan_name}
-            </p>
-            <div style={{ fontSize: 32, fontWeight: 700, color: '#00d4ff', marginBottom: 20 }}>
-              {lang === 'fr' ? '€' : '$'}{plan.price_sell}
-              <span style={{ fontSize: 14, color: '#666', fontWeight: 400 }}> / {plan.duration_days}d</span>
+            {/* Plan Summary Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0a1628, #1a1a2e)',
+              border: '1.5px solid #00d4ff30', borderRadius: 14, padding: 20, marginBottom: 20,
+              textAlign: 'center',
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: 16,
+                background: 'linear-gradient(135deg, #00d4ff, #0090ff)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 12px', fontSize: 28,
+              }}>📺</div>
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 2 }}>{plan.plan_name}</div>
+              <div style={{ color: '#a0a0a0', fontSize: 13, marginBottom: 16 }}>{plan.provider_name}</div>
+              <div style={{ fontSize: 42, fontWeight: 800, color: '#00d4ff', lineHeight: 1 }}>
+                {lang === 'fr' ? '€' : '$'}{plan.price_sell}
+                <span style={{ fontSize: 14, color: '#666', fontWeight: 400 }}> / {plan.duration_days}{t('day')}</span>
+              </div>
+              {plan.duration_days >= 90 && (
+                <div style={{
+                  marginTop: 8, fontSize: 11, color: '#ff6b35', fontWeight: 600,
+                  background: '#ff6b3520', borderRadius: 20, padding: '4px 12px', display: 'inline-block',
+                }}>
+                  {plan.duration_days >= 365 ? '⭐ Meilleure valeur' : plan.duration_days >= 180 ? '🔥 Populaire' : '📈 Économisez +'}
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 16, fontSize: 12, color: '#a0a0a0' }}>
+                <span>📺 {plan.channels?.toLocaleString()} chaînes</span>
+                <span>📡 {plan.streams} écrans</span>
+                <span>⚡ 4K</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+
+            <div style={{ fontSize: 13, color: '#a0a0a0', marginBottom: 12, fontWeight: 600 }}>
+              {t('completePurchase')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
               {methods.map(m => (
                 <button key={m.id} onClick={() => setSelected(m.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
@@ -213,11 +243,14 @@ export default function CheckoutModal({ plan, onClose, userToken }) {
               ))}
             </div>
             <button onClick={handleProceed} disabled={!selected} style={{
-              width: '100%', padding: '12px', background: selected ? '#00d4ff' : '#2a2a2a',
-              color: selected ? '#000' : '#666', border: 'none', borderRadius: 8,
-              fontWeight: 700, cursor: selected ? 'pointer' : 'default', fontSize: 15,
+              width: '100%', padding: '14px',
+              background: selected ? 'linear-gradient(135deg, #ff6b35, #ff2d92)' : '#2a2a2a',
+              color: selected ? '#fff' : '#666', border: 'none', borderRadius: 10,
+              fontWeight: 800, cursor: selected ? 'pointer' : 'default', fontSize: 16,
+              boxShadow: selected ? '0 4px 20px rgba(255,45,146,0.3)' : 'none',
+              letterSpacing: '0.5px',
             }}>
-              {selected === 'email' ? t('continue') : t('proceedToPayment')}
+              {selected === 'email' ? t('continue') : t('buyNow')}
             </button>
           </>
         )}
