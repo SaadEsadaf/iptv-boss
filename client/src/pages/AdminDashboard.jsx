@@ -19,6 +19,7 @@ import SubAdmins from '../components/AdminTabs/SubAdmins'
 import SalesEngine from '../components/AdminTabs/SalesEngine'
 import TitanHub from '../components/AdminTabs/TitanHub'
 import Campaigns from '../components/AdminTabs/Campaigns'
+import BrainHub from '../components/AdminTabs/BrainHub'
 const LOCALE = {
   en: {
     overview: 'Overview', providers: 'Providers', codes: 'Codes', trials: 'Trials',

@@ -1348,6 +1348,30 @@ router.post('/brain/cycle', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/brain/status', authMiddleware, async (req, res) => {
+  try {
+    const { gatherMetrics } = require('../services/brainMetrics');
+    const metrics = gatherMetrics();
+    const db = getDb();
+    const decisions = db.prepare("SELECT * FROM brain_decisions ORDER BY created_at DESC LIMIT 10").all();
+    const alerts = db.prepare("SELECT * FROM admin_notifications WHERE read = 0 ORDER BY created_at DESC LIMIT 20").all();
+    const lastCycle = db.prepare("SELECT * FROM sales_engine_log WHERE action = 'brain_cycle' ORDER BY id DESC LIMIT 5").all();
+    res.json({ metrics, decisions, alerts, lastCycle });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/brain/run-cycle', authMiddleware, async (req, res) => {
+  try {
+    const { brainCycle } = require('../services/brainEngine');
+    const result = await brainCycle();
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Notifications
 router.get('/notifications', authMiddleware, (req, res) => {
   const db = getDb();

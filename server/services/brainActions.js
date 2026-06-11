@@ -25,6 +25,12 @@ async function executeAction({ type, params }) {
       return optimizeProviderPriority(params, db);
     case 'restock_trial_codes':
       return restockTrialCodes(params, db);
+    case 'behavioral_followup':
+      return behavioralFollowup(params);
+    case 'lead_outreach':
+      return leadOutreach(params);
+    case 'cart_recovery':
+      return cartRecovery(params);
     default:
       logAction('brain_unknown', `Unknown action: ${type}`, db);
       return { error: `Unknown action: ${type}` };

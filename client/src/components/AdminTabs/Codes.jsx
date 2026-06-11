@@ -14,6 +14,8 @@ export default function Codes() {
   const [csvFile, setCsvFile] = useState(null)
   const [csvPreview, setCsvPreview] = useState([])
   const [manualForm, setManualForm] = useState({ code: '', username: '', password: '', server_url: '', mac_address: '', expires_at: '', notes: '' })
+  const [importProviderId, setImportProviderId] = useState('')
+  const [importPlanId, setImportPlanId] = useState('')
   const fileRef = useRef(null)
 
   function load() {
@@ -31,8 +33,8 @@ export default function Codes() {
   useEffect(load, [filters.provider_id, filters.status, filters.search])
 
   function doImport() {
-    if (!filters.provider_id || !filters.plan_id) return alert('Select a provider and plan first')
-    api.post('/admin/codes/import', { provider_id: parseInt(filters.provider_id), plan_id: parseInt(filters.plan_id), codes: pasteInput }).then(r => {
+    if (!importProviderId || !importPlanId) return alert('Select a provider and plan first')
+    api.post('/admin/codes/import', { provider_id: parseInt(importProviderId), plan_id: parseInt(importPlanId), codes: pasteInput }).then(r => {
       setImportResult(r.data)
       setPasteInput('')
       setTimeout(() => { setShowImport(false); setImportResult(null); load() }, 2000)
@@ -52,11 +54,11 @@ export default function Codes() {
   }
 
   function doCsvImport() {
-    if (!filters.provider_id || !filters.plan_id || !csvFile) return alert('Select a provider, plan, and CSV file')
+    if (!importProviderId || !importPlanId || !csvFile) return alert('Select a provider, plan, and CSV file')
     const form = new FormData()
     form.append('file', csvFile)
-    form.append('provider_id', filters.provider_id)
-    form.append('plan_id', filters.plan_id)
+    form.append('provider_id', importProviderId)
+    form.append('plan_id', importPlanId)
     api.post('/admin/codes/import-csv', form).then(r => {
       setImportResult(r.data)
       setCsvFile(null)
@@ -169,13 +171,13 @@ export default function Codes() {
             </div>
 
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <select value={filters.provider_id} onChange={e => setFilters(f => ({ ...f, provider_id: e.target.value, plan_id: '' }))} style={{ ...selectStyle, flex: 1 }}>
+              <select value={importProviderId} onChange={e => { setImportProviderId(e.target.value); setImportPlanId('') }} style={{ ...selectStyle, flex: 1 }}>
                 <option value="">Select Provider</option>
                 {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <select value={filters.plan_id} onChange={e => setFilters(f => ({ ...f, plan_id: e.target.value }))} style={{ ...selectStyle, flex: 1 }}>
+              <select value={importPlanId} onChange={e => setImportPlanId(e.target.value)} style={{ ...selectStyle, flex: 1 }}>
                 <option value="">Select Plan</option>
-                {filteredPlans.map(p => <option key={p.id} value={p.id}>{p.plan_name}</option>)}
+                {plans.filter(p => !importProviderId || String(p.provider_id) === importProviderId).map(p => <option key={p.id} value={p.id}>{p.plan_name}</option>)}
               </select>
             </div>
 
@@ -198,7 +200,7 @@ export default function Codes() {
                   onDrop={e => { e.preventDefault(); handleCsvFile({ target: { files: e.dataTransfer.files } }) }}
                   style={{ border: '2px dashed #2a2a2a', borderRadius: 8, padding: 40, textAlign: 'center', cursor: 'pointer', marginBottom: 12 }}
                   onClick={() => fileRef.current?.click()}>
-                  <input ref={fileRef} type="file" accept=".csv" onChange={handleCsvFile} style={{ display: 'none' }} />
+                  <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleCsvFile} style={{ display: 'none' }} />
                   {csvFile ? (
                     <p style={{ color: '#00d4ff', margin: 0 }}>{csvFile.name} ({(csvFile.size / 1024).toFixed(1)} KB)</p>
                   ) : (
