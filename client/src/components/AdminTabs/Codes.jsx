@@ -84,9 +84,37 @@ export default function Codes() {
 
   function doExport() { window.open('/api/admin/codes/export', '_blank') }
 
+  const [selectedIds, setSelectedIds] = useState(new Set())
+
+  function toggleSelect(id) {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    setSelectedIds(next)
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === codes.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(codes.map(c => c.id)))
+  }
+
   function deleteCode(id) {
     if (!confirm('Delete this code?')) return
     api.delete(`/admin/codes/${id}`).then(load)
+  }
+
+  function deleteSelected() {
+    if (selectedIds.size === 0) return
+    if (!confirm(`⚠️ SUPPRIMER ${selectedIds.size} code(s) ?
+Cette action est irréversible.
+Les codes seront définitivement perdus.
+Confirmer ?`)) return
+    let done = 0
+    const ids = [...selectedIds]
+    const doNext = () => {
+      if (done >= ids.length) { setSelectedIds(new Set()); load(); return }
+      api.delete(`/admin/codes/${ids[done]}`).then(() => { done++; doNext() }).catch(() => { done++; doNext() })
+    }
+    doNext()
   }
 
   const statusColors = { available: '#00cc66', used: '#ffaa00', expired: '#ff4444' }
@@ -111,6 +139,11 @@ export default function Codes() {
         <input placeholder="Search..." value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} style={{ ...inputStyle, maxWidth: 200 }} />
         <button onClick={() => setShowImport(true)} style={btnPrimary}>+ Import</button>
         <button onClick={doExport} style={{ ...btnPrimary, background: '#2a2a2a', color: '#fff' }}>Export CSV</button>
+        {selectedIds.size > 0 && (
+          <button onClick={deleteSelected} style={{ padding: '8px 16px', background: '#ff4444', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+            🗑️ Supprimer ({selectedIds.size})
+          </button>
+        )}
       </div>
 
       {stats && (
@@ -128,6 +161,9 @@ export default function Codes() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #2a2a2a', color: '#666' }}>
+              <th style={{ ...thStyle, width: 32 }}>
+                <input type="checkbox" checked={selectedIds.size === codes.length && codes.length > 0} onChange={toggleSelectAll} style={{ accentColor: '#00d4ff', cursor: 'pointer' }} />
+              </th>
               <th style={thStyle}>Provider</th>
               <th style={thStyle}>Plan</th>
               <th style={thStyle}>Code</th>
@@ -139,6 +175,9 @@ export default function Codes() {
           <tbody>
             {codes.map(c => (
               <tr key={c.id} style={{ borderBottom: '1px solid #2a2a2a' }}>
+                <td style={{ ...tdStyle, width: 32 }}>
+                  <input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => toggleSelect(c.id)} style={{ accentColor: '#00d4ff', cursor: 'pointer' }} />
+                </td>
                 <td style={tdStyle}>{c.provider_name}</td>
                 <td style={tdStyle}>{c.plan_name}</td>
                 <td style={{ ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{c.code || c.username || '-'}</td>
