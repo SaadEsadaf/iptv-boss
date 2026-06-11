@@ -423,7 +423,7 @@ export default function CustomerDashboard() {
                 {APPS[preferredApp]?.icon} Setup for {APPS[preferredApp]?.name}
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(SETUP_STEPS[preferredApp] || []).map((step, i) => (
+                {(getSetupSteps(preferredApp) || []).map((step, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#0f0f0f', borderRadius: 10 }}>
                     <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#00d4ff20', color: '#00d4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{step.icon}</div>
                     <span style={{ fontSize: 13, color: '#ccc' }}>{step.text}</span>
