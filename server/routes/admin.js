@@ -250,7 +250,7 @@ router.get('/providers', authMiddleware, (req, res) => {
   res.json(providers);
 });
 
-router.post('/providers', authMiddleware, (req, res) => {
+router.post('/providers', authMiddleware, async (req, res) => {
   const { name, logo_url, website, specialty, panel_url, panel_username, panel_password, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Name is required' });
   const wid = websiteId(req);
@@ -259,7 +259,11 @@ router.post('/providers', authMiddleware, (req, res) => {
     const result = db.prepare(
       'INSERT INTO providers_catalog (name, logo_url, website, specialty, panel_url, panel_username, panel_password, notes, website_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).run(name, logo_url, website, specialty, panel_url, panel_username, panel_password, notes, wid);
-    res.json({ id: result.lastInsertRowid });
+    const providerId = result.lastInsertRowid;
+    // Auto-provision in background (non-blocking)
+    const { autoProvision } = require('../services/autoProvision');
+    autoProvision(providerId).catch(e => console.error('Auto-provision error:', e.message));
+    res.json({ id: providerId, provisioning: !!panel_url });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -272,6 +276,16 @@ router.put('/providers/:id', authMiddleware, (req, res) => {
     'UPDATE providers_catalog SET name = COALESCE(?, name), logo_url = COALESCE(?, logo_url), website = COALESCE(?, website), specialty = COALESCE(?, specialty), panel_url = COALESCE(?, panel_url), panel_username = COALESCE(?, panel_username), panel_password = COALESCE(?, panel_password), notes = COALESCE(?, notes), active = COALESCE(?, active) WHERE id = ?'
   ).run(name, logo_url, website, specialty, panel_url, panel_username, panel_password, notes, active ?? null, req.params.id);
   res.json({ success: true });
+});
+
+router.post('/providers/:id/provision', authMiddleware, async (req, res) => {
+  try {
+    const { autoProvision } = require('../services/autoProvision');
+    const result = await autoProvision(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.delete('/providers/:id', authMiddleware, (req, res) => {

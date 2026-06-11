@@ -142,6 +142,15 @@ export default function Providers() {
     }).catch(() => {}).finally(() => setLoading(false))
   }
 
+  function provisionProvider(id) {
+    if (!confirm('Run auto-provision? This will sync codes, parse M3U, create plans, and build pages.')) return
+    setLoading(true)
+    api.post(`/admin/providers/${id}/provision`).then(r => {
+      alert(`✅ Provision complete!\n${r.data.log?.join('\n') || 'Success'}`)
+      load()
+    }).catch(e => alert(`❌ Provision failed: ${e.response?.data?.error || e.message}`)).finally(() => setLoading(false))
+  }
+
   function saveM3U() {
     if (!showM3uModal || !m3uUrl) return
     setM3uLoading(true)
@@ -340,6 +349,9 @@ export default function Providers() {
               </button>
               <button onClick={() => syncPanel(p.id)} disabled={loading} style={{ background: '#00ff8815', color: '#00ff88', border: '1px solid #00ff88', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                 🔄 Sync
+              </button>
+              <button onClick={() => provisionProvider(p.id)} disabled={loading} style={{ background: '#7b2dff15', color: '#7b2dff', border: '1px solid #7b2dff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                🚀 Provision
               </button>
               <button onClick={() => setShowPlanModal(p.id)} style={{ background: 'transparent', color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                 + Plan
