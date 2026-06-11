@@ -196,6 +196,7 @@ export default function ChatWidget({ onBuyPlan }) {
   const [showLangPicker, setShowLangPicker] = useState(false)
   const bottomRef = useRef(null)
   const fileInputRef = useRef(null)
+  const inputRef = useRef(null)
   const t = (key) => TRANSLATIONS[chatLang]?.[key] || TRANSLATIONS.fr[key] || key
   const langNames = { fr: 'FR', en: 'EN', ar: 'AR', nl: 'NL' }
   const langFlags = { fr: '🇫🇷', en: '🇬🇧', ar: '🇸🇦', nl: '🇳🇱' }
@@ -231,6 +232,10 @@ export default function ChatWidget({ onBuyPlan }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 100)
+  }, [open, messages.length])
 
   function handleFileSelect(e) {
     const file = e.target.files?.[0]
@@ -617,6 +622,7 @@ export default function ChatWidget({ onBuyPlan }) {
               📷
             </button>
             <input
+              ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
