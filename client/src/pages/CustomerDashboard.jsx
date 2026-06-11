@@ -1,48 +1,118 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+const ws = typeof window !== 'undefined' && window.__WEBSITE__
+const lang = ws?.language || 'fr'
+
+const FR = {
+  myAccount: 'Mon Compte', signIn: 'Connexion', signInDesc: 'Connectez-vous pour accéder à votre tableau de bord',
+  email: 'Email', password: 'Mot de passe', createAccount: 'Créer un compte', sendMagicLink: 'Envoyer un lien magique ✉️',
+  noAccount: 'Pas encore de compte ? Créer', haveAccount: 'Déjà un compte ? Connectez-vous',
+  backHome: '← Retour à l\'accueil', loading: 'Chargement...',
+  myDashboard: 'Mon Tableau de Bord', logout: 'Déconnexion',
+  trialActive: 'Essai Actif', timeRemaining: 'Temps Restant',
+  expired: 'EXPIRÉ', upgradeNow: 'Passer Premium',
+  activeOrders: 'Commandes Actives', pending: 'En Attente', app: 'Appareil', support: 'Support 24/7',
+  yourCredentials: '🔑 Vos Identifiants', useTheseToConnect: 'Utilisez ces informations pour vous connecter',
+  serverUrl: 'URL du Serveur', username: 'Identifiant', password: 'Mot de passe',
+  m3uLink: 'Lien M3U', copy: 'Copier', copied: '✓',
+  setupFor: 'Configuration pour', download: '📥 Télécharger', upgradePlan: '🚀 Passez à un Forfait Premium',
+  upgradeDesc: 'Débloquez toutes les chaînes, la 4K et le multi-écrans',
+  days: 'jours', months: 'mois', channels: 'chaînes', screens: 'écrans',
+  needHelp: '💬 Besoin d\'aide ?', supportDesc: 'Nous sommes là 24/7 pour vous aider',
+  commonIssues: 'Problèmes courants : ouvrez l\'app IPTV → Paramètres → Listes de lecture → Modifier → Vérifiez l\'URL du serveur, l\'identifiant et le mot de passe.',
+  chatWithAlex: '💬 Discuter avec Alex', emailUs: '✉️ Nous écrire',
+  setupSteps: {
+    tivimate: [
+      { icon: '1', text: 'Téléchargez TiviMate depuis le Google Play' },
+      { icon: '2', text: 'Ouvrez l\'app → Paramètres → Listes → Ajouter' },
+      { icon: '3', text: 'Choisissez "Xtream Codes API"' },
+      { icon: '4', text: 'Entrez l\'URL du serveur, l\'identifiant et le mot de passe' },
+      { icon: '5', text: 'C\'est fait ! Commencez à regarder' },
+    ],
+    smarters: [
+      { icon: '1', text: 'Téléchargez IPTV Smarters depuis leur site' },
+      { icon: '2', text: 'Ouvrez l\'app → "Ajouter un utilisateur"' },
+      { icon: '3', text: 'Choisissez "Xtream Codes API"' },
+      { icon: '4', text: 'Entrez l\'URL du serveur, l\'identifiant et le mot de passe' },
+      { icon: '5', text: 'C\'est fait ! Profitez de vos chaînes' },
+    ],
+    gse: [
+      { icon: '1', text: 'Téléchargez GSE Smart IPTV depuis l\'App Store' },
+      { icon: '2', text: 'Ouvrez l\'app → "Ajouter une liste de lecture"' },
+      { icon: '3', text: 'Choisissez "Xtream Codes API"' },
+      { icon: '4', text: 'Entrez l\'URL du serveur, l\'identifiant et le mot de passe' },
+      { icon: '5', text: 'C\'est fait ! Vos chaînes apparaissent' },
+    ],
+    vlc: [
+      { icon: '1', text: 'Téléchargez VLC Media Player' },
+      { icon: '2', text: 'Ouvrez VLC → Média → Ouvrir un flux réseau' },
+      { icon: '3', text: 'Collez le lien M3U ci-dessous' },
+      { icon: '4', text: 'Cliquez Lecture — vos chaînes se chargent' },
+    ],
+    m3u: [
+      { icon: '1', text: 'Copiez le lien M3U ci-dessous' },
+      { icon: '2', text: 'Ouvrez votre lecteur IPTV' },
+      { icon: '3', text: 'Collez le lien comme playlist M3U' },
+      { icon: '4', text: 'C\'est fait ! Toutes les chaînes sont chargées' },
+    ],
+  },
+}
+const t = (key) => {
+  if (lang === 'fr' && FR[key]) return FR[key]
+  return key
+}
+const stepText = (app, i) => {
+  if (lang === 'fr' && FR.setupSteps?.[app]?.[i]) return FR.setupSteps[app][i]
+  return APPS_STEPS_EN[app]?.[i] || ''
+}
+
 const APPS = {
   tivimate: { name: 'TiviMate', icon: '🔥', download: 'https://play.google.com/store/apps/details?id=ar.tvplayer.tv', desc: 'Firestick & Android TV' },
   smarters: { name: 'IPTV Smarters', icon: '📱', download: 'https://www.iptvsmarters.com/', desc: 'Android & iOS' },
   gse: { name: 'GSE Smart IPTV', icon: '🍎', download: 'https://apps.apple.com/app/gse-smart-iptv/id1028734683', desc: 'iPhone & Apple TV' },
   vlc: { name: 'VLC Media Player', icon: '💻', download: 'https://www.videolan.org/vlc/', desc: 'PC & Mac' },
-  m3u: { name: 'M3U Link', icon: '🔗', download: null, desc: 'Universal' },
+  m3u: { name: 'Lien M3U', icon: '🔗', download: null, desc: 'Universel' },
 }
 
-const SETUP_STEPS = {
-  tivimate: [
-    { icon: '1', text: 'Download TiviMate from Google Play' },
-    { icon: '2', text: 'Open app → Settings → Playlists → Add' },
-    { icon: '3', text: 'Choose "Xtream Codes API"' },
-    { icon: '4', text: 'Enter Server URL, Username & Password below' },
-    { icon: '5', text: 'Done! Start watching' },
-  ],
-  smarters: [
-    { icon: '1', text: 'Download IPTV Smarters from their site' },
-    { icon: '2', text: 'Open app → "Add New User"' },
-    { icon: '3', text: 'Choose "Xtream Codes API"' },
-    { icon: '4', text: 'Enter Server URL, Username & Password below' },
-    { icon: '5', text: 'Done! Start watching' },
-  ],
-  gse: [
-    { icon: '1', text: 'Download GSE Smart IPTV from App Store' },
-    { icon: '2', text: 'Open app → "Add Playlist"' },
-    { icon: '3', text: 'Choose "Xtream Codes API"' },
-    { icon: '4', text: 'Enter Server URL, Username & Password below' },
-    { icon: '5', text: 'Done! Start watching' },
-  ],
-  vlc: [
-    { icon: '1', text: 'Download VLC Media Player' },
-    { icon: '2', text: 'Open VLC → Media → Open Network Stream' },
-    { icon: '3', text: 'Paste the M3U link below' },
-    { icon: '4', text: 'Click Play — your channels load instantly' },
-  ],
-  m3u: [
-    { icon: '1', text: 'Copy the M3U link below' },
-    { icon: '2', text: 'Open your IPTV player' },
-    { icon: '3', text: 'Paste the link as M3U playlist' },
-    { icon: '4', text: 'Done! All channels loaded' },
-  ],
+function getSetupSteps(app) {
+  if (lang === 'fr' && FR.setupSteps?.[app]) return FR.setupSteps[app]
+  const EN = {
+    tivimate: [
+      { icon: '1', text: 'Download TiviMate from Google Play' },
+      { icon: '2', text: 'Open app → Settings → Playlists → Add' },
+      { icon: '3', text: 'Choose "Xtream Codes API"' },
+      { icon: '4', text: 'Enter Server URL, Username & Password' },
+      { icon: '5', text: 'Done! Start watching' },
+    ],
+    smarters: [
+      { icon: '1', text: 'Download IPTV Smarters' },
+      { icon: '2', text: 'Open app → "Add New User"' },
+      { icon: '3', text: 'Choose "Xtream Codes API"' },
+      { icon: '4', text: 'Enter Server URL, Username & Password' },
+      { icon: '5', text: 'Done! Start watching' },
+    ],
+    gse: [
+      { icon: '1', text: 'Download GSE Smart IPTV from App Store' },
+      { icon: '2', text: 'Open app → "Add Playlist"' },
+      { icon: '3', text: 'Choose "Xtream Codes API"' },
+      { icon: '4', text: 'Enter Server URL, Username & Password' },
+      { icon: '5', text: 'Done! Start watching' },
+    ],
+    vlc: [
+      { icon: '1', text: 'Download VLC Media Player' },
+      { icon: '2', text: 'Open VLC → Media → Open Network Stream' },
+      { icon: '3', text: 'Paste the M3U link below' },
+      { icon: '4', text: 'Click Play — your channels load instantly' },
+    ],
+    m3u: [
+      { icon: '1', text: 'Copy the M3U link below' },
+      { icon: '2', text: 'Open your IPTV player' },
+      { icon: '3', text: 'Paste the link as M3U playlist' },
+      { icon: '4', text: 'Done! All channels loaded' },
+    ],
+  }
+  return EN[app] || []
 }
 
 export default function CustomerDashboard() {
