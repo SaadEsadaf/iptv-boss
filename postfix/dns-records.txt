@@ -1,21 +1,20 @@
-=== DNS Records for dalletek.live — BREVO ACTIVE ===
-Brevo SMTP is currently active. DKIM already set up via Brevo CNAME records.
-Hold off on other records unless switching to self-hosted Postfix.
+=== DNS Records for dalletek.live — DIRECT POSTFIX ACTIVE ===
+Hetzner ports unblocked. Postfix sends directly.
+DNS records added via Namecheap API on 2026-06-11.
 
-Current Brevo DKIM (already in DNS):
-- brevo1._domainkey CNAME → b1.dalletek-live.dkim.brevo.com.
-- brevo2._domainkey CNAME → b2.dalletek-live.dkim.brevo.com.
-- _dmarc TXT → v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com
+Active DNS records (Namecheap setHosts):
+1. @ A → 167.235.183.179
+2. player A → 167.235.183.179
+3. www CNAME → dalletek.live.
+4. @ TXT → v=spf1 ip4:167.235.183.179 ~all
+5. @ TXT → google-site-verification=ewUhqT0xiGicM4gmmP2OKevHeXwqyK4my-Nk0-Cp-MQ
+6. mail._domainkey TXT → DKIM public key (selector: mail)
+7. _dmarc TXT → v=DMARC1; p=quarantine; rua=mailto:postmaster@dalletek.live
 
-=== If switching to Postfix (self-hosted, ports 25/465 unblocked) ===
-1. SPF (TXT @):
-   v=spf1 ip4:167.235.183.179 ~all
+Postfix configs in this repo:
+- postfix/main.cf — direct sending, DKIM via opendkim on localhost:8891
+- postfix/master.cf — submission on port 587
 
-2. DKIM (TXT mail._domainkey):
-   v=DKIM1; h=sha256; k=rsa; p=[paste from /etc/opendkim/keys/dalletek.live/mail.txt]
-
-3. DMARC (TXT _dmarc):
-   v=DMARC1; p=quarantine; rua=mailto:postmaster@dalletek.live
-
-4. MX (not needed for sending, only receiving)
-5. PTR: 167.235.183.179 → boss.dalletek.live (via Hetzner Robot)
+To regenerate DKIM key (if needed):
+  cd /etc/opendkim/keys/dalletek.live && opendkim-genkey -s mail -d dalletek.live
+Then update the TXT record for mail._domainkey via Namecheap API.

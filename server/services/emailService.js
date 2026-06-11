@@ -38,11 +38,13 @@ function getTransporter() {
   const fromName = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_name'").get() || {}).value || process.env.SMTP_FROM_NAME || 'Dalletek';
   const fromEmail = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_email'").get() || {}).value || process.env.SMTP_FROM_EMAIL;
 
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
   const t = nodemailer.createTransport({
     host: host || 'smtp.gmail.com',
     port: port,
     secure: port === 465,
     auth: user && pass ? { user, pass } : undefined,
+    ...(isLocal ? { tls: { rejectUnauthorized: false }, ignoreTLS: true } : {}),
   });
 
   t.fromName = fromName;
