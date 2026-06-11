@@ -1,0 +1,26 @@
+=== DNS Records for dalletek.live ===
+Add these to your domain DNS (via Namecheap or wherever dalletek.live is managed)
+
+1. SPF Record (TXT record)
+   Host: @
+   Value: v=spf1 include:_spf.google.com ip4:167.235.183.179 ~all
+
+2. DKIM Record (TXT record)
+   Host: mail._domainkey
+   Value: v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3h8iRTmP4ue/iZ4NN4AT9vmD2iUqq0ZOq0tXOjgdUpf/n5pLf+H+sKNXy4+/LyYIizX8z0RCHczADBNGwYAFFgFfOpbTJ13D/wFkOEaZM4Whk8pUpFssdVq26iOnZVXPWrF0wXYQGlll41+OSrId5VkoFYKpH/6x0dz/xpAr2XzwuPlVarrzP1we9VAtjOeuOS9yTNDVtricxrmANgtzlFLgXyEN7dPqgjuqgbfo4f41P8zV2iTRMcPpIOR7l3ni5yRBoGILbdl/PwosJGRrs+bf0kYqdLTTXBe3h1CPXBZg15i4gmqx6bTEc9rbg2UBixRDChnnHcXvagV9Pn0EawIDAQAB
+
+3. DMARC Record (TXT record)
+   Host: _dmarc
+   Value: v=DMARC1; p=quarantine; sp=quarantine; rua=mailto:postmaster@dalletek.live; ruf=mailto:postmaster@dalletek.live; pct=100
+
+4. MX Record (not strictly needed but good practice)
+   Host: @
+   Value: ASPMX.L.GOOGLE.com
+   Priority: 10
+
+5. PTR / rDNS (via Hetzner Robot panel)
+   IP: 167.235.183.179 → mail.dalletek.live
+
+=== After ports 25/465 are unblocked ===
+Run: postconf -e 'relayhost =' && systemctl restart postfix
+This removes the Gmail relay, sends directly from server.

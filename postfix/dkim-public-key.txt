@@ -1,0 +1,3 @@
+mail._domainkey	IN	TXT	( "v=DKIM1; h=sha256; k=rsa; "
+	  "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3h8iRTmP4ue/iZ4NN4AT9vmD2iUqq0ZOq0tXOjgdUpf/n5pLf+H+sKNXy4+/LyYIizX8z0RCHczADBNGwYAFFgFfOpbTJ13D/wFkOEaZM4Whk8pUpFssdVq26iOnZVXPWrF0wXYQGlll41+OSrId5VkoFYKpH/6x0dz/xpAr2XzwuPlVarrzP1we9VAtjOeuOS9yTNDVtricxr"
+	  "mANgtzlFLgXyEN7dPqgjuqgbfo4f41P8zV2iTRMcPpIOR7l3ni5yRBoGILbdl/PwosJGRrs+bf0kYqdLTTXBe3h1CPXBZg15i4gmqx6bTEc9rbg2UBixRDChnnHcXvagV9Pn0EawIDAQAB" )  ; ----- DKIM key mail for dalletek.live
