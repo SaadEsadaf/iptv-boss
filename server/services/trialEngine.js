@@ -87,105 +87,21 @@ class TrialEngine {
     };
   }
 
-  // Send trial welcome email
+  // Send trial welcome email using DB templates
   async sendTrialWelcome(email, name, code, m3uUrl) {
-    const durationH = code.duration_hours || 24;
-    const activationLink = `https://dalletek.live/activate?token=${encodeURIComponent(email)}`;
-    const subject = `${name || 'Bienvenue'} — Votre essai LuxStream est ACTIF (${durationH}h)`;
-    const html = `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#fff;padding:30px;border-radius:12px;">
-        <div style="text-align:center;margin-bottom:30px;">
-          <div style="font-size:48px;margin-bottom:10px;">⚽</div>
-          <h1 style="color:#00d4ff;margin:0;font-size:28px;">Votre essai est ACTIF</h1>
-          <p style="color:#888;margin:5px 0;">${durationH}h pour découvrir 179,915 chaînes</p>
-        </div>
-        
-        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
-          <h3 style="color:#00d4ff;margin:0 0 15px;">🔑 Vos identifiants de connexion</h3>
-          <div style="background:#0f0f0f;padding:15px;border-radius:8px;font-family:monospace;font-size:14px;">
-            <div style="color:#888;margin-bottom:5px;">👤 Utilisateur:</div>
-            <div style="color:#fff;margin-bottom:12px;font-size:16px;">${code.username}</div>
-            <div style="color:#888;margin-bottom:5px;">🔒 Mot de passe:</div>
-            <div style="color:#fff;margin-bottom:12px;font-size:16px;">${code.password}</div>
-            <div style="color:#888;margin-bottom:5px;">🔗 URL M3U:</div>
-            <div style="color:#00d4ff;font-size:12px;word-break:break-all;margin-bottom:5px;">${m3uUrl}</div>
-          </div>
-        </div>
-
-        <div style="text-align:center;margin-bottom:20px;">
-          <a href="${activationLink}" style="display:inline-block;background:#00d4ff;color:#000;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
-            📖 GUIDE D'INSTALLATION COMPLET →
-          </a>
-          <p style="color:#888;font-size:12px;margin-top:8px;">Instructions pour tous les appareils (TV, mobile, PC, MAG)</p>
-        </div>
-
-        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
-          <h3 style="color:#00d4ff;margin:0 0 15px;">📺 Accès par application</h3>
-          <p style="color:#888;font-size:13px;margin:0 0 12px;">Utilisez ces identifiants dans votre application IPTV préférée :</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            ${this.apps.filter(a => a.name !== 'MAG Box').map(app => `
-              <a href="${app.url}" style="background:#0f0f0f;padding:10px;border-radius:8px;text-decoration:none;color:#fff;display:block;text-align:center;font-size:12px;font-weight:600;">
-                ${app.name}
-              </a>
-            `).join('')}
-          </div>
-        </div>
-
-        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
-          <h3 style="color:#00d4ff;margin:0 0 15px;">🖥️ Accès via Portail Client</h3>
-          <p style="color:#888;font-size:13px;margin:0 0 8px;">Connectez-vous directement depuis votre navigateur :</p>
-          <div style="background:#0f0f0f;padding:12px;border-radius:8px;">
-            <a href="${this.portalUrl}" style="color:#00d4ff;font-size:14px;">${this.portalUrl}</a>
-            <div style="color:#666;font-size:12px;margin-top:4px;">Utilisez les identifiants ci-dessus</div>
-          </div>
-        </div>
-        
-        <div style="background:linear-gradient(135deg,#00d4ff15,#ff6b3515);border:1px solid #00d4ff;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-          <h3 style="color:#00d4ff;margin:0 0 10px;">🏆 Coupe du Monde 2026</h3>
-          <p style="color:#fff;margin:0 0 15px;">Tous les 64 matchs en 4K HDR — inclus dans votre essai !</p>
-          <div style="font-size:24px;font-weight:700;color:#ffd700;">${durationH}h restantes</div>
-        </div>
-        
-        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
-          <h3 style="color:#00d4ff;margin:0 0 15px;">📱 Instructions par appareil</h3>
-          <div style="color:#a0a0a0;font-size:13px;">
-            <div style="margin-bottom:10px;">
-              <strong style="color:#fff;">📱 Smart TV / Android TV :</strong> Téléchargez TiviMate ou IPTV Smarters → Entrez l'URL M3U et vos identifiants
-            </div>
-            <div style="margin-bottom:10px;">
-              <strong style="color:#fff;">💻 PC / Mac :</strong> Ouvrez VLC → Media → Open Network Stream → Collez l'URL M3U
-            </div>
-            <div style="margin-bottom:10px;">
-              <strong style="color:#fff;">📱 iPhone / iPad :</strong> Téléchargez GSE Smart IPTV → Ajoutez playlist M3U
-            </div>
-            <div>
-              <strong style="color:#fff;">📦 MAG Box :</strong> Allez dans Paramètres → Portail → Entrez ${this.portalUrl} → Redémarrez
-            </div>
-          </div>
-        </div>
-        
-        <div style="text-align:center;">
-          <a href="https://dalletek.live/#plans" style="display:inline-block;background:#00d4ff;color:#000;padding:15px 40px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;">PASSER PREMIUM →</a>
-          <p style="color:#888;font-size:12px;margin-top:15px;">Essai gratuit • Sans engagement • Annulation à tout moment</p>
-        </div>
-        
-        <div style="border-top:1px solid #2a2a2a;margin-top:30px;padding-top:20px;text-align:center;color:#666;font-size:12px;">
-          <p>Besoin d'aide ? Rendez-vous sur <a href="${activationLink}" style="color:#00d4ff;">votre page d'activation</a></p>
-          <p>LuxStream — Dalletek</p>
-        </div>
-      </div>
-    `;
-    
     try {
-      const transporter = emailService.getTransporter();
-      if (transporter) {
-        await transporter.sendMail({
-          from: '"LuxStream" <noreply@dalletek.live>',
-          to: email,
-          subject,
-          html,
-        });
-      }
+      await emailService.sendTrial({
+        email,
+        name: name || 'Client',
+        credentials: {
+          username: code.username,
+          password: code.password,
+          server_url: this.serverUrl,
+        },
+        durationHours: code.duration_hours || 24,
+        providerName: 'Atlas',
+        planName: 'Essai Gratuit',
+      });
     } catch (e) {
       console.error('[TRIAL-ENGINE] Email failed:', e.message);
     }
@@ -193,77 +109,78 @@ class TrialEngine {
 
   // Send conversion email (after 12h)
   async sendConversionEmail(email, name, offer = '20%') {
-    const subject = `${name || 'Dernière chance'} — Votre essai expire dans 12h`;
-    const html = `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#fff;padding:30px;border-radius:12px;">
-        <div style="text-align:center;margin-bottom:30px;">
-          <div style="font-size:48px;margin-bottom:10px;">⏰</div>
-          <h1 style="color:#ff4444;margin:0;font-size:28px;">Votre essai expire bientôt</h1>
-          <p style="color:#888;margin:5px 0;">12 heures restantes pour profiter de 179,915 chaînes</p>
-        </div>
-        
-        <div style="background:linear-gradient(135deg,#ff444415,#ffd70015);border:1px solid #ff4444;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-          <h3 style="color:#ff4444;margin:0 0 10px;">🔥 OFFRE EXCLUSIVE</h3>
-          <div style="font-size:32px;font-weight:700;color:#ffd700;margin:10px 0;">${offer} DE RÉDUCTION</div>
-          <p style="color:#fff;margin:0 0 15px;">Valable uniquement pendant votre essai</p>
-          <div style="font-size:14px;color:#888;">Au lieu de <span style="text-decoration:line-through;">€14.99</span> → <span style="color:#00d4ff;font-weight:700;">€${(14.99 * (1 - parseInt(offer)/100)).toFixed(2)}</span></div>
-        </div>
-
-        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
-          <h3 style="color:#00d4ff;margin:0 0 15px;">📊 Plans disponibles pour vous</h3>
-          <div style="display:grid;gap:8px;">
-            <div style="background:#0f0f0f;padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-              <div><strong style="color:#fff;">Premium 3 Mois</strong><div style="color:#888;font-size:12px;">179,915 chaînes • 4 écrans</div></div>
-              <div style="text-align:right;"><span style="color:#00d4ff;font-weight:700;">€29.99</span><div style="color:#888;font-size:11px;">€9.99/mois</div></div>
-            </div>
-            <div style="background:#0f0f0f;padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-              <div><strong style="color:#fff;">Semestre 6 Mois</strong><div style="color:#888;font-size:12px;">179,915 chaînes • 4 écrans</div></div>
-              <div style="text-align:right;"><span style="color:#00d4ff;font-weight:700;">€49.99</span><div style="color:#888;font-size:11px;">€8.33/mois</div></div>
-            </div>
-            <div style="background:#0f0f0f;padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-              <div><strong style="color:#fff;">Annuel 12 Mois</strong><div style="color:#888;font-size:12px;">179,915 chaînes • 4 écrans</div></div>
-              <div style="text-align:right;"><span style="color:#ffd700;font-weight:700;">€69.99</span><div style="color:#888;font-size:11px;">€5.83/mois</div></div>
-            </div>
-          </div>
-        </div>
-        
-        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
-          <h3 style="color:#00d4ff;margin:0 0 15px;">⚽ Ce que vous perdez si vous ne passez pas Premium :</h3>
-          <div style="display:grid;gap:8px;">
-            <div style="display:flex;align-items:center;gap:10px;">❌ Coupe du Monde 2026 en 4K</div>
-            <div style="display:flex;align-items:center;gap:10px;">❌ 179,915 chaînes (dont 34,000+ françaises)</div>
-            <div style="display:flex;align-items:center;gap:10px;">❌ 10,000+ films VOD</div>
-            <div style="display:flex;align-items:center;gap:10px;">❌ 144,000+ épisodes de séries</div>
-            <div style="display:flex;align-items:center;gap:10px;">❌ BeIN Sports, Canal+, RMC Sport...</div>
-            <div style="display:flex;align-items:center;gap:10px;">❌ 4 écrans simultanés</div>
-            <div style="display:flex;align-items:center;gap:10px;">❌ Support 24/7</div>
-          </div>
-        </div>
-        
-        <div style="text-align:center;margin:30px 0;">
-          <a href="https://dalletek.live/#plans" style="display:inline-block;background:#00d4ff;color:#000;padding:18px 50px;border-radius:8px;text-decoration:none;font-weight:700;font-size:18px;margin-bottom:10px;">PASSER PREMIUM MAINTENANT</a>
-          <div style="margin-top:10px;">
-            <a href="https://dalletek.live" style="color:#888;font-size:12px;text-decoration:underline;">Prolonger mon essai de 24h</a>
-          </div>
-        </div>
-        
-        <div style="border-top:1px solid #2a2a2a;margin-top:30px;padding-top:20px;text-align:center;color:#666;font-size:12px;">
-          <p>Offre valable 24h • Sans engagement • 30 jours satisfait ou remboursé</p>
-          <p>Besoin d'aide ? Répondez à cet email</p>
-        </div>
-      </div>
-    `;
-    
     try {
       const transporter = emailService.getTransporter();
-      if (transporter) {
-        await transporter.sendMail({
-          from: '"LuxStream" <noreply@dalletek.live>',
-          to: email,
-          subject,
-          html,
-        });
-      }
+      if (!transporter) return;
+      const html = `
+        <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#fff;padding:0;border-radius:16px;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#ff4444,#cc0000);padding:40px 30px;text-align:center;">
+            <div style="font-size:56px;margin-bottom:10px;">⏰</div>
+            <h1 style="color:#fff;margin:0 0 8px;font-size:28px;font-weight:800;">Votre essai expire bientot</h1>
+            <p style="color:rgba(255,255,255,0.9);margin:0;font-size:16px;">12 heures restantes pour profiter de 179,915 chaines</p>
+          </div>
+          
+          <div style="padding:30px;">
+            <p style="color:#a0a0a0;font-size:15px;margin:0 0 25px;"><strong style="color:#fff;">${name || 'Bonjour'}</strong>, ne laissez pas votre essai expirer sans profiter de nos offres exclusives.</p>
+            
+            <div style="background:linear-gradient(135deg,#1a0f0f,#2a1a0a);border:2px solid #ffd700;border-radius:12px;padding:24px;margin-bottom:24px;text-align:center;">
+              <span style="background:#ff4444;color:#fff;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;">Offre limitee</span>
+              <div style="font-size:42px;font-weight:800;color:#ffd700;margin:12px 0;">${offer}</div>
+              <div style="color:#fff;font-size:14px;margin-bottom:4px;">DE REDUCTION</div>
+              <div style="color:#888;font-size:13px;">Sur tous les plans Premium • Valable uniquement pendant votre essai</div>
+            </div>
+            
+            <div style="background:#121212;border:1px solid #1e1e1e;border-radius:12px;padding:20px;margin-bottom:24px;">
+              <h3 style="color:#00d4ff;margin:0 0 15px;font-size:16px;">📊 Nos offres</h3>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr style="background:#0a0a0a;">
+                  <td style="padding:12px;border-bottom:1px solid #1a1a1a;"><span style="color:#fff;font-weight:600;">Premium 1 Mois</span><div style="color:#888;font-size:11px;">179,915 chaines</div></td>
+                  <td style="padding:12px;text-align:right;border-bottom:1px solid #1a1a1a;"><span style="color:#00d4ff;font-weight:700;">€14.99</span><div style="color:#888;font-size:11px;">€14.99/mois</div></td>
+                </tr>
+                <tr style="background:#0a0a0a;">
+                  <td style="padding:12px;border-bottom:1px solid #1a1a1a;"><span style="color:#fff;font-weight:600;">Premium 3 Mois</span><div style="color:#888;font-size:11px;">179,915 chaines • 4 ecrans</div></td>
+                  <td style="padding:12px;text-align:right;border-bottom:1px solid #1a1a1a;"><span style="color:#00d4ff;font-weight:700;">€29.99</span><div style="color:#888;font-size:11px;">€9.99/mois</div></td>
+                </tr>
+                <tr style="background:#0a0a0a;">
+                  <td style="padding:12px;border-bottom:1px solid #1a1a1a;"><span style="color:#fff;font-weight:600;">Semestre 6 Mois</span><div style="color:#888;font-size:11px;">179,915 chaines • 4 ecrans</div></td>
+                  <td style="padding:12px;text-align:right;border-bottom:1px solid #1a1a1a;"><span style="color:#00d4ff;font-weight:700;">€49.99</span><div style="color:#888;font-size:11px;">€8.33/mois</div></td>
+                </tr>
+                <tr style="background:#0a0a0a;">
+                  <td style="padding:12px;"><span style="color:#fff;font-weight:600;">Annuel 12 Mois</span><div style="color:#888;font-size:11px;">179,915 chaines • 4 ecrans</div></td>
+                  <td style="padding:12px;text-align:right;"><span style="color:#ffd700;font-weight:700;">€69.99</span><div style="color:#888;font-size:11px;">€5.83/mois</div></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div style="background:#121212;border:1px solid #1e1e1e;border-radius:12px;padding:20px;margin-bottom:24px;">
+              <h3 style="color:#ff4444;margin:0 0 12px;font-size:15px;"> Ce que vous perdez sans abonnement :</h3>
+              <table width="100%" cellpadding="0" cellspacing="4">
+                <tr><td style="color:#a0a0a0;font-size:13px;padding:4px 8px;">❌ Coupe du Monde 2026 en 4K</td></tr>
+                <tr><td style="color:#a0a0a0;font-size:13px;padding:4px 8px;">❌ 179,915 chaines (dont 34,000+ francaises)</td></tr>
+                <tr><td style="color:#a0a0a0;font-size:13px;padding:4px 8px;">❌ 10,000+ films VOD + 144,000+ episodes series</td></tr>
+                <tr><td style="color:#a0a0a0;font-size:13px;padding:4px 8px;">❌ BeIN Sports, Canal+, RMC Sport, DAZN</td></tr>
+                <tr><td style="color:#a0a0a0;font-size:13px;padding:4px 8px;">❌ 4 ecrans simultanes + Support 24/7</td></tr>
+              </table>
+            </div>
+            
+            <div style="text-align:center;margin:30px 0;">
+              <a href="https://dalletek.live/#plans" style="display:inline-block;background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff;padding:18px 50px;border-radius:10px;text-decoration:none;font-weight:800;font-size:16px;">🚀 PASSER PREMIUM MAINTENANT</a>
+              <p style="color:#666;font-size:12px;margin-top:14px;">💳 Paiement securise • 30 jours satisfait ou rembourse</p>
+            </div>
+            
+            <div style="border-top:1px solid #1e1e1e;padding-top:20px;text-align:center;color:#666;font-size:12px;">
+              <p>Besoin d''aide ? Contactez-nous sur WhatsApp</p>
+              <p style="margin:5px 0;">L''equipe {{site_name}}</p>
+            </div>
+          </div>
+        </div>
+      `;
+      await transporter.sendMail({
+        from: '"Dalletek" <support@dalletek.live>',
+        to: email,
+        subject: `${name || 'Derniere chance'} — Votre essai expire dans 12h`,
+        html,
+      });
     } catch (e) {
       console.error('[TRIAL-ENGINE] Conversion email failed:', e.message);
     }
