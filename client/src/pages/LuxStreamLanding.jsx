@@ -261,6 +261,7 @@ export default function LuxStreamLanding() {
   const [isMobile, setIsMobile] = useState(false)
   const [modal, setModal] = useState(null)
   const [user, setUser] = useState(null)
+  const [events, setEvents] = useState(null)
   const [subscriptions, setSubscriptions] = useState([])
   const [showAuth, setShowAuth] = useState(false)
   const [settings, setSettings] = useState(null)
@@ -287,6 +288,7 @@ export default function LuxStreamLanding() {
           else localStorage.removeItem('user_token')
         }).catch(() => { localStorage.removeItem('user_token') })
     }
+    fetch('/api/hero/events').then(r => r.json()).then(setEvents).catch(() => {})
     api.get('/plans').then(r => {
       const all = r.data.filter(p => p.plan_type !== 'trial')
       const used = new Set()
@@ -538,72 +540,33 @@ export default function LuxStreamLanding() {
               </div>
               <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 48, background: '#0a0a0a', overflow: 'hidden' }}>
                 <div style={{ animation: 'channelScroll 10s ease-in-out infinite', position: 'absolute', left: 0, right: 0 }}>
-                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #1a3a1a, #0a1a0a)', borderBottom: '1px solid #222' }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>⚽</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Sport+ HD</div>
-                        <div style={{ fontSize: 11, color: '#ff6b35', fontWeight: 600 }}>🔴 EN DIRECT</div>
+                  {(events?.sports?.length > 0 ? events.sports.slice(0, 4) : []).map((ev, i) => {
+                    const colors = [
+                      { bg: '#1a3a1a, #0a1a0a', accent: '#ff6b35', icon: '⚽' },
+                      { bg: '#1a1a3a, #0a0a1a', accent: '#7b2dff', icon: '🎬' },
+                      { bg: '#1a3a2a, #0a1a10', accent: '#00ff88', icon: '📺' },
+                      { bg: '#3a1a1a, #1a0a0a', accent: '#ff4444', icon: '🏀' },
+                    ]
+                    const c = colors[i % 4]
+                    return (
+                      <div key={i} style={{ height: 128, padding: 16, background: `linear-gradient(135deg, ${c.bg})`, borderBottom: '1px solid #222' }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 10, background: `linear-gradient(135deg, ${c.accent}, ${c.accent}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{c.icon}</div>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{ev.channel || 'Live'}</div>
+                            <div style={{ fontSize: 11, color: c.accent, fontWeight: 600 }}>{ev.type === 'movie' ? '🎥 4K UHD' : '🔴 EN DIRECT'}</div>
+                          </div>
+                          {ev.start_time && <div style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>{ev.start_time}</div>}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
+                          {ev.title}{ev.stop_time ? ` • jusqu'à ${ev.stop_time}` : ''}
+                        </div>
+                        <div style={{ marginTop: 6, height: 3, background: '#222', borderRadius: 2, overflow: 'hidden' }}>
+                          {ev.type !== 'movie' && <div style={{ width: `${50 + Math.random() * 40}%`, height: '100%', background: c.accent, borderRadius: 2, animation: 'pulse-soft 2s infinite' }} />}
+                        </div>
                       </div>
-                      <div style={{ marginLeft: 'auto', fontSize: 20, fontWeight: 900, color: '#ffd700' }}>3-1</div>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
-                      Coupe du Monde 2026 • France vs Brésil • Mi-temps
-                    </div>
-                    <div style={{ marginTop: 6, height: 3, background: '#222', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ width: '65%', height: '100%', background: '#ff6b35', borderRadius: 2, animation: 'pulse-soft 2s infinite' }} />
-                    </div>
-                  </div>
-                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #1a1a3a, #0a0a1a)', borderBottom: '1px solid #222' }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #7b2dff, #ff2d92)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🎬</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Cinéma Première</div>
-                        <div style={{ fontSize: 11, color: '#7b2dff', fontWeight: 600 }}>🎥 4K UHD</div>
-                      </div>
-                      <div style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>2h14</div>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
-                      Mission Impossible 8 • Action • Tom Cruise
-                    </div>
-                    <div style={{ marginTop: 6, display: 'flex', gap: 4 }}>
-                      <span style={{ fontSize: 10, color: '#ffd700' }}>★★★★★</span>
-                      <span style={{ fontSize: 10, color: '#555' }}>4.9/5</span>
-                    </div>
-                  </div>
-                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #1a3a2a, #0a1a10)', borderBottom: '1px solid #222' }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00ff88, #00d4ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📺</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Séries VOD</div>
-                        <div style={{ fontSize: 11, color: '#00ff88', fontWeight: 600 }}>📱 À la demande</div>
-                      </div>
-                      <div style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>S3 E7</div>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
-                      Game of Thrones • Saison 3 • Le Trône de Fer
-                    </div>
-                    <div style={{ marginTop: 6, display: 'flex', gap: 4 }}>
-                      <span style={{ fontSize: 10, color: '#00d4ff' }}>▶ Reprendre</span>
-                      <span style={{ fontSize: 10, color: '#555', marginLeft: 8 }}>73%</span>
-                    </div>
-                  </div>
-                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #3a1a1a, #1a0a0a)' }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #ff4444, #ff8800)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🏀</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>NBA Extra</div>
-                        <div style={{ fontSize: 11, color: '#ff4444', fontWeight: 600 }}>🔴 EN DIRECT</div>
-                      </div>
-                      <div style={{ marginLeft: 'auto', fontSize: 20, fontWeight: 900, color: '#ff8800' }}>112-98</div>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
-                      NBA Finals 2026 • Lakers vs Celtics • Q4
-                    </div>
-                    <div style={{ marginTop: 6, height: 3, background: '#222', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ width: '88%', height: '100%', background: '#ff4444', borderRadius: 2 }} />
-                    </div>
-                  </div>
+                    )
+                  })}
                 </div>
               </div>
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 48, background: '#0a0a0a', zIndex: 10, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 4, borderTop: '1px solid #222', justifyContent: 'center' }}>
