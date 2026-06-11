@@ -112,11 +112,18 @@ async function sendFollowupEmail(params) {
       return { sent: orders.length };
     }
     if (params.type === 'abandoned_cart') {
-      const orders = db.prepare("SELECT * FROM orders WHERE status = 'pending' AND customer_email IS NOT NULL AND created_at < datetime('now','-2 hours')").all();
+      const orders = db.prepare(`
+        SELECT o.*, pp.plan_name, pc.name as provider_name FROM orders o
+        LEFT JOIN provider_plans pp ON o.plan_id = pp.id
+        LEFT JOIN providers_catalog pc ON o.provider_id = pc.id
+        WHERE o.status = 'pending' AND o.customer_email IS NOT NULL AND o.created_at < datetime('now','-2 hours')
+      `).all();
       for (const o of orders) {
         try {
-          await sendPaymentLink({ email: o.customer_email, name: o.customer_name, checkoutUrl: '/', planName: 'Premium', amount: 19.99, orderId: o.id });
-          logAction('followup_email', `Abandoned cart email sent to ${o.customer_email}`, db);
+          const hoursAgo = Math.round((Date.now() - new Date(o.created_at).getTime()) / (1000 * 60 * 60));
+          const { notifyPendingOrder } = require('../services/notificationService');
+          notifyPendingOrder({ orderId: o.id, name: o.customer_name, email: o.customer_email, planName: o.plan_name || 'Plan', amount: o.amount, hoursAgo }).catch(() => {});
+          logAction('followup_alert', `Pending order #${o.id} (${o.customer_email}) — ${hoursAgo}h waiting`, db);
         } catch (e) { /* skip */ }
       }
       return { sent: orders.length };

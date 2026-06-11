@@ -223,6 +223,15 @@ export default function Settings() {
         { key: 'apple_client_id', label: 'Apple Sign In Service ID', type: 'text', optional: true },
       ],
     },
+    {
+      title: '🔔 Notifications',
+      fields: [
+        { key: 'admin_email', label: 'Admin Email (receive alerts)', type: 'email' },
+        { key: 'admin_phone', label: 'WhatsApp Phone (via CallMeBot)', type: 'text', optional: true, placeholder: '+212600000000' },
+        { key: 'telegram_bot_token', label: 'Telegram Bot Token', type: 'password', optional: true, placeholder: '123456:ABC-DEF...' },
+        { key: 'telegram_chat_id', label: 'Telegram Chat ID', type: 'text', optional: true },
+      ],
+    },
   ]
 
   return (

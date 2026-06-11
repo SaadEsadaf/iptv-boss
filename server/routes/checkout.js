@@ -178,6 +178,12 @@ router.post('/api/trial/guest-confirm', async (req, res) => {
       enrollTrialUser(orderResult.lastInsertRowid, email, name || null, trialCreds).catch(() => {})
     } catch (e) {}
 
+    // Notify admin
+    try {
+      const { notifyPurchase } = require('../services/notificationService');
+      notifyPurchase({ name, email, planName: trialPlan.plan_name, providerName: provider.name, amount: '1.00', isTrial: true }).catch(() => {});
+    } catch (e) {}
+
     const { signToken } = require('../services/auth');
     const authToken = signToken(user);
 
@@ -278,6 +284,12 @@ router.post('/api/trial/claim', async (req, res) => {
   try {
     const { enrollTrialUser } = require('../services/salesEngine')
     enrollTrialUser(orderResult.lastInsertRowid, email, name || null, trialCreds).catch(() => {})
+  } catch (e) {}
+
+  // Notify admin
+  try {
+    const { notifyTrialClaim } = require('../services/notificationService');
+    notifyTrialClaim({ name, email, phone, providerName: provider.name, planName: trialPlan.plan_name, durationHours: trialCreds.duration_hours || 24, preferredApp: app }).catch(() => {});
   } catch (e) {}
 
   // Generate JWT for auto-login
@@ -482,6 +494,11 @@ router.get('/api/checkout/paypal-capture', async (req, res) => {
     db.prepare(
       'INSERT INTO agent_log (agent, action, details, order_id) VALUES (?, ?, ?, ?)'
     ).run('System', 'payment_completed', `Order ${order_id} paid via PayPal, code assigned`, order_id);
+
+    try {
+      const { notifyPurchase } = require('../services/notificationService');
+      notifyPurchase({ name: order.customer_name, email: order.customer_email, planName: order.plan_name, providerName: order.provider_name, amount: order.amount, isTrial: false }).catch(() => {});
+    } catch (e) {}
 
     res.redirect(`/payment/success?paypal_order_id=${paypalOrderId}`);
   } catch (e) {
