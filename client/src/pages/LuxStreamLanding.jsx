@@ -360,9 +360,12 @@ export default function LuxStreamLanding() {
   const isPopular = (p) => p.plan_name?.toLowerCase() === 'premium' || p.plan_name?.toLowerCase() === 'familial' || p.plan_name?.toLowerCase() === 'famille'
 
   const navLinks = [
-    { label: t('features'), href: '#features' },
-    { label: t('plans'), href: '#plans' },
-    { label: t('faq'), href: '#faq' },
+    { label: t('features'), href: '#features', page: false },
+    { label: t('plans'), href: '#plans', page: false },
+    { label: 'Blog', href: '/blog', page: true },
+    { label: t('faq'), href: '#faq', page: false },
+    { label: 'Support', href: '/support', page: true },
+    { label: 'Téléchargements', href: '/downloads', page: true },
   ]
 
   return (
@@ -407,15 +410,28 @@ export default function LuxStreamLanding() {
             <span style={{ color: '#fff' }}>STREAM</span>
           </div>
           {!isMobile && (
-            <div style={{ display: 'flex', gap: 28, flex: 1, justifyContent: 'center' }}>
-              {navLinks.map(l => (
+            <div style={{ display: 'flex', gap: 20, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              {navLinks.map(l => l.page ? (
+                <a key={l.label} onClick={() => window.location.href = l.href} style={{
+                  color: '#8888aa', textDecoration: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  transition: 'all 0.2s', padding: '4px 0',
+                  borderBottom: '2px solid transparent',
+                }}
+                  onMouseEnter={e => { e.target.style.color = '#fff'; e.target.style.borderBottomColor = '#ff6b3566' }}
+                  onMouseLeave={e => { e.target.style.color = '#8888aa'; e.target.style.borderBottomColor = 'transparent' }}>
+                  {l.label}
+                </a>
+              ) : (
                 <a key={l.label} href={l.href} onClick={e => { e.preventDefault(); document.querySelector(l.href)?.scrollIntoView({ behavior: 'smooth' }) }}
-                  style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
-                  onMouseEnter={e => e.target.style.color = '#fff'}
-                  onMouseLeave={e => e.target.style.color = '#8888aa' }>
+                  style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                    transition: 'all 0.2s', padding: '4px 0',
+                    borderBottom: '2px solid transparent' }}
+                  onMouseEnter={e => { e.target.style.color = '#fff'; e.target.style.borderBottomColor = '#00d4ff66' }}
+                  onMouseLeave={e => { e.target.style.color = '#8888aa'; e.target.style.borderBottomColor = 'transparent' }}>
                   {l.label}
                 </a>
               ))}
+              <span style={{ width: 1, height: 20, background: '#ffffff10', margin: '0 4px' }} />
             </div>
           )}
           {!isMobile && (
@@ -439,11 +455,17 @@ export default function LuxStreamLanding() {
           </button>
         </div>
         {mobileMenu && isMobile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 0', borderTop: '1px solid #ffffff10', animation: 'fadeIn 0.2s' }}>
-            {navLinks.map(l => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 0', borderTop: '1px solid #ffffff10', animation: 'fadeIn 0.2s' }}>
+            {navLinks.map(l => l.page ? (
+              <a key={l.label} onClick={() => { setMobileMenu(false); window.location.href = l.href }}
+                style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, fontWeight: 600, padding: '8px 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#ff6b35' }}>▸</span> {l.label}
+              </a>
+            ) : (
               <a key={l.label} href={l.href} onClick={e => { e.preventDefault(); document.querySelector(l.href)?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false) }}
-                style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, padding: '6px 0' }}>{l.label}</a>
+                style={{ color: '#8888aa', textDecoration: 'none', fontSize: 14, fontWeight: 600, padding: '8px 0', cursor: 'pointer' }}>{l.label}</a>
             ))}
+            <div style={{ height: 1, background: '#ffffff10', margin: '4px 0' }} />
             <button onClick={() => { setMobileMenu(false); openTrialModal() }} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 50, fontWeight: 700, cursor: 'pointer', fontSize: 13, textAlign: 'center', marginTop: 4 }}>
               {t('freeTrial')}
             </button>

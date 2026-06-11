@@ -6,6 +6,9 @@ import DynamicLP from './pages/DynamicLP'
 import CheckoutPage from './pages/CheckoutPage'
 import PaymentResult from './pages/PaymentResult'
 import ActivationPage from './pages/ActivationPage'
+import BlogPage from './pages/BlogPage'
+import SupportPage from './pages/SupportPage'
+import DownloadsPage from './pages/DownloadsPage'
 
 export default function App() {
   const ws = typeof window !== 'undefined' && window.__WEBSITE__
@@ -23,6 +26,9 @@ export default function App() {
       <Route path="/payment/cancel" element={<PaymentResult />} />
       <Route path="/activate" element={<ActivationPage />} />
       <Route path="/setup" element={<ActivationPage />} />
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/support" element={<SupportPage />} />
+      <Route path="/downloads" element={<DownloadsPage />} />
     </Routes>
   )
 }

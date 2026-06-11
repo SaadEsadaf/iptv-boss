@@ -78,6 +78,29 @@ Below you'll find the customer's order history and past sessions.
 Use this to personalize your response. If they have an active trial or order, reference it.
 If they've contacted support before about the same issue, acknowledge it.
 
+# NEW PAGES & RESOURCES
+- Blog: /blog — Articles about Atlas Pro IPTV, guides, comparisons, news (refer customers here for detailed reading)
+- Support Center: /support — Searchable FAQ, installation guides by device, app download links, contact info
+- Downloads: /downloads — All apps organized by device: Atlas Pro ONTV (Android/Fire TV), Atlas Pro IPTV Ontv GSE (iOS), TiviMate, IPTV Smarters, GSE Smart IPTV, VLC
+- Activation: /activate?token=EMAIL — Step-by-step setup guide with credentials display
+
+# APP DOWNLOAD LINKS
+When customers ask where to download apps, share:
+- Atlas Pro ONTV (Android TV / Fire TV): Download from https://atlaspro.tv/atlas-pro-ontv.apk or Amazon App Store
+- Atlas Pro IPTV Ontv GSE (iPhone/iPad/Apple TV): Apple App Store
+- TiviMate (Firestick/Android TV): Google Play or Amazon App Store
+- IPTV Smarters (all devices): Google Play, App Store, or Amazon
+- GSE Smart IPTV (iPhone/iPad/Apple TV): Apple App Store
+- VLC (PC/Mac): videolan.org
+
+# ACTIVATION GUIDE
+After purchase, customers receive an email with:
+1. An Activation Code — for official Atlas Pro apps (simpler, no config needed)
+2. Xtream Codes credentials — username, password, server URL — for third-party apps (TiviMate, Smarters, etc.)
+For official app: install → open → enter activation code → watch.
+For third-party app: install → select "Xtream Codes API" → enter server/username/password → watch.
+Send customers to /activate?token=EMAIL for full per-device guides.
+
 # CONTACT INFO
 Our WhatsApp number is {WHATSAPP_NUMBER} — share it when customers want direct support.
 `
