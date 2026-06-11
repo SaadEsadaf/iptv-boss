@@ -71,7 +71,9 @@ app.use(require('./middleware/websiteResolver'));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/chat', require('./routes/chat'));
+app.use('/api/chat', require('./routes/chat'))
+app.use('/api/blog', require('./routes/blog'));
+app.use('/api/scraper', require('./routes/scraper'));
 app.use('/api/webhooks', require('./routes/webhooks'));
 app.use('/api/orders', require('./routes/orders'));
 app.use(require('./routes/checkout'));
@@ -91,6 +93,8 @@ app.use('/api/campaigns', require('./routes/campaigns'));
 app.use('/api/brain', require('./routes/brainBridge'));
 app.use(require('./routes/account'));
 app.use('/api/hero', require('./routes/hero'));
+app.use('/api/tracking', require('./routes/tracking'));
+app.use('/trial', require('./routes/trial'));
 
 app.get('/api/plans', (req, res) => {
   const { getDb } = require('./db');

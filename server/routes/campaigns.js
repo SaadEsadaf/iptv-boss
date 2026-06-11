@@ -281,4 +281,70 @@ router.get('/history/:id', authMiddleware, (req, res) => {
   })
 })
 
+// Blast single email (used by JobTools world cup campaign)
+router.post('/blast-single', async (req, res) => {
+  try {
+    const db = getDb()
+    const { email, name, template_key, campaign_name, variables } = req.body
+    if (!email || !template_key) return res.status(400).json({ error: 'email and template_key required' })
+
+    const template = db.prepare('SELECT * FROM email_templates WHERE template_key = ?').get(template_key)
+    if (!template) return res.status(404).json({ error: 'Template not found' })
+
+    const transporter = getTransporter()
+    const fromName = transporter.fromName
+    const fromEmail = transporter.fromEmail
+    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || 'Dalletek'
+    const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || 'http://localhost:3001'
+
+    const vars = {
+      customer_name: name || email.split('@')[0],
+      customer_email: email,
+      site_name: siteName,
+      site_url: siteUrl,
+      trial_url: `${siteUrl}/trial`,
+      trial_code: '',
+      tracking_pixel: '',
+      unsubscribe_url: '',
+      ...(variables || {}),
+    }
+
+    let body = template.body_html
+    let subject = template.subject
+
+    for (const [k, v] of Object.entries(vars)) {
+      if (v !== null && v !== undefined) {
+        body = body.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v))
+        subject = subject.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v))
+      }
+    }
+
+    // Handle {{#if var}}...{{/if}} blocks
+    body = body.replace(/\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_, name, content) => {
+      return vars[name] ? content : ''
+    })
+
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: email,
+      subject,
+      html: body,
+    })
+
+    db.prepare(`INSERT INTO sales_engine_log (action, lead_email, lead_name, sequence_type, details, source)
+      VALUES ('sent', ?, ?, 'worldcup_2026', ?, 'worldcup_2026')`).run(
+      email, name || '', `World Cup campaign email sent`
+    )
+
+    // Track assignment - skip trial_code_id to avoid foreign key constraint
+    db.prepare(`INSERT OR IGNORE INTO trial_assignments (trial_code_id, lead_email, lead_name, campaign, code, status, email_sent)
+      VALUES (NULL, ?, ?, ?, '', 'assigned', 1)`).run(email, name || '', campaign_name || 'worldcup_2026')
+
+    res.json({ sent: true, email })
+  } catch (e) {
+    console.error('[BlastSingle] Error:', e.message)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 module.exports = router
