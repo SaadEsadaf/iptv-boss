@@ -220,6 +220,8 @@ export default function TitanHub() {
     loadGrowthLeads()
     loadGrowthCampaigns()
     loadGrowthContent()
+    loadContentQueue()
+    loadInjectionLog()
   }, [])
 
   useEffect(() => {
@@ -519,6 +521,46 @@ export default function TitanHub() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const [contentQueue, setContentQueue] = useState([])
+  const [injectionLog, setInjectionLog] = useState([])
+
+  async function loadContentQueue() {
+    try {
+      const res = await api.get('/titan-templates/queue')
+      setContentQueue(res.data)
+    } catch (e) { console.error(e) }
+  }
+
+  async function loadInjectionLog() {
+    try {
+      const res = await api.get('/titan-templates/injection-log')
+      setInjectionLog(res.data)
+    } catch (e) { console.error(e) }
+  }
+
+  async function injectNow(templateId, target) {
+    setLoading(true)
+    try {
+      const res = await api.post(`/titan-templates/inject-now/${templateId}`, { target })
+      const msgs = res.data.actions.map(a => `${a.type}: ${a.status}${a.slug ? ' → /lp/' + a.slug : ''}${a.queued ? ' (' + a.queued + ' queued)' : ''}`)
+      alert('✅ Injection complete!\n\n' + msgs.join('\n'))
+      loadTemplates()
+      loadContentQueue()
+      loadInjectionLog()
+    } catch (e) {
+      alert('Injection error: ' + (e.response?.data?.error || e.message))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function markAsPosted(id) {
+    try {
+      await api.post(`/titan-templates/queue/${id}/post`)
+      loadContentQueue()
+    } catch (e) { alert(e.message) }
   }
 
   async function bulkGenerate() {
@@ -1190,50 +1232,87 @@ export default function TitanHub() {
               </div>
             </div>
 
-            {/* Template Injection */}
+            {/* Template Injection — REAL */}
             <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
-              <h4 style={{ margin: '0 0 12px', color: '#7b2dff', fontSize: 14 }}>💉 {t('templateInjection')}</h4>
+              <h4 style={{ margin: '0 0 12px', color: '#ff00ff', fontSize: 14 }}>⚡ INJECT NOW — Real Injection</h4>
+              <p style={{ color: '#888', fontSize: 12, marginBottom: 12 }}>Select a template and target. This actually creates landing pages, queues emails, and stores ready-to-post content.</p>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('selectType')}</label>
-                  <select value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(parseInt(e.target.value))}
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>Template</label>
+                  <select value={selectedTemplateId || ''} onChange={e => { setSelectedTemplateId(parseInt(e.target.value)); const t = templates.find(x => x.id === parseInt(e.target.value)); if (t) setInjectionTarget(t.type) }}
                     style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }}>
-                    <option value="">{t('selectType')}</option>
+                    <option value="">Select a template...</option>
                     {templates.map(t => (
                       <option key={t.id} value={t.id}>{t.name} ({t.type})</option>
                     ))}
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('injectionTarget')}</label>
-                  <input value={injectionTarget} onChange={e => setInjectionTarget(e.target.value)} placeholder="e.g., landing_page, chat_widget"
-                    style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }} />
-                </div>
-                <div style={{ width: 150 }}>
-                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>{t('injectionPosition')}</label>
-                  <select value={injectionPosition} onChange={e => setInjectionPosition(e.target.value)}
+                  <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 6 }}>Inject as</label>
+                  <select value={injectionTarget} onChange={e => setInjectionTarget(e.target.value)}
                     style={{ width: '100%', padding: 10, background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }}>
-                    <option value="append">Append</option>
-                    <option value="prepend">Prepend</option>
-                    <option value="replace">Replace</option>
-                    <option value="before">Before</option>
-                    <option value="after">After</option>
+                    <option value="landing_page">🌐 Landing Page</option>
+                    <option value="email_sequence">📧 Email Campaign</option>
+                    <option value="social_post">📱 Social Post (queue)</option>
+                    <option value="chat_response">💬 Chat Knowledge</option>
+                    <option value="whatsapp_message">📞 WhatsApp (queue)</option>
+                    <option value="ad_copy">📢 Ad Copy (queue)</option>
                   </select>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={injectTemplate} disabled={loading} style={{ padding: '10px 20px', background: '#7b2dff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
-                    💉 {t('templateInjection')}
-                  </button>
-                  <button onClick={renderTemplate} disabled={loading} style={{ padding: '10px 20px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
-                    👁️ {t('preview')}
-                  </button>
+                <button onClick={() => injectNow(selectedTemplateId, injectionTarget)} disabled={loading || !selectedTemplateId}
+                  style={{ padding: '12px 24px', background: '#ff00ff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                  ⚡ INJECT NOW
+                </button>
+              </div>
+            </div>
+
+            {/* Content Queue */}
+            {contentQueue.length > 0 && (
+              <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+                <h4 style={{ margin: '0 0 12px', color: '#ffd700', fontSize: 14 }}>📦 Content Queue ({contentQueue.length})</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflow: 'auto' }}>
+                  {contentQueue.filter(q => !q.posted).map(q => (
+                    <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: 10, background: '#0f0f0f', borderRadius: 8, border: '1px solid #2a2a2a' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#ff6b35', background: '#ff6b3515', padding: '2px 6px', borderRadius: 4 }}>{q.target_platform}</span>
+                          <span style={{ fontSize: 11, color: '#888' }}>{q.template_type}</span>
+                          {q.template_name && <span style={{ fontSize: 11, color: '#555' }}>{q.template_name}</span>}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#aaa', whiteSpace: 'pre-wrap', maxHeight: 60, overflow: 'hidden' }}>{q.content?.substring(0, 200)}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
+                        <button onClick={() => { navigator.clipboard.writeText(q.content); alert('Copied!') }}
+                          style={{ padding: '4px 8px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>📋</button>
+                        <button onClick={() => markAsPosted(q.id)}
+                          style={{ padding: '4px 8px', background: '#00ff88', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>✓</button>
+                      </div>
+                    </div>
+                  ))}
+                  {contentQueue.filter(q => !q.posted).length === 0 && <div style={{ color: '#666', textAlign: 'center', padding: 12 }}>All posted ✓</div>}
                 </div>
               </div>
-              {renderedPreview && (
-                <div style={{ marginTop: 12, padding: 12, background: '#0f0f0f', borderRadius: 8, fontSize: 13, color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', border: '1px solid #2a2a2a' }}>
-                  {renderedPreview}
-                </div>
-              )}
+            )}
+
+            {/* Injection Log */}
+            <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#7b2dff', fontSize: 14 }}>📜 Injection Log</h4>
+              <div style={{ maxHeight: 200, overflow: 'auto' }}>
+                {injectionLog.length > 0 ? injectionLog.slice(0, 15).map(log => (
+                  <div key={log.id} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid #1a1a1a', fontSize: 12 }}>
+                    <span style={{ color: '#666', whiteSpace: 'nowrap' }}>{log.created_at?.split('T')[1]?.slice(0, 8) || ''}</span>
+                    <span style={{ color: '#00ff88', fontWeight: 600 }}>{log.injection_type}</span>
+                    <span style={{ color: '#888' }}>{log.target}</span>
+                    {log.template_name && <span style={{ color: '#555' }}>— {log.template_name}</span>}
+                  </div>
+                )) : (
+                  <div style={{ color: '#666', textAlign: 'center', padding: 12 }}>
+                    <p>No injections yet. Generate + inject a template above.</p>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => { loadInjectionLog(); loadContentQueue(); }}
+                style={{ marginTop: 8, padding: '6px 12px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>🔄 Refresh</button>
             </div>
 
             {/* A/B Tests */}
@@ -1282,7 +1361,7 @@ export default function TitanHub() {
             <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 20, border: '1px solid #2a2a2a' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <h4 style={{ margin: 0, color: '#fff', fontSize: 14 }}>📄 {t('templates')}</h4>
-                <button onClick={() => { loadTemplates(); loadInjections(); loadABTests(); }} style={{ padding: '6px 12px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>
+                <button onClick={() => { loadTemplates(); loadInjections(); loadABTests(); loadContentQueue(); loadInjectionLog(); }} style={{ padding: '6px 12px', background: '#1a1a1a', color: '#fff', border: '1px solid #2a2a2a', borderRadius: 6, fontSize: 11, cursor: 'pointer' }}>
                   🔄 Refresh
                 </button>
               </div>
@@ -1299,11 +1378,15 @@ export default function TitanHub() {
                         <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5, maxHeight: 60, overflow: 'hidden' }}>{t.content?.substring(0, 150)}...</div>
                       </div>
                       <div style={{ display: 'flex', gap: 6, marginLeft: 12 }}>
+                        <button onClick={() => { setSelectedTemplateId(t.id); setInjectionTarget(t.type); injectNow(t.id, t.type) }}
+                          style={{ padding: '4px 8px', background: '#ff00ff', color: '#fff', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
+                          ⚡
+                        </button>
                         <button onClick={() => { setSelectedTemplateId(t.id); renderTemplate(); }} style={{ padding: '4px 8px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
                           👁️
                         </button>
                         <button onClick={() => autoOptimizeTemplate(t.id)} style={{ padding: '4px 8px', background: '#ffd700', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
-                          ⚡
+                          ⚙️
                         </button>
                         <button onClick={() => loadAnalytics(t.id)} style={{ padding: '4px 8px', background: '#00ff88', color: '#000', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
                           📊

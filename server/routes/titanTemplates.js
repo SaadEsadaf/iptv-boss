@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { templateEngine, TEMPLATE_TYPES } = require('../services/titanTemplates');
+const { injectNow, getContentQueue, markAsPosted, regenerateWithAI } = require('../services/templateInjection');
 
 // Initialize template engine
 templateEngine.init().catch(e => console.error('[TITAN-TEMPLATES] Init error:', e));
@@ -210,5 +211,62 @@ router.post('/ab-test-variant', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// === REAL INJECTION (does actual work) ===
+router.post('/inject-now/:id', async (req, res) => {
+  try {
+    const { target } = req.body
+    const result = await injectNow(Number(req.params.id), target)
+    res.json(result)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// === CONTENT QUEUE ===
+router.get('/queue', async (req, res) => {
+  try {
+    const queue = await getContentQueue(req.query)
+    res.json(queue)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+router.post('/queue/:id/post', async (req, res) => {
+  try {
+    const result = await markAsPosted(Number(req.params.id))
+    res.json(result)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// === REGENERATE WITH AI ===
+router.post('/regenerate/:id', async (req, res) => {
+  try {
+    const { prompt } = req.body
+    const result = await regenerateWithAI(Number(req.params.id), prompt)
+    res.json(result)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// === INJECTION LOG ===
+router.get('/injection-log', async (req, res) => {
+  try {
+    const db = require('../db').getDb()
+    const logs = db.prepare(`
+      SELECT l.*, t.name as template_name, t.type as template_type
+      FROM titan_injection_log l
+      LEFT JOIN titan_templates t ON l.template_id = t.id
+      ORDER BY l.created_at DESC LIMIT 50
+    `).all()
+    res.json(logs)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
 
 module.exports = router;
