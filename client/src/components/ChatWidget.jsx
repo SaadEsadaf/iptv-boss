@@ -257,8 +257,8 @@ export default function ChatWidget({ onBuyPlan }) {
   return (
     <>
       <div style={{
-        position: 'fixed', bottom: 24, right: 24, display: 'flex', gap: 12,
-        alignItems: 'flex-end', zIndex: 1000,
+        position: 'fixed', bottom: 24, left: 24, display: 'flex', gap: 12,
+        alignItems: 'flex-end', zIndex: 1000, flexDirection: 'row-reverse',
       }}>
         {whatsappNumber && (
           <a href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{
@@ -278,11 +278,27 @@ export default function ChatWidget({ onBuyPlan }) {
         }}>
           {open ? '✕' : '💬'}
         </button>
+        {!open && (
+          <div style={{
+            position: 'absolute', bottom: 68, left: 0,
+            background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 16,
+            padding: '12px 16px', maxWidth: 220, fontSize: 13, color: '#ccc',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+            animation: 'fadeIn 0.3s ease-out',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>👋</span>
+              <span style={{ fontWeight: 700, color: '#00d4ff', fontSize: 12 }}>Alex</span>
+            </div>
+            <div style={{ fontSize: 12, lineHeight: 1.5 }}>Besoin d'aide ? Je suis là pour vous guider !</div>
+            <div style={{ position: 'absolute', bottom: -8, left: 24, width: 14, height: 14, background: '#1a1a1a', borderRight: '1px solid #2a2a2a', borderBottom: '1px solid #2a2a2a', transform: 'rotate(45deg)' }} />
+          </div>
+        )}
       </div>
 
       {open && (
         <div style={{
-          position: 'fixed', bottom: 92, right: 24, width: 380, height: 560,
+          position: 'fixed', bottom: 92, left: 24, width: 380, height: 560,
           background: '#1a1a1a', borderRadius: 16, border: '1px solid #2a2a2a',
           display: 'flex', flexDirection: 'column', zIndex: 1000,
           boxShadow: '0 8px 40px rgba(0,0,0,0.5)', overflow: 'hidden',
