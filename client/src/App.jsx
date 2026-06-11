@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import DynamicLP from './pages/DynamicLP'
 import CheckoutPage from './pages/CheckoutPage'
 import PaymentResult from './pages/PaymentResult'
+import ActivationPage from './pages/ActivationPage'
 
 export default function App() {
   const ws = typeof window !== 'undefined' && window.__WEBSITE__
@@ -20,6 +21,8 @@ export default function App() {
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/payment/success" element={<PaymentResult />} />
       <Route path="/payment/cancel" element={<PaymentResult />} />
+      <Route path="/activate" element={<ActivationPage />} />
+      <Route path="/setup" element={<ActivationPage />} />
     </Routes>
   )
 }

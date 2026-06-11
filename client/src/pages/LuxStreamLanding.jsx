@@ -904,7 +904,13 @@ export default function LuxStreamLanding() {
                       <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{trialSuccess.duration_hours} {t('hours')}</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <div style={{ fontSize: 14, color: '#8888aa', marginBottom: 16 }}>
+                    Consultez votre boîte email ou ouvrez votre <strong style={{ color: '#00d4ff' }}>page d'activation</strong>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <a href={`/activate?token=${encodeURIComponent(trialForm.email)}`} target="_blank" rel="noopener noreferrer" style={{ padding: '12px 24px', background: '#00d4ff', color: '#000', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer', fontSize: 14, textDecoration: 'none', display: 'inline-block' }}>
+                      📖 Guide d'installation
+                    </a>
                     <button onClick={() => { setShowTrialModal(false); document.querySelector('#plans')?.scrollIntoView({ behavior: 'smooth' }) }} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
                       {t('upgrade')}
                     </button>

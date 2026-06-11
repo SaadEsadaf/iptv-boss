@@ -90,6 +90,7 @@ class TrialEngine {
   // Send trial welcome email
   async sendTrialWelcome(email, name, code, m3uUrl) {
     const durationH = code.duration_hours || 24;
+    const activationLink = `https://dalletek.live/activate?token=${encodeURIComponent(email)}`;
     const subject = `${name || 'Bienvenue'} — Votre essai LuxStream est ACTIF (${durationH}h)`;
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#fff;padding:30px;border-radius:12px;">
@@ -109,6 +110,13 @@ class TrialEngine {
             <div style="color:#888;margin-bottom:5px;">🔗 URL M3U:</div>
             <div style="color:#00d4ff;font-size:12px;word-break:break-all;margin-bottom:5px;">${m3uUrl}</div>
           </div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:20px;">
+          <a href="${activationLink}" style="display:inline-block;background:#00d4ff;color:#000;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
+            📖 GUIDE D'INSTALLATION COMPLET →
+          </a>
+          <p style="color:#888;font-size:12px;margin-top:8px;">Instructions pour tous les appareils (TV, mobile, PC, MAG)</p>
         </div>
 
         <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px;margin-bottom:20px;">
@@ -162,7 +170,7 @@ class TrialEngine {
         </div>
         
         <div style="border-top:1px solid #2a2a2a;margin-top:30px;padding-top:20px;text-align:center;color:#666;font-size:12px;">
-          <p>Besoin d'aide ? Répondez à cet email</p>
+          <p>Besoin d'aide ? Rendez-vous sur <a href="${activationLink}" style="color:#00d4ff;">votre page d'activation</a></p>
           <p>LuxStream — Dalletek</p>
         </div>
       </div>
