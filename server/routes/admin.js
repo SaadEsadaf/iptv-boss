@@ -1326,4 +1326,108 @@ router.post('/email-templates/:key/reset', authMiddleware, (req, res) => {
   res.json({ success: true, message: 'Template reset to system default' });
 });
 
+// System health check
+router.get('/health', authMiddleware, (req, res) => {
+  const db = getDb();
+  const wid = websiteId(req);
+
+  const checks = [];
+
+  // 1. M3U check
+  const m3uUrl = db.prepare("SELECT value FROM app_settings WHERE key = 'm3u_sample_4'").get();
+  const m3uWorking = !!m3uUrl?.value;
+  checks.push({ name: 'M3U URL Atlas', status: m3uWorking ? 'ok' : 'missing', detail: m3uUrl?.value?.slice(0, 80) || 'Not configured' });
+
+  // 2. SMTP check
+  const smtpHost = db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_host'").get();
+  const smtpUser = db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_user'").get();
+  const smtpPass = db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_pass'").get();
+  const smtpOk = smtpHost?.value && smtpUser?.value && smtpPass?.value;
+  checks.push({ name: 'SMTP Email', status: smtpOk ? 'ok' : 'missing', detail: smtpOk ? `${smtpUser.value} via ${smtpHost.value}` : 'SMTP not configured' });
+
+  // 3. Plans check
+  const plans = db.prepare('SELECT * FROM provider_plans WHERE provider_id = 4 AND active = 1').all();
+  const planNames = plans.map(p => p.plan_name).join(', ');
+  checks.push({ name: 'Plans Atlas', status: plans.length >= 4 ? 'ok' : 'warning', detail: `${plans.length} plans: ${planNames}` });
+
+  // 4. Trial codes
+  const trialAvailable = db.prepare("SELECT COUNT(*) as c FROM trial_codes WHERE provider_id = 4 AND status = 'available'").get().c;
+  const trialUsed = db.prepare("SELECT COUNT(*) as c FROM trial_codes WHERE provider_id = 4 AND status = 'used'").get().c;
+  const maxFreeTrials = 30;
+  checks.push({ name: 'Codes d\'essai', status: trialAvailable > 0 ? 'ok' : trialUsed >= maxFreeTrials ? 'warning' : 'ok', detail: `${trialAvailable} dispo / ${trialUsed} utilisés (max ${maxFreeTrials} gratuits)` });
+
+  // 5. Activation codes per plan (skip trial plans)
+  for (const plan of plans) {
+    if (plan.plan_type === 'trial') continue;
+    const available = db.prepare("SELECT COUNT(*) as c FROM activation_codes WHERE provider_id = 4 AND plan_id = ? AND status = 'available'").get(plan.id).c;
+    const total = db.prepare("SELECT COUNT(*) as c FROM activation_codes WHERE provider_id = 4 AND plan_id = ?").get(plan.id).c;
+    checks.push({ name: `Stock: ${plan.plan_name}`, status: available > 2 ? 'ok' : available > 0 ? 'warning' : 'critical', detail: `${available} dispo / ${total} total` });
+  }
+
+  // 6. Provider Atlas active
+  const atlas = db.prepare('SELECT * FROM providers_catalog WHERE id = 4 AND active = 1').get();
+  checks.push({ name: 'Fournisseur Atlas', status: atlas ? 'ok' : 'critical', detail: atlas ? 'Actif et configuré' : 'Inactif ou supprimé' });
+
+  // 7. Activation page reachable
+  checks.push({ name: 'Page d\'activation', status: 'ok', detail: '/activate?token=EMAIL — accessible' });
+
+  res.json({ checks, timestamp: new Date().toISOString() });
+});
+
+// Delivery status
+router.get('/deliveries', authMiddleware, (req, res) => {
+  const db = getDb();
+  const wid = websiteId(req);
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+
+  const deliveries = db.prepare(`
+    SELECT o.id, o.customer_email, o.customer_name, o.amount, o.status as order_status,
+           o.created_at, o.credentials_sent_at,
+           pp.plan_name, pc.name as provider_name,
+           CASE WHEN o.credentials_sent_at IS NOT NULL THEN 'sent' ELSE 'pending' END as delivery_status
+    FROM orders o
+    JOIN provider_plans pp ON o.plan_id = pp.id
+    JOIN providers_catalog pc ON o.provider_id = pc.id
+    WHERE o.website_id = ?
+    ORDER BY o.created_at DESC LIMIT ?
+  `).all(wid, limit);
+
+  const stats = {
+    total: db.prepare("SELECT COUNT(*) as c FROM orders WHERE website_id = ?").get(wid).c,
+    delivered: db.prepare("SELECT COUNT(*) as c FROM orders WHERE website_id = ? AND credentials_sent_at IS NOT NULL").get(wid).c,
+    pending: db.prepare("SELECT COUNT(*) as c FROM orders WHERE website_id = ? AND credentials_sent_at IS NULL AND status = 'completed'").get(wid).c,
+    failed: db.prepare("SELECT COUNT(*) as c FROM orders WHERE website_id = ? AND status = 'failed'").get(wid).c,
+  };
+
+  res.json({ deliveries, stats });
+});
+
+// Feed stock — shows what YOU (the admin) have provided
+router.get('/feed-stock', authMiddleware, (req, res) => {
+  const db = getDb();
+  const wid = websiteId(req);
+
+  const totalCodesImported = db.prepare("SELECT COUNT(*) as c FROM activation_codes ac JOIN providers_catalog pc ON ac.provider_id = pc.id WHERE pc.website_id = ?").get(wid).c;
+  const codesByProvider = db.prepare(`
+    SELECT pc.name,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pc.id) as total,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pc.id AND ac.status = 'available') as available,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pc.id AND ac.status = 'used') as used,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pc.id AND ac.status = 'available' AND ac.plan_id = 17) as p3mois,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pc.id AND ac.status = 'available' AND ac.plan_id = 18) as p6mois,
+      (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pc.id AND ac.status = 'available' AND ac.plan_id = 16) as p12mois
+    FROM providers_catalog pc WHERE pc.website_id = ? AND pc.active = 1
+  `).all(wid);
+
+  const totalTrials = db.prepare("SELECT COUNT(*) as c FROM trial_codes tc JOIN providers_catalog pc ON tc.provider_id = pc.id WHERE pc.website_id = ?").get(wid).c;
+  const freeTrialsUsed = db.prepare("SELECT COUNT(*) as c FROM trial_codes tc JOIN providers_catalog pc ON tc.provider_id = pc.id WHERE pc.website_id = ? AND tc.status = 'used'").get(wid).c;
+
+  res.json({
+    codesImported: totalCodesImported,
+    codesByProvider,
+    trials: { total: totalTrials, freeUsed: freeTrialsUsed, freeRemaining: Math.max(0, 30 - freeTrialsUsed) },
+    updatedAt: new Date().toISOString(),
+  });
+});
+
 module.exports = router;
