@@ -84,6 +84,7 @@ app.use('/api/titan-growth', require('./routes/titanGrowth'));
 app.use('/api/titan-intelligence', require('./routes/titanIntelligence'));
 app.use('/api/panel-management', require('./routes/panelManagement'));
 app.use('/api/inventory', require('./routes/inventoryManagement'));
+app.use('/api/trial', require('./routes/trialManagement'));
 
 app.get('/api/plans', (req, res) => {
   const { getDb } = require('./db');
