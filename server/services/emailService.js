@@ -190,33 +190,58 @@ async function sendStockAlert({ providerName, planName, remaining, threshold }) 
   }
 }
 
-async function sendTrial({ email, name, credentials, durationHours, providerName, planName }) {
+async function sendTrial({ email, name, credentials, durationHours, providerName, planName, accountPassword }) {
   try {
     const t = getTransporter();
     const { getDb } = require('../db');
     const db = getDb();
     const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
     const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
-    const tpl = renderEmailTemplate('trial_default', {
-      customer_name: name, customer_email: email,
-      username: credentials.username, password: credentials.password, server_url: credentials.server_url,
-      duration_hours: durationHours || 72, site_name: siteName, site_url: siteUrl,
-      provider_name: providerName, plan_name: planName,
-    });
-    const bodyHtml = tpl ? tpl.body : `
-      <h2 style="color:#fff;margin:0 0 16px;">Your ${durationHours || 72}h trial is ready!</h2>
-      <p style="color:#a0a0a0;margin:0 0 24px;">Hi ${name}, start watching now.</p>
-      <div style="background:#0f0f0f;border-radius:8px;padding:20px;margin:0 0 24px;font-family:monospace;">
-        ${credentials.username ? `<p style="color:#00d4ff;margin:0 0 8px;">Username: <span style="color:#fff;">${credentials.username}</span></p>` : ''}
-        ${credentials.password ? `<p style="color:#00d4ff;margin:0 0 8px;">Password: <span style="color:#fff;">${credentials.password}</span></p>` : ''}
-        ${credentials.server_url ? `<p style="color:#00d4ff;margin:0 0 8px;">Server: <span style="color:#fff;">${credentials.server_url}</span></p>` : ''}
+    const dashboardUrl = `${siteUrl}/dashboard`;
+
+    const m3uUrl = credentials.server_url
+      ? `${credentials.server_url}/get.php?username=${credentials.username}&password=${credentials.password}&type=m3u&#95;plus&output=ts`
+      : null;
+
+    const bodyHtml = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:48px;margin-bottom:8px;">📺</div>
+        <h1 style="color:#00d4ff;font-size:24px;margin:0 0 4px;">Bienvenue sur ${siteName} !</h1>
+        <p style="color:#a0a0a0;font-size:14px;margin:0 0 20px;">Votre essai gratuit de ${durationHours || 24}h est actif</p>
       </div>
-      <div style="text-align:center;margin-top:24px;">
-        <a href="${siteUrl}/#plans" style="display:inline-block;background:#00d4ff;color:#000;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:700;">Upgrade to Full Access</a>
+
+      <div style="background:linear-gradient(135deg,#0a1628,#1a1a2e);border:2px solid #00d4ff30;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+        <div style="font-size:36px;margin-bottom:4px;">⏱️</div>
+        <p style="color:#a0a0a0;font-size:13px;margin:0 0 8px;">Votre essai expire dans</p>
+        <div style="font-size:28px;font-weight:800;color:#00d4ff;">${durationHours || 24}h</div>
+      </div>
+
+      <div style="background:#0f0f0f;border-radius:12px;padding:20px;margin-bottom:20px;">
+        <h3 style="color:#00d4ff;margin:0 0 12px;font-size:15px;">🔑 Identifiants IPTV</h3>
+        ${credentials.server_url ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Serveur</span><span style="color:#fff;font-family:monospace;">${credentials.server_url}</span></div>` : ''}
+        ${credentials.username ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Identifiant</span><span style="color:#fff;font-family:monospace;">${credentials.username}</span></div>` : ''}
+        ${credentials.password ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#fff;font-family:monospace;">${credentials.password}</span></div>` : ''}
+        ${m3uUrl ? `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Lien M3U</span><span style="color:#a0a0a0;font-size:11px;word-break:break-all;max-width:300px;text-align:right;">${m3uUrl}</span></div>` : ''}
+      </div>
+
+      <div style="background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border:1px solid #8b5cf630;border-radius:12px;padding:20px;margin-bottom:20px;">
+        <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:15px;">👤 Votre Compte</h3>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Email</span><span style="color:#fff;">${email}</span></div>
+        ${accountPassword ? `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#ffd700;font-family:monospace;">${accountPassword}</span></div>` : ''}
+        <div style="text-align:center;margin-top:14px;">
+          <a href="${dashboardUrl}" style="display:inline-block;background:#8b5cf6;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">📊 Mon Tableau de Bord</a>
+        </div>
+        <p style="color:#666;font-size:12px;text-align:center;margin:8px 0 0;">Connectez-vous pour voir votre compte à rebours, configurer votre appareil et passer premium</p>
+      </div>
+
+      <div style="text-align:center;margin-bottom:20px;">
+        <a href="${siteUrl}/#plans" style="display:inline-block;background:linear-gradient(135deg,#ff6b35,#ff2d92);color:#fff;padding:14px 40px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">🚀 Voir les Offres Premium</a>
+        <p style="color:#666;font-size:12px;margin-top:10px;">💳 Paiement 100% sécurisé • Support 24/7</p>
       </div>`;
-    const subject = tpl ? tpl.subject : `Your ${durationHours || 72}h ${siteName} trial is ready!`;
+
+    const subject = `🎬 ${siteName} — Votre essai gratuit ${durationHours || 24}h est actif !`;
     await t.sendMail({
-      from: `"${t.fromName}" <${t.fromEmail}>`,
+      from: `"${siteName}" <${t.fromEmail}>`,
       to: email,
       subject,
       html: renderTemplate(bodyHtml),

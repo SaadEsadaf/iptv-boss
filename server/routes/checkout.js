@@ -264,6 +264,17 @@ router.post('/api/trial/claim', async (req, res) => {
     orderResult.lastInsertRowid, orderResult.lastInsertRowid
   );
 
+  // Generate account password for the user
+  let accountPassword = null;
+  try {
+    const bcrypt = require('bcrypt');
+    accountPassword = Math.random().toString(36).slice(-8) + String(Math.floor(Math.random() * 100));
+    const passwordHash = await bcrypt.hash(accountPassword, 10);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, user.id);
+  } catch (e) {
+    console.error('Account password error:', e);
+  }
+
   try {
     await sendTrial({
       email,
@@ -272,6 +283,7 @@ router.post('/api/trial/claim', async (req, res) => {
       durationHours: trialCreds.duration_hours || 24,
       providerName: provider.name,
       planName: trialPlan.plan_name,
+      accountPassword,
     });
   } catch (e) {
     console.error('Trial email error:', e);
