@@ -25,6 +25,8 @@ async function queryPG(text, params) {
   }
 }
 
+const { getTopEvents: getTopEventsFn } = require('../services/eventMarketing');
+
 router.get('/events', async (req, res) => {
   try {
     const sports = await queryPG(`
@@ -87,6 +89,7 @@ router.get('/events', async (req, res) => {
       stats,
       provider: provider || { name: 'Atlas Pro IPTV', specialty: 'Sports & Entertainment' },
       planCount,
+      trending: getTopEventsFn(),
     })
   } catch (err) {
     console.error('Hero events error:', err.message)
@@ -96,6 +99,7 @@ router.get('/events', async (req, res) => {
       stats: { live: 34887, movies: 157, series: 144604, total: 179915 },
       provider: { name: 'Atlas Pro IPTV', specialty: 'Sports & Entertainment' },
       planCount: 4,
+      trending: getTopEventsFn(),
     })
   }
 })

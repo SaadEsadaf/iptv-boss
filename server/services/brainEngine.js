@@ -157,7 +157,7 @@ async function brainCycle() {
     "INSERT INTO admin_notifications (type, title, message, related_id) VALUES (?, ?, ?, ?)"
   );
   const insertDecision = db.prepare(`
-    INSERT INTO brain_decisions (type, context, decision, confidence, outcome, executed, created_at)
+    INSERT INTO brain_decisions (decision_type, params, reasoning, confidence, outcome_score, executed, created_at)
     VALUES (?, ?, ?, ?, 0, 0, datetime('now'))
   `);
 
@@ -173,14 +173,14 @@ async function brainCycle() {
 
   for (const decision of decisions) {
     const ctx = JSON.stringify({ metrics_snapshot: { orders: metrics.orders.last24h, conversion: metrics.conversion, leads: metrics.leads.last24h } });
-    insertDecision.run(decision.type, ctx, `${decision.title}: ${decision.message}`, decision.confidence);
+    insertDecision.run(decision.type, JSON.stringify(decision), `${decision.title}: ${decision.message}`, decision.confidence);
   }
 
   // 5. Save metrics snapshot to brain_memory for trend analysis
   const snapshotKey = `funnel_${new Date().toISOString().slice(0, 13)}`; // hourly
   db.prepare(`
-    INSERT OR REPLACE INTO brain_memory (type, key, outcome, feedback, confidence, triggers, created_at)
-    VALUES ('snapshot', ?, ?, '{}', 0.5, '["brain_cycle"]', datetime('now'))
+    INSERT OR REPLACE INTO brain_memory (memory_type, context, action_taken, outcome, score, tags, created_at)
+    VALUES ('snapshot', ?, 'brain_cycle_snapshot', ?, 0.5, '["brain_cycle"]', datetime('now'))
   `).run(snapshotKey, JSON.stringify({
     trials_claimed: metrics.conversion.trials_claimed,
     trial_to_paid_pct: metrics.conversion.trial_to_paid_pct,
@@ -191,7 +191,22 @@ async function brainCycle() {
     pending: metrics.orders.byStatus?.pending || 0,
   }));
 
-  // 6. Log the cycle
+  // 6. Run event marketing campaign (every 6h)
+  let eventCampaign = null;
+  try {
+    const hour = new Date().getHours();
+    if (hour % 6 === 0) { // Run every 6 hours
+      const { sendEventCampaign, getTopEvents } = require('./eventMarketing');
+      eventCampaign = await sendEventCampaign();
+      if (eventCampaign.sent > 0) {
+        db.prepare("INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)").run('Brain', 'event_campaign', `Event campaign: ${eventCampaign.sent} emails sent for ${eventCampaign.event}`);
+      }
+    }
+  } catch (e) {
+    console.error('Event campaign error:', e.message);
+  }
+
+  // 7. Log the cycle
   const elapsed = Date.now() - startTime;
   db.prepare(
     "INSERT INTO sales_engine_log (action, lead_email, sequence_type, details, lead_id) VALUES (?, ?, ?, ?, ?)"
