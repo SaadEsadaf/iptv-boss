@@ -111,13 +111,8 @@ function parseCodes(input) {
       return { code: line.trim() };
     }
 
-    // Fallback: username line (might be an email or user)
-    if (line.includes('@') || line.includes('.')) {
-      return { username: line.trim(), code: line.trim() };
-    }
-
-    // Last resort: treat as code
-    return { code: line.trim() };
+    // Fallback: treat EVERYTHING as a code — panels export codes as-is
+    return { code: line.trim().replace(/^["'\s]+|["'\s]+$/g, ''), username: null, password: null, server_url: null };
   });
 }
 

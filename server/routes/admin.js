@@ -409,18 +409,28 @@ router.post('/codes/import', authMiddleware, (req, res) => {
   if (!provider_id || !plan_id || !input) return res.status(400).json({ error: 'provider_id, plan_id, and codes are required' });
   const db = getDb();
   const { analyzeImport, parseCodes } = require('../utils/codeParser');
-  const analysis = analyzeImport(input);
+
+  // Check if plan is a trial type
+  let isTrialPlan = is_trial;
+  if (!isTrialPlan) {
+    const plan = db.prepare("SELECT plan_type FROM provider_plans WHERE id = ?").get(plan_id);
+    isTrialPlan = plan?.plan_type === 'trial';
+  }
+
+  // Clean and normalize input — codes from panels often have whitespace/line breaks
+  const cleaned = input.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const analysis = analyzeImport(cleaned);
   const parsed = analysis.parsed;
   if (parsed.length === 0) return res.status(400).json({ error: 'No valid codes found' });
 
-  if (is_trial) {
+  if (isTrialPlan) {
     // Import as trial codes
     const insertTrial = db.prepare(
       'INSERT INTO trial_codes (provider_id, code, username, password, server_url, duration_hours, expires_at, status) VALUES (?, ?, ?, ?, ?, 24, datetime(\'now\', \'+24 hours\'), \'available\')'
     );
     const insertMany = db.transaction(() => {
       for (const c of parsed) {
-        insertTrial.run(provider_id, c.code || null, c.username || null, c.password || null, c.server_url || null);
+        insertTrial.run(provider_id, c.code || c.username || c.password || null, c.username || null, c.password || null, c.server_url || null);
       }
     });
     insertMany();
@@ -433,7 +443,7 @@ router.post('/codes/import', authMiddleware, (req, res) => {
     const batchId = db.prepare('INSERT INTO code_batches (provider_id, plan_id, batch_name, total_codes, import_type, notes) VALUES (?, ?, ?, ?, ?, ?)').run(provider_id, plan_id, batch_name || null, parsed.length, 'paste', notes || null).lastInsertRowid;
     const insertMany = db.transaction(() => {
       for (const c of parsed) {
-        insert.run(provider_id, plan_id, c.code || null, c.username || null, c.password || null, c.server_url || null, c.mac_address || null, c.expires_at || null, c.notes || null, batchId);
+        insert.run(provider_id, plan_id, c.code || c.username || null, c.username || null, c.password || null, c.server_url || null, c.mac_address || null, c.expires_at || null, c.notes || null, batchId);
       }
     });
     insertMany();
