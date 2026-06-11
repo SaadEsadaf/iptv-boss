@@ -290,7 +290,7 @@ export default function LuxStreamLanding() {
     }
     fetch('/api/hero/events').then(r => r.json()).then(setEvents).catch(() => {})
     api.get('/plans').then(r => {
-      const all = r.data.filter(p => p.plan_type !== 'trial')
+      const all = r.data
       const used = new Set()
       const deduped = []
       for (const p of all) {

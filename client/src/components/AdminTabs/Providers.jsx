@@ -142,6 +142,20 @@ export default function Providers() {
     }).catch(() => {}).finally(() => setLoading(false))
   }
 
+  function testCredentials(id) {
+    const p = providers.find(x => x.id === id)
+    if (!p || !p.panel_url || !p.panel_username || !p.panel_password) return alert('Provider has no panel credentials configured')
+    setLoading(true)
+    api.post('/admin/providers/test-credentials', { panelUrl: p.panel_url, username: p.panel_username, password: p.panel_password }).then(r => {
+      const d = r.data
+      if (d.valid) {
+        alert(`✅ Credentials VALID\nStatus: ${d.status}\nExpires: ${d.expiresAt ? new Date(d.expiresAt).toLocaleDateString() : 'N/A'}\nMax Connections: ${d.maxConnections}\nTrial: ${d.isTrial ? 'Yes' : 'No'}`)
+      } else {
+        alert(`❌ Credentials INVALID\nStatus: ${d.status}\nError: ${d.error || 'Unknown'}`)
+      }
+    }).catch(e => alert('Test failed: ' + (e.response?.data?.error || e.message))).finally(() => setLoading(false))
+  }
+
   function provisionProvider(id) {
     if (!confirm('Run auto-provision? This will sync codes, parse M3U, create plans, and build pages.')) return
     setLoading(true)

@@ -309,6 +309,20 @@ router.get('/providers/:id/stats', authMiddleware, (req, res) => {
   res.json({ ...provider, plans });
 });
 
+// Get all plans (for dropdowns)
+router.get('/plans', authMiddleware, (req, res) => {
+  const db = getDb();
+  const wid = websiteId(req);
+  const plans = db.prepare(`
+    SELECT pp.*, pc.name as provider_name
+    FROM provider_plans pp
+    JOIN providers_catalog pc ON pp.provider_id = pc.id
+    WHERE pp.website_id = ? OR pc.website_id = ?
+    ORDER BY pc.name, pp.price_sell
+  `).all(wid, wid);
+  res.json(plans);
+});
+
 router.get('/providers/:id/plans', authMiddleware, (req, res) => {
   const db = getDb();
   const plans = db.prepare(`

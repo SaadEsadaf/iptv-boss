@@ -191,7 +191,7 @@ export default function LandingPage() {
   useEffect(() => {
     fetch('/api/hero/events').then(r => r.json()).then(setEvents).catch(() => {})
     api.get('/plans').then(r => {
-      const all = r.data.filter(p => p.plan_type !== 'trial')
+      const all = r.data
       const used = new Set()
       const deduped = []
       for (const p of all) {
@@ -537,8 +537,9 @@ export default function LandingPage() {
           <div style={{ marginBottom: 40 }}></div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
-            {plans.filter(p => p.plan_type !== 'trial').slice(0, 6).map((plan, i) => {
-              const isMiddle = plans.filter(p => p.plan_type !== 'trial').length > 2 && i === Math.floor(plans.filter(p => p.plan_type !== 'trial').length / 2)
+            {plans.slice(0, 6).map((plan, i) => {
+              const nonTrials = plans.filter(p => p.plan_type !== 'trial')
+              const isMiddle = nonTrials.length > 2 && i === Math.floor(nonTrials.length / 2)
               return (
                 <FadeSection key={plan.id}>
                   <div style={{

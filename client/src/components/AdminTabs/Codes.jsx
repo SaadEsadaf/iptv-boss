@@ -89,19 +89,18 @@ export default function Codes() {
     api.delete(`/admin/codes/${id}`).then(load)
   }
 
-  const filteredPlans = plans.filter(p => !filters.provider_id || String(p.provider_id) === filters.provider_id)
   const statusColors = { available: '#00cc66', used: '#ffaa00', expired: '#ff4444' }
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <select value={filters.provider_id} onChange={e => { setFilters(f => ({ ...f, provider_id: e.target.value, plan_id: '' })); setPlans([]) }} style={selectStyle}>
+        <select value={filters.provider_id} onChange={e => setFilters(f => ({ ...f, provider_id: e.target.value, plan_id: '' }))} style={selectStyle}>
           <option value="">All Providers</option>
           {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         <select value={filters.plan_id} onChange={e => setFilters(f => ({ ...f, plan_id: e.target.value }))} style={selectStyle}>
           <option value="">All Plans</option>
-          {filteredPlans.map(p => <option key={p.id} value={p.id}>{p.plan_name}</option>)}
+          {plans.filter(p => !filters.provider_id || String(p.provider_id) === filters.provider_id).map(p => <option key={p.id} value={p.id}>{p.plan_name}</option>)}
         </select>
         <select value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} style={selectStyle}>
           <option value="">All Status</option>
