@@ -307,8 +307,9 @@ export default function Providers() {
                   <div key={pl.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f0f0f', borderRadius: 8, padding: '8px 12px', marginBottom: 4, fontSize: 12 }}>
                     <div style={{ flex: 1 }}>
                       <span style={{ color: '#fff', fontWeight: 600 }}>{pl.plan_name}</span>
-                      <span style={{ color: '#888', marginLeft: 8 }}>{pl.duration_months || Math.round((pl.duration_days || 30)/30)}mo</span>
-                      <span style={{ color: '#00d4ff', marginLeft: 8 }}>${pl.price_sell}</span>
+                      {pl.duration_months ? <span style={{ color: '#888', marginLeft: 8 }}>{pl.duration_months}mois</span> : <span style={{ color: '#888', marginLeft: 8 }}>{pl.duration_days || 30}j</span>}
+                      <span style={{ color: '#00d4ff', marginLeft: 8, fontWeight: 700 }}>{pl.price_sell}€</span>
+                      <span style={{ color: '#555', marginLeft: 4, fontSize: 10 }}>unique</span>
                       {!pl.active && <span style={{ color: '#ff4444', marginLeft: 6, fontSize: 10 }}>INACTIF</span>}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
