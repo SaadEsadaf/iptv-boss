@@ -377,6 +377,11 @@ export default function LuxStreamLanding() {
         .fade-up.visible { opacity: 1; transform: translateY(0); }
         @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px #ff6b3522; } 50% { box-shadow: 0 0 40px #ff6b3544; } }
         @keyframes grid-drift { 0% { transform: translate(0,0); } 100% { transform: translate(80px,80px); } }
+        @keyframes channelScroll { 0% { transform: translateY(0); } 25% { transform: translateY(-64px); } 50% { transform: translateY(-128px); } 75% { transform: translateY(-64px); } 100% { transform: translateY(0); } }
+        @keyframes remotePress { 0%,100% { transform: translateY(0); } 12.5%,37.5%,62.5%,87.5% { transform: translateY(2px) scale(0.95); } }
+        @keyframes screenGlow { 0%,100% { box-shadow: 0 0 30px #ff6b3522, inset 0 0 60px #00000080; } 50% { box-shadow: 0 0 50px #ff6b3544, inset 0 0 60px #00000080; } }
+        @keyframes liveDot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes handHold { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
         @keyframes orb-float { 0%,100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, -20px) scale(1.05); } }
         @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         @keyframes banner-slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -476,55 +481,171 @@ export default function LuxStreamLanding() {
       </nav>
 
       {/* Hero Section */}
-      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden', padding: '60px 24px' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', padding: '60px 24px' }}>
         <div style={{ position: 'absolute', inset: 0, background: "radial-gradient(ellipse at 20% 50%, #ff6b3520 0%, transparent 50%), radial-gradient(ellipse at 80% 50%, #ff2d9220 0%, transparent 50%), radial-gradient(ellipse at 50% 0%, #ff6b3510 0%, transparent 40%)", zIndex: 0 }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(#ff6b3515 1px, transparent 1px)', backgroundSize: '40px 40px', zIndex: 0, maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)' }} />
-        
-        {/* Floating orbs */}
         <div style={{ position: 'absolute', top: '20%', left: '15%', width: 200, height: 200, background: 'radial-gradient(circle, #ff6b3525, transparent 70%)', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} className="hero-orb" />
         <div style={{ position: 'absolute', bottom: '20%', right: '15%', width: 250, height: 250, background: 'radial-gradient(circle, #ff2d9225, transparent 70%)', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} className="hero-orb" />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 950 }}>
-          <div style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 20, background: 'linear-gradient(135deg, #ff6b3520, #ff2d9220)', border: '1px solid #ff6b3544', color: '#ff6b35', fontSize: 13, fontWeight: 700, marginBottom: 28, letterSpacing: '1px' }}>{t('badge')}</div>
-          
-          <h1 style={{ fontSize: 'clamp(2.8rem, 6vw, 5.5rem)', fontWeight: 900, lineHeight: 1.05, marginBottom: 24, background: 'linear-gradient(135deg, #fff 20%, #ff6b35 60%, #ff2d92 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            <span dangerouslySetInnerHTML={{ __html: t('heroTitle') }} />
-          </h1>
-          
-          <p style={{ fontSize: 'clamp(1rem, 1.8vw, 1.3rem)', color: '#8888aa', maxWidth: 680, margin: '0 auto 40px', lineHeight: 1.8 }}>
-            {t('heroDesc')}
-          </p>
-
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 50 }}>
-            <button onClick={() => document.querySelector('#plans')?.scrollIntoView({ behavior: 'smooth' })}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '14px 40px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', borderRadius: 50, fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 4px 30px #ff6b3544' }}
-              onMouseEnter={e => { e.target.style.transform = 'translateY(-3px) scale(1.02)'; e.target.style.boxShadow = '0 8px 40px #ff6b3566' }}
-              onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 4px 30px #ff6b3544' }}>
-              ▶ {t('watchNow')}
-            </button>
-            <button onClick={() => openTrialModal()}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 40px', background: 'transparent', color: '#fff', borderRadius: 50, fontWeight: 700, fontSize: 15, border: '1.5px solid #ffffff22', cursor: 'pointer', transition: 'all 0.3s' }}
-              onMouseEnter={e => { e.target.style.borderColor = '#ff6b3566'; e.target.style.color = '#ff6b35' }}
-              onMouseLeave={e => { e.target.style.borderColor = '#ffffff22'; e.target.style.color = '#fff' }}>
-              ✦ {t('freeTrial')}
-            </button>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 60, alignItems: 'center', maxWidth: 1300, margin: '0 auto', width: '100%', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ flex: '1 1 500px', maxWidth: 560 }}>
+            <div style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 20, background: 'linear-gradient(135deg, #ff6b3520, #ff2d9220)', border: '1px solid #ff6b3544', color: '#ff6b35', fontSize: 13, fontWeight: 700, marginBottom: 28, letterSpacing: '1px' }}>{t('badge')}</div>
+            <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 4rem)', fontWeight: 900, lineHeight: 1.05, marginBottom: 24, background: 'linear-gradient(135deg, #fff 20%, #ff6b35 60%, #ff2d92 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span dangerouslySetInnerHTML={{ __html: t('heroTitle') }} />
+            </h1>
+            <p style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.15rem)', color: '#8888aa', maxWidth: 520, lineHeight: 1.8, marginBottom: 32 }}>
+              {t('heroDesc')}
+            </p>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              <button onClick={() => document.querySelector('#plans')?.scrollIntoView({ behavior: 'smooth' })}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '13px 32px', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', borderRadius: 50, fontWeight: 800, fontSize: 14, border: 'none', cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 4px 30px #ff6b3544' }}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-3px) scale(1.02)'; e.target.style.boxShadow = '0 8px 40px #ff6b3566' }}
+                onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 4px 30px #ff6b3544' }}>
+                ▶ {t('watchNow')}
+              </button>
+              <button onClick={() => openTrialModal()}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 32px', background: 'transparent', color: '#fff', borderRadius: 50, fontWeight: 700, fontSize: 14, border: '1.5px solid #ffffff22', cursor: 'pointer', transition: 'all 0.3s' }}
+                onMouseEnter={e => { e.target.style.borderColor = '#ff6b3566'; e.target.style.color = '#ff6b35' }}
+                onMouseLeave={e => { e.target.style.borderColor = '#ffffff22'; e.target.style.color = '#fff' }}>
+                ✦ {t('freeTrial')}
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 24, marginTop: 36 }}>
+              {[{ num: '25K+', lbl: t('channels'), color: '#ff6b35' }, { num: '4K HDR', lbl: t('qualityLabel'), color: '#ff2d92' }, { num: '99.9%', lbl: t('uptime'), color: '#ff6b35' }].map(s => (
+                <div key={s.lbl}>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: s.color }}>{s.num}</div>
+                  <div style={{ fontSize: 12, color: '#6666aa', marginTop: 2 }}>{s.lbl}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Live stats */}
-          <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {[
-              { num: '25K+', lbl: t('channels'), icon: '📺', color: '#ff6b35' },
-              { num: '4K HDR', lbl: t('qualityLabel'), icon: '🎯', color: '#ff2d92' },
-              { num: '99.9%', lbl: t('uptime'), icon: '⚡', color: '#ff6b35' },
-              { num: '<5min', lbl: t('setupLabel'), icon: '🚀', color: '#ff2d92' },
-            ].map((s, i) => (
-              <div key={s.lbl} style={{ background: '#ffffff08', border: '1px solid #ffffff12', borderRadius: 14, padding: '16px 24px', textAlign: 'center', backdropFilter: 'blur(12px)', transition: 'all 0.3s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#ffffff12'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = '#ff6b3544' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#ffffff08'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = '#ffffff12' }}>
-                <div style={{ fontSize: 28, fontWeight: 900, color: s.color }}>{s.num}</div>
-                <div style={{ fontSize: 12, color: '#6666aa', marginTop: 4 }}>{s.lbl}</div>
+          <div style={{ flex: '0 0 auto', position: 'relative' }}>
+            <div style={{
+              width: 300, height: 520, borderRadius: 32,
+              background: '#111', border: '3px solid #333',
+              boxShadow: '0 20px 80px rgba(0,0,0,0.6), 0 0 60px #ff6b3515',
+              position: 'relative', overflow: 'hidden',
+              animation: 'screenGlow 10s ease-in-out infinite',
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 44, background: '#0a0a0a', zIndex: 10, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 8, borderBottom: '1px solid #222' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff6b35', animation: 'liveDot 1.5s infinite' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#ff6b35' }}>ATLAS PRO</span>
+                <span style={{ fontSize: 10, color: '#555', marginLeft: 'auto' }}>Live TV</span>
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {['●','●','●'].map((d,i) => <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: i === 0 ? '#ff4444' : i === 1 ? '#ffd700' : '#00cc66' }} />)}
+                </div>
               </div>
-            ))}
+              <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 48, background: '#0a0a0a', overflow: 'hidden' }}>
+                <div style={{ animation: 'channelScroll 10s ease-in-out infinite', position: 'absolute', left: 0, right: 0 }}>
+                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #1a3a1a, #0a1a0a)', borderBottom: '1px solid #222' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>⚽</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Sport+ HD</div>
+                        <div style={{ fontSize: 11, color: '#ff6b35', fontWeight: 600 }}>🔴 EN DIRECT</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', fontSize: 20, fontWeight: 900, color: '#ffd700' }}>3-1</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
+                      Coupe du Monde 2026 • France vs Brésil • Mi-temps
+                    </div>
+                    <div style={{ marginTop: 6, height: 3, background: '#222', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: '65%', height: '100%', background: '#ff6b35', borderRadius: 2, animation: 'pulse-soft 2s infinite' }} />
+                    </div>
+                  </div>
+                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #1a1a3a, #0a0a1a)', borderBottom: '1px solid #222' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #7b2dff, #ff2d92)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🎬</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Cinéma Première</div>
+                        <div style={{ fontSize: 11, color: '#7b2dff', fontWeight: 600 }}>🎥 4K UHD</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>2h14</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
+                      Mission Impossible 8 • Action • Tom Cruise
+                    </div>
+                    <div style={{ marginTop: 6, display: 'flex', gap: 4 }}>
+                      <span style={{ fontSize: 10, color: '#ffd700' }}>★★★★★</span>
+                      <span style={{ fontSize: 10, color: '#555' }}>4.9/5</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #1a3a2a, #0a1a10)', borderBottom: '1px solid #222' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00ff88, #00d4ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📺</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Séries VOD</div>
+                        <div style={{ fontSize: 11, color: '#00ff88', fontWeight: 600 }}>📱 À la demande</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>S3 E7</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
+                      Game of Thrones • Saison 3 • Le Trône de Fer
+                    </div>
+                    <div style={{ marginTop: 6, display: 'flex', gap: 4 }}>
+                      <span style={{ fontSize: 10, color: '#00d4ff' }}>▶ Reprendre</span>
+                      <span style={{ fontSize: 10, color: '#555', marginLeft: 8 }}>73%</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 128, padding: 16, background: 'linear-gradient(135deg, #3a1a1a, #1a0a0a)' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, #ff4444, #ff8800)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🏀</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>NBA Extra</div>
+                        <div style={{ fontSize: 11, color: '#ff4444', fontWeight: 600 }}>🔴 EN DIRECT</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', fontSize: 20, fontWeight: 900, color: '#ff8800' }}>112-98</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
+                      NBA Finals 2026 • Lakers vs Celtics • Q4
+                    </div>
+                    <div style={{ marginTop: 6, height: 3, background: '#222', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: '88%', height: '100%', background: '#ff4444', borderRadius: 2 }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 48, background: '#0a0a0a', zIndex: 10, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 4, borderTop: '1px solid #222', justifyContent: 'center' }}>
+                {['⬅','📺','🏠','⬆','➡'].map((icon,i) => (
+                  <div key={i} style={{ width: 32, height: 28, borderRadius: 4, background: '#1a1a1a', color: '#666', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a2a' }}>{icon}</div>
+                ))}
+                <div style={{ width: 44, height: 28, borderRadius: 6, background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', margin: '0 4px' }}>OK</div>
+                {['⬇','📋','🔙','📶'].map((icon,i) => (
+                  <div key={i} style={{ width: 32, height: 28, borderRadius: 4, background: '#1a1a1a', color: '#666', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a2a' }}>{icon}</div>
+                ))}
+              </div>
+              <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px)', pointerEvents: 'none', zIndex: 5 }} />
+            </div>
+            <div style={{
+              position: 'absolute', right: -80, top: '50%', transform: 'translateY(-50%)',
+              animation: 'handHold 3s ease-in-out infinite',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0,
+            }}>
+              <div style={{ fontSize: 48, lineHeight: 1, filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.4))' }}>🖐️</div>
+              <div style={{
+                width: 42, height: 130, borderRadius: 12, background: 'linear-gradient(180deg, #1a1a1a, #0d0d0d)',
+                border: '1px solid #333', boxShadow: '0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 #ffffff15',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', gap: 6,
+                animation: 'remotePress 10s ease-in-out infinite',
+              }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#ff4444', animation: 'liveDot 2s infinite', boxShadow: '0 0 8px #ff4444' }} />
+                <div style={{ width: 28, height: 4, borderRadius: 2, background: '#333' }} />
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', border: '1px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#888' }}>◉</div>
+                <div style={{ width: 28, height: 4, borderRadius: 2, background: '#333' }} />
+                <div style={{ width: 22, height: 10, borderRadius: 3, background: '#2a2a2a', border: '1px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: '#666' }}>CH</div>
+                <div style={{ width: 28, height: 4, borderRadius: 2, background: '#333' }} />
+                <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: '#fff', fontWeight: 700 }}>OK</div>
+                <div style={{ width: 28, height: 4, borderRadius: 2, background: '#333' }} />
+                <div style={{ fontSize: 8, color: '#555', letterSpacing: 1 }}>VOL</div>
+                <div style={{ width: 22, height: 10, borderRadius: 3, background: '#2a2a2a', border: '1px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 7, color: '#666' }}>＋</span>
+                </div>
+                <div style={{ width: 22, height: 10, borderRadius: 3, background: '#2a2a2a', border: '1px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 7, color: '#666' }}>－</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
