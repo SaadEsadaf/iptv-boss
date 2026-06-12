@@ -82,7 +82,7 @@ router.post('/', async (req, res) => {
     try {
       const fetch = (...args) => import('node-fetch').then(m => m.default(...args));
       const phone = '0031687402093';
-      const text = `📬 *New Ticket #${ref}*\nFrom: ${sanitize(name)} <${sanitize(email)}>\nSubject: ${sanitize(subject)}\n\n${sanitize(message).slice(0, 300)}`;
+      const text = `📬 *New Ticket #${ref}*\nFrom: ${sanitize(name)} <${sanitize(email)}>\nSubject: ${sanitize(subject)}\n\n${sanitize(message).slice(0, 200)}\n\n🔗 View: https://lab.jobtool.shop/#tickets?ticket=${ticketId}`;
       fetch(`https://wa.quadrate.live/send?phone=${phone}&text=${encodeURIComponent(text)}`).catch(() => {});
     } catch (e) {}
 
@@ -255,7 +255,7 @@ router.post('/:id/reply', async (req, res) => {
       } catch (e) {}
       try {
         const fetch = (...args) => import('node-fetch').then(m => m.default(...args));
-        fetch(`https://wa.quadrate.live/send?phone=0031687402093&text=${encodeURIComponent('📬 Reply on #' + ticket.ref_code + ': ' + message.slice(0, 200))}`).catch(() => {});
+        fetch(`https://wa.quadrate.live/send?phone=0031687402093&text=${encodeURIComponent('📬 Reply on #' + ticket.ref_code + ': ' + message.slice(0, 100) + '\n\n🔗 View: https://lab.jobtool.shop/#tickets?ticket=' + ticket.id)}`).catch(() => {});
       } catch (e) {}
     }
 
