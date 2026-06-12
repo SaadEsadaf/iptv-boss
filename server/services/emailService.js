@@ -280,4 +280,21 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
   }
 }
 
-module.exports = { sendPaymentLink, sendThankYou, sendCredentials, sendTrial, sendStockAlert, getTransporter };
+async function sendRaw({ to, subject, html }) {
+  try {
+    const t = getTransporter();
+    if (!t) return false;
+    await t.sendMail({
+      from: `"${t.fromName}" <${t.fromEmail}>`,
+      to,
+      subject,
+      html,
+    });
+    return true;
+  } catch (e) {
+    console.error('sendRaw error:', e);
+    return false;
+  }
+}
+
+module.exports = { sendPaymentLink, sendThankYou, sendCredentials, sendTrial, sendStockAlert, sendRaw, getTransporter };

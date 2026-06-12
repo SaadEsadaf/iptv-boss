@@ -91,6 +91,7 @@ app.use('/api/content', require('./routes/content'));
 app.use('/api/activation', require('./routes/activation'));
 app.use('/api/campaigns', require('./routes/campaigns'));
 app.use('/api/brain', require('./routes/brainBridge'));
+app.use('/api/tickets', require('./routes/tickets'));
 app.use(require('./routes/account'));
 app.use('/api/hero', require('./routes/hero'));
 app.use('/api/tracking', require('./routes/tracking'));
