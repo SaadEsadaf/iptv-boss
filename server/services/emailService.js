@@ -190,7 +190,19 @@ async function sendStockAlert({ providerName, planName, remaining, threshold }) 
   }
 }
 
-async function sendTrial({ email, name, credentials, durationHours, providerName, planName, accountPassword }) {
+const APP_SETUP = {
+  tivimate: { name: 'TiviMate', logo: '🔥', steps: '1. Installez TiviMate depuis le Google Play Store\n2. Ouvrez TiviMate → Paramètres → Playlist\n3. Choisissez "Xtream Codes API"\n4. Entrez les identifiants ci-dessus\n5. Validez et profitez !' },
+  smarters: { name: 'IPTV Smarters Pro', logo: '📡', steps: '1. Installez IPTV Smarters Pro\n2. Ouvrez l\'app → "Login with Xtream Codes API"\n3. Entrez les identifiants ci-dessus\n4. Choisissez votre nom de connexion\n5. Commencez à regarder !' },
+  gse: { name: 'GSE Smart IPTV', logo: '🍎', steps: '1. Installez GSE Smart IPTV depuis l\'App Store\n2. Ouvrez → Remote URLs\n3. Ajoutez le lien M3U ci-dessus\n4. Les chaînes apparaîtront dans votre liste' },
+  vlc: { name: 'VLC', logo: '📹', steps: '1. Installez VLC\n2. Ouvrez → Network Stream\n3. Collez le lien M3U ci-dessus\n4. Zappez entre les chaînes !' },
+  iptvx: { name: 'IPTVX', logo: '📱', steps: '1. Installez IPTVX depuis l\'App Store\n2. Ouvrez → Add Playlist → M3U URL\n3. Collez le lien M3U ci-dessus\n4. Profitez sur tous vos appareils Apple !' },
+  mag: { name: 'MAG Box', logo: '📦', steps: '1. Allez dans Paramètres → Serveurs → Portal URL\n2. Entrez l\'URL du Portail ci-dessus (en jaune)\n3. Redémarrez la box\n4. Les chaînes s\'afficheront au démarrage' },
+  formuler: { name: 'Formuler (MyTVOnline)', logo: '📺', steps: '1. Ouvrez l\'application MyTVOnline 2\n2. Appuyez sur le bouton MENU de la télécommande\n3. Allez dans Paramètres → Portail\n4. Entrez l\'URL du Portail ci-dessus (en jaune)\n5. Redémarrez l\'application' },
+  enigma: { name: 'Enigma2', logo: '🛜', steps: '1. Allez dans Menu → Plugins → TSpanel ou utilisez une connexion FTP\n2. Ouvrez le dossier /etc/enigma2/\n3. Ajoutez le lien M3U ci-dessus dans votre bouquets list\n4. Redémarrez E2 via Menu → Standby/ Restart\n5. Les chaînes apparaîtront dans votre bouquet utilisateur' },
+  default: { name: 'Votre appareil', logo: '📱', steps: '1. Téléchargez une application IPTV (TiviMate, IPTV Smarters, VLC)\n2. Choisissez "Xtream Codes API" ou "M3U URL"\n3. Entrez les identifiants ci-dessus ou utilisez le lien M3U\n4. Profitez de vos chaînes !' },
+};
+
+async function sendTrial({ email, name, credentials, durationHours, providerName, planName, accountPassword, preferredApp }) {
   try {
     const t = getTransporter();
     const { getDb } = require('../db');
@@ -199,9 +211,18 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
     const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
     const dashboardUrl = `${siteUrl}/dashboard`;
 
+    const portalApps = ['mag', 'formuler'];
+    const needsPortal = portalApps.includes(preferredApp);
+
     const m3uUrl = credentials.server_url
-      ? `${credentials.server_url}/get.php?username=${credentials.username}&password=${credentials.password}&type=m3u&#95;plus&output=ts`
+      ? `${credentials.server_url}/get.php?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}&type=m3u_plus&output=ts`
       : null;
+
+    const portalUrl = credentials.server_url
+      ? `${credentials.server_url}/c/`
+      : null;
+
+    const app = APP_SETUP[preferredApp] || APP_SETUP.default;
 
     const bodyHtml = `
       <div style="text-align:center;padding:20px 0;">
@@ -218,16 +239,22 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
 
       <div style="background:#0f0f0f;border-radius:12px;padding:20px;margin-bottom:20px;">
         <h3 style="color:#00d4ff;margin:0 0 12px;font-size:15px;">🔑 Identifiants IPTV</h3>
-        ${credentials.server_url ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Serveur</span><span style="color:#fff;font-family:monospace;">${credentials.server_url}</span></div>` : ''}
-        ${credentials.username ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Identifiant</span><span style="color:#fff;font-family:monospace;">${credentials.username}</span></div>` : ''}
-        ${credentials.password ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#fff;font-family:monospace;">${credentials.password}</span></div>` : ''}
-        ${m3uUrl ? `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Lien M3U</span><span style="color:#a0a0a0;font-size:11px;word-break:break-all;max-width:300px;text-align:right;">${m3uUrl}</span></div>` : ''}
+        ${credentials.server_url ? '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Serveur</span><span style="color:#fff;font-family:monospace;">' + credentials.server_url + '</span></div>' : ''}
+        ${credentials.username ? '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Identifiant</span><span style="color:#fff;font-family:monospace;">' + credentials.username + '</span></div>' : ''}
+        ${credentials.password ? '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#fff;font-family:monospace;">' + credentials.password + '</span></div>' : ''}
+        ${!needsPortal && m3uUrl ? '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Lien M3U</span><span style="color:#a0a0a0;font-size:11px;word-break:break-all;max-width:300px;text-align:right;">' + m3uUrl + '</span></div>' : ''}
+        ${needsPortal && portalUrl ? '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">URL Portail</span><span style="color:#ffd700;font-size:11px;word-break:break-all;max-width:300px;text-align:right;font-family:monospace;">' + portalUrl + '</span></div>' : ''}
+      </div>
+
+      <div style="background:#0f0f0f;border-radius:12px;padding:20px;margin-bottom:20px;">
+        <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:15px;">' + app.logo + ' ' + app.name + ' — Configuration</h3>
+        <pre style="color:#a0a0a0;font-size:12px;line-height:1.8;white-space:pre-wrap;font-family:monospace;margin:0;">${app.steps}</pre>
       </div>
 
       <div style="background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border:1px solid #8b5cf630;border-radius:12px;padding:20px;margin-bottom:20px;">
         <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:15px;">👤 Votre Compte</h3>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Email</span><span style="color:#fff;">${email}</span></div>
-        ${accountPassword ? `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#ffd700;font-family:monospace;">${accountPassword}</span></div>` : ''}
+        ${accountPassword ? '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#ffd700;font-family:monospace;">' + accountPassword + '</span></div>' : ''}
         <div style="text-align:center;margin-top:14px;">
           <a href="${dashboardUrl}" style="display:inline-block;background:#8b5cf6;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">📊 Mon Tableau de Bord</a>
         </div>

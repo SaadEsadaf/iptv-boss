@@ -33,7 +33,7 @@ class TrialEngine {
   }
 
   buildM3uUrl(username, password) {
-    return `${this.serverUrl}/get.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&type=m3u&output=ts`;
+    return `${this.serverUrl}/get.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&type=m3u_plus&output=ts`;
   }
 
   buildApiUrl(username, password) {
@@ -71,9 +71,27 @@ class TrialEngine {
     // Build credentials with actual username/password from the trial code
     const m3uUrl = this.buildM3uUrl(code.username, code.password);
     const apiUrl = this.buildApiUrl(code.username, code.password);
+
+    // Generate account password for dashboard
+    let accountPassword = null;
+    try {
+      const bcrypt = require('bcrypt');
+      accountPassword = Math.random().toString(36).slice(-8) + String(Math.floor(Math.random() * 100));
+      const passwordHash = await bcrypt.hash(accountPassword, 10);
+      let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      if (user) {
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, user.id);
+      } else {
+        db.prepare(
+          'INSERT INTO users (name, email, provider, website_id, password_hash) VALUES (?, ?, ?, ?, ?)'
+        ).run(name || email.split('@')[0], email, 'email', 1, passwordHash);
+      }
+    } catch (e) {
+      console.error('[TrialEngine] Account password error:', e);
+    }
     
     // Send welcome email
-    await this.sendTrialWelcome(email, name, code, m3uUrl);
+    await this.sendTrialWelcome(email, name, code, m3uUrl, data.preferredApp, accountPassword);
     
     return { 
       success: true, 
@@ -88,7 +106,7 @@ class TrialEngine {
   }
 
   // Send trial welcome email using DB templates
-  async sendTrialWelcome(email, name, code, m3uUrl) {
+  async sendTrialWelcome(email, name, code, m3uUrl, preferredApp, accountPassword) {
     try {
       await emailService.sendTrial({
         email,
@@ -101,6 +119,8 @@ class TrialEngine {
         durationHours: code.duration_hours || 24,
         providerName: 'Atlas',
         planName: 'Essai Gratuit',
+        preferredApp: preferredApp || '',
+        accountPassword,
       });
     } catch (e) {
       console.error('[TRIAL-ENGINE] Email failed:', e.message);

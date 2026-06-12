@@ -200,6 +200,10 @@ export default function ChatWidget({ onBuyPlan }) {
     { id: 'smarters', icon: '📱', name: 'IPTV Smarters', desc: 'Android / iOS' },
     { id: 'gse', icon: '🍎', name: 'GSE Smart IPTV', desc: 'iPhone / Apple TV' },
     { id: 'vlc', icon: '💻', name: 'VLC / M3U', desc: 'PC / Mac / Universal' },
+    { id: 'mag', icon: '📦', name: 'MAG Box', desc: 'Set-top box' },
+    { id: 'enigma', icon: '🛜', name: 'Enigma2', desc: 'Dreambox / VU+' },
+    { id: 'formuler', icon: '📺', name: 'Formuler', desc: 'MyTVOnline' },
+    { id: 'iptvx', icon: '📱', name: 'IPTVX', desc: 'iPhone / iPad' },
   ]
   const [trialProviders, setTrialProviders] = useState([])
   const [trialSubmitting, setTrialSubmitting] = useState(false)

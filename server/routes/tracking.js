@@ -75,7 +75,7 @@ router.get('/stats/:campaign', (req, res) => {
 router.post('/activate-trial', async (req, res) => {
   try {
     const db = getDb();
-    const { name, email, code, source } = req.body;
+    const { name, email, code, source, preferred_app } = req.body;
 
     if (!email || !code) {
       return res.status(400).json({ success: false, error: 'Email and code required' });
@@ -84,6 +84,11 @@ router.post('/activate-trial', async (req, res) => {
     const trialCode = db.prepare("SELECT * FROM trial_codes WHERE code = ? AND status = 'available'").get(code);
     if (!trialCode) {
       return res.json({ success: false, error: 'This code is no longer available. All 9 trials have been claimed.' });
+    }
+
+    // Save preferred app
+    if (preferred_app) {
+      db.prepare("UPDATE trial_codes SET preferred_app = ? WHERE id = ?").run(preferred_app, trialCode.id);
     }
 
     const expiresAt = new Date(Date.now() + (trialCode.duration_hours || 72) * 60 * 60 * 1000).toISOString();
@@ -115,13 +120,57 @@ router.post('/activate-trial', async (req, res) => {
       .run(name || '', email, trialCode.provider_id, 13, trialCode.id);
 
     const serverUrl = trialCode.server_url || 'http://dalletek.live:80';
+    const m3uUrl = serverUrl + '/get.php?username=' + encodeURIComponent(trialCode.username) + '&password=' + encodeURIComponent(trialCode.password) + '&type=m3u_plus&output=ts';
+
+    // Generate account password for dashboard login
+    let accountPassword = null;
+    try {
+      const bcrypt = require('bcrypt');
+      accountPassword = Math.random().toString(36).slice(-8) + String(Math.floor(Math.random() * 100));
+      const db = getDb();
+      let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      if (user) {
+        const passwordHash = await bcrypt.hash(accountPassword, 10);
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, user.id);
+      } else {
+        const userResult = db.prepare(
+          'INSERT INTO users (name, email, provider, preferred_app, website_id) VALUES (?, ?, ?, ?, ?)'
+        ).run(name || email.split('@')[0], email, 'email', preferred_app || 'tivimate', 1);
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(userResult.lastInsertRowid);
+        const passwordHash = await bcrypt.hash(accountPassword, 10);
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, user.id);
+      }
+    } catch (e) {
+      console.error('[Tracking] Account password error:', e);
+    }
+
+    // Send welcome email with credentials via emailService
+    try {
+      const emailService = require('../services/emailService');
+      await emailService.sendTrial({
+        email,
+        name: name || 'Client',
+        credentials: {
+          username: trialCode.username,
+          password: trialCode.password,
+          server_url: serverUrl,
+        },
+        durationHours: trialCode.duration_hours || 72,
+        providerName: 'Atlas',
+        planName: 'Essai Gratuit',
+        preferredApp: preferred_app || '',
+        accountPassword,
+      });
+    } catch (emailErr) {
+      console.error('[Trial] Welcome email failed:', emailErr.message);
+    }
 
     res.json({
       success: true,
       username: trialCode.username,
       password: trialCode.password,
       server_url: serverUrl,
-      m3u_url: serverUrl + '/get.php?username=' + encodeURIComponent(trialCode.username) + '&password=' + encodeURIComponent(trialCode.password) + '&type=m3u_plus&output=ts',
+      m3u_url: m3uUrl,
       expires: expiresAt,
       code: trialCode.code,
     });

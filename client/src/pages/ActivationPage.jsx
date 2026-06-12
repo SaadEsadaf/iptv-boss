@@ -32,6 +32,7 @@ const FR = {
     mag: 'Paramètres → Portail → Entrez l\'URL du portail → Redémarrez',
     gse: 'GSE → Remote Playlists → Add M3U URL → Collez l\'URL',
     smarttv: 'Installez IPTV Smarters depuis l\'App Store → Entrez vos identifiants',
+    enigma: 'FTP → /etc/enigma2/ → Ajoutez le M3U au bouquet → Redémarrez E2',
   },
 }
 

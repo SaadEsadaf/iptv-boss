@@ -95,6 +95,21 @@ body{background:#0a0a1a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
       <input type="email" id="email" placeholder="Enter your email" value="${email}">
       <div class="error" id="emailError">Please enter a valid email</div>
     </div>
+    <div class="form-group">
+      <label>Your Device / App</label>
+      <select id="preferredApp" style="width:100%;padding:12px 16px;background:#0f0f0f;border:1px solid #333;border-radius:8px;color:#fff;font-size:14px;outline:none;">
+        <option value="">Select your device...</option>
+        <option value="tivimate">🔥 TiviMate (Firestick / Android TV)</option>
+        <option value="smarters">📡 IPTV Smarters Pro (Android / iOS)</option>
+        <option value="gse">🍎 GSE Smart IPTV (iPhone / Apple TV)</option>
+        <option value="vlc">📹 VLC (PC / Mac / Phone)</option>
+        <option value="iptvx">📱 IPTVX (iPhone / iPad)</option>
+        <option value="mag">📦 MAG Box (STB)</option>
+        <option value="formuler">📺 Formuler (MyTVOnline)</option>
+        <option value="enigma">🛜 Enigma2 (Dreambox / VU+)</option>
+      </select>
+      <div class="error" id="appError" style="display:none;">Please select your device</div>
+    </div>
     <div class="form-group" style="display:none;">
       <label>Trial Code</label>
       <input type="text" id="code" value="${code}">
@@ -136,9 +151,11 @@ async function claimTrial() {
   const name = document.getElementById('name').value.trim();
   const email = document.getElementById('email').value.trim();
   const code = document.getElementById('code').value.trim() || prefilledCode;
+  const preferredApp = document.getElementById('preferredApp').value;
   const btn = document.getElementById('claimBtn');
   const spinner = document.getElementById('spinner');
   const emailError = document.getElementById('emailError');
+  const appError = document.getElementById('appError');
   const form = document.getElementById('claimForm');
   const successBox = document.getElementById('successBox');
   const errorBox = document.getElementById('errorBox');
@@ -149,15 +166,21 @@ async function claimTrial() {
   }
   emailError.style.display = 'none';
 
+  if (!preferredApp) {
+    appError.style.display = 'block';
+    return;
+  }
+  appError.style.display = 'none';
+
   btn.disabled = true;
   btn.textContent = 'Processing...';
   spinner.style.display = 'block';
 
   try {
-    const resp = await fetch('/api/activate-trial', {
+    const resp = await fetch('/api/tracking/activate-trial', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, code, source: 'worldcup_landing' }),
+      body: JSON.stringify({ name, email, code, preferredApp, source: 'worldcup_landing' }),
     });
     const data = await resp.json();
 
@@ -170,6 +193,7 @@ async function claimTrial() {
       if (data.username) html += '<div class="row"><span class="label">Username</span><span class="value">' + data.username + '</span></div>';
       if (data.password) html += '<div class="row"><span class="label">Password</span><span class="value">' + data.password + '</span></div>';
       if (data.server_url) html += '<div class="row"><span class="label">Server</span><span class="value" style="font-size:11px;">' + data.server_url + '</span></div>';
+      if (data.m3u_url) html += '<div class="row"><span class="label">M3U URL</span><span class="value" style="font-size:10px;word-break:break-all;max-width:300px;text-align:right;">' + data.m3u_url + '</span></div>';
       document.getElementById('credsBox').innerHTML = html;
     } else {
       errorBox.textContent = data.error || 'Failed to activate trial. Code may be expired.';

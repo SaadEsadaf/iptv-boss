@@ -267,7 +267,18 @@ export default function LuxStreamLanding() {
   const [settings, setSettings] = useState(null)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [showTrialModal, setShowTrialModal] = useState(false)
-  const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '' })
+  const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '', preferredApp: 'tivimate' })
+
+  const APPS_LIST = [
+    { id: 'tivimate', icon: '🔥', name: 'TiviMate', desc: 'Firestick / Android TV' },
+    { id: 'smarters', icon: '📱', name: 'IPTV Smarters', desc: 'Android / iOS' },
+    { id: 'gse', icon: '🍎', name: 'GSE Smart IPTV', desc: 'iPhone / Apple TV' },
+    { id: 'vlc', icon: '💻', name: 'VLC / M3U', desc: 'PC / Mac / Universal' },
+    { id: 'mag', icon: '📦', name: 'MAG Box', desc: 'Set-top box' },
+    { id: 'enigma', icon: '🛜', name: 'Enigma2', desc: 'Dreambox / VU+' },
+    { id: 'formuler', icon: '📺', name: 'Formuler', desc: 'MyTVOnline' },
+    { id: 'iptvx', icon: '📱', name: 'IPTVX', desc: 'iPhone / iPad' },
+  ]
   const [trialProviders, setTrialProviders] = useState([])
   const [trialSubmitting, setTrialSubmitting] = useState(false)
   const [trialSuccess, setTrialSuccess] = useState(null)
@@ -328,20 +339,20 @@ export default function LuxStreamLanding() {
   function openTrialModal() {
     setShowTrialModal(true)
     setTrialSuccess(null)
-    setTrialForm({ name: '', email: '', phone: '', providerId: '' })
+    setTrialForm({ name: '', email: '', phone: '', providerId: '', preferredApp: 'tivimate' })
     fetch('/api/providers/active').then(r => r.json()).then(setTrialProviders).catch(() => {})
   }
 
   async function handleTrialSubmit(e) {
     e.preventDefault()
-    const { name, email, phone, providerId } = trialForm
+    const { name, email, phone, providerId, preferredApp } = trialForm
     if (!email || !providerId) return
     setTrialSubmitting(true)
     try {
       const res = await fetch('/api/trial/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), sessionId: getSessionId() }),
+        body: JSON.stringify({ name, email, phone, providerId: parseInt(providerId), preferredApp, sessionId: getSessionId() }),
       })
       const data = await res.json()
       if (data.success) {
@@ -971,6 +982,23 @@ export default function LuxStreamLanding() {
                     <label style={{ display: 'block', color: '#8888aa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('whatsappLabel')}</label>
                     <input value={trialForm.phone} onChange={e => setTrialForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('whatsappPlaceholder')}
                       style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ffffff15', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: '#8888aa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>📱 Your Device</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                      {APPS_LIST.map(a => (
+                        <button key={a.id} type="button" onClick={() => setTrialForm(f => ({ ...f, preferredApp: a.id }))} style={{
+                          padding: '8px', background: trialForm.preferredApp === a.id ? '#ff6b3520' : '#ffffff08',
+                          border: trialForm.preferredApp === a.id ? '1.5px solid #ff6b35' : '1px solid #ffffff15',
+                          borderRadius: 10, cursor: 'pointer', color: trialForm.preferredApp === a.id ? '#ff6b35' : '#8888aa',
+                          fontSize: 11, textAlign: 'center', transition: 'all 0.15s',
+                        }}>
+                          <div style={{ fontSize: 18 }}>{a.icon}</div>
+                          <div style={{ fontWeight: 700, marginTop: 2 }}>{a.name}</div>
+                          <div style={{ fontSize: 9, color: '#666' }}>{a.desc}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label style={{ display: 'block', color: '#ff6b35', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('providerLabel')}</label>

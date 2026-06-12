@@ -56,6 +56,30 @@ const FR = {
       { icon: '3', text: 'Collez le lien comme playlist M3U' },
       { icon: '4', text: 'C\'est fait ! Toutes les chaînes sont chargées' },
     ],
+    mag: [
+      { icon: '1', text: 'Allez dans Paramètres → Serveurs → Portail' },
+      { icon: '2', text: 'Entrez l\'URL du serveur ci-dessus + /c/' },
+      { icon: '3', text: 'Redémarrez la box MAG' },
+      { icon: '4', text: 'Les chaînes apparaîtront au démarrage' },
+    ],
+    enigma: [
+      { icon: '1', text: 'Connectez-vous en FTP à votre décodeur' },
+      { icon: '2', text: 'Allez dans /etc/enigma2/' },
+      { icon: '3', text: 'Ajoutez le lien M3U à votre bouquet' },
+      { icon: '4', text: 'Redémarrez Enigma2 (Menu → Restart)' },
+    ],
+    formuler: [
+      { icon: '1', text: 'Ouvrez MyTVOnline 2' },
+      { icon: '2', text: 'Appuyez sur MENU → Paramètres → Portail' },
+      { icon: '3', text: 'Entrez l\'URL du serveur comme URL du portail' },
+      { icon: '4', text: 'Redémarrez l\'application' },
+    ],
+    iptvx: [
+      { icon: '1', text: 'Téléchargez IPTVX depuis l\'App Store' },
+      { icon: '2', text: 'Ouvrez → Add Playlist → M3U URL' },
+      { icon: '3', text: 'Collez le lien M3U ci-dessous' },
+      { icon: '4', text: 'Profitez sur tous vos appareils Apple' },
+    ],
   },
 }
 const t = (key) => {
@@ -73,6 +97,10 @@ const APPS = {
   gse: { name: 'GSE Smart IPTV', icon: '🍎', download: 'https://apps.apple.com/app/gse-smart-iptv/id1028734683', desc: 'iPhone & Apple TV' },
   vlc: { name: 'VLC Media Player', icon: '💻', download: 'https://www.videolan.org/vlc/', desc: 'PC & Mac' },
   m3u: { name: 'Lien M3U', icon: '🔗', download: null, desc: 'Universel' },
+  mag: { name: 'MAG Box', icon: '📦', download: null, desc: 'Set-top box' },
+  enigma: { name: 'Enigma2', icon: '🛜', download: null, desc: 'Dreambox / VU+' },
+  formuler: { name: 'Formuler', icon: '📺', download: null, desc: 'MyTVOnline' },
+  iptvx: { name: 'IPTVX', icon: '📱', download: 'https://apps.apple.com/app/iptvx/id1540252794', desc: 'iPhone / iPad' },
 }
 
 function getSetupSteps(app) {
@@ -110,6 +138,30 @@ function getSetupSteps(app) {
       { icon: '2', text: 'Open your IPTV player' },
       { icon: '3', text: 'Paste the link as M3U playlist' },
       { icon: '4', text: 'Done! All channels loaded' },
+    ],
+    mag: [
+      { icon: '1', text: 'Go to Settings → Servers → Portal' },
+      { icon: '2', text: 'Enter server URL above + /c/' },
+      { icon: '3', text: 'Restart your MAG box' },
+      { icon: '4', text: 'Channels appear on startup' },
+    ],
+    enigma: [
+      { icon: '1', text: 'Connect via FTP to your receiver' },
+      { icon: '2', text: 'Navigate to /etc/enigma2/' },
+      { icon: '3', text: 'Add the M3U link to your bouquets' },
+      { icon: '4', text: 'Restart Enigma2 (Menu → Restart)' },
+    ],
+    formuler: [
+      { icon: '1', text: 'Open MyTVOnline 2' },
+      { icon: '2', text: 'Press MENU → Settings → Portal' },
+      { icon: '3', text: 'Enter server URL as portal URL' },
+      { icon: '4', text: 'Restart the app' },
+    ],
+    iptvx: [
+      { icon: '1', text: 'Download IPTVX from App Store' },
+      { icon: '2', text: 'Open → Add Playlist → M3U URL' },
+      { icon: '3', text: 'Paste the M3U link below' },
+      { icon: '4', text: 'Enjoy on all your Apple devices' },
     ],
   }
   return EN[app] || []

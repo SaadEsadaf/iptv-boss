@@ -284,6 +284,7 @@ router.post('/api/trial/claim', async (req, res) => {
       providerName: provider.name,
       planName: trialPlan.plan_name,
       accountPassword,
+      preferredApp: app,
     });
   } catch (e) {
     console.error('Trial email error:', e);

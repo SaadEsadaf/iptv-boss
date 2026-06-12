@@ -154,6 +154,27 @@ router.get('/templates', authMiddleware, (req, res) => {
   res.json(templates)
 })
 
+router.post('/templates/upsert', (req, res) => {
+  try {
+    const db = getDb()
+    const { template_key, name, subject, body_html, variables } = req.body
+    if (!template_key) return res.status(400).json({ error: 'template_key required' })
+
+    const existing = db.prepare('SELECT id FROM email_templates WHERE template_key = ?').get(template_key)
+    if (existing) {
+      db.prepare('UPDATE email_templates SET name = ?, subject = ?, body_html = ?, variables = ?, updated_at = datetime("now") WHERE template_key = ?')
+        .run(name || template_key, subject || '', body_html || '', variables || '[]', template_key)
+      res.json({ updated: true, template_key })
+    } else {
+      db.prepare('INSERT INTO email_templates (template_key, name, subject, body_html, variables) VALUES (?, ?, ?, ?, ?)')
+        .run(template_key, name || template_key, subject || '', body_html || '', variables || '[]')
+      res.json({ created: true, template_key })
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
 router.post('/blast', authMiddleware, async (req, res) => {
   try {
     const db = getDb()
