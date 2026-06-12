@@ -73,6 +73,152 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/chat', require('./routes/chat'))
 app.use('/api/blog', require('./routes/blog'));
+
+// Public-facing blog pages with schema markup for SEO
+const { getPublishedPosts, getPost } = require('./services/blogGenerator');
+app.get('/blog', (req, res) => {
+  const posts = getPublishedPosts()
+  const siteUrl = 'https://dalletek.live'
+  res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blog IPTV — Guides, Comparatifs & Astuces 2026 | Dalletek</title>
+<meta name="description" content="Guide complet IPTV 2026: installation, configuration, comparatifs et astuces. Apprenez tout sur l'IPTV sur Firestick, Smart TV, Android et plus.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Blog IPTV — Guides et Astuces",
+  "description": "Articles et guides sur l'IPTV: installation, configuration, meilleurs services, applications.",
+  "url": "${siteUrl}/blog",
+  "about": { "@type": "Thing", "name": "IPTV" },
+  "blogPost": ${JSON.stringify(posts.map(p => ({
+    "@type": "BlogPosting",
+    "headline": p.title,
+    "url": `${siteUrl}/blog/${p.slug}`,
+    "datePublished": p.created_at,
+    "description": p.excerpt,
+    "inLanguage": p.language || 'fr'
+  })))}
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d0d;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7}
+.container{max-width:860px;margin:0 auto;padding:40px 20px}
+h1{font-size:32px;margin-bottom:8px;color:#ffd700}
+.sub{color:#888;margin-bottom:32px;font-size:15px}
+.post{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:24px;margin-bottom:16px;transition:border-color .2s}
+.post:hover{border-color:#ffd70044}
+.post h2{margin:0 0 6px;font-size:18px}
+.post h2 a{color:#fff;text-decoration:none}
+.post h2 a:hover{color:#ffd700}
+.post .meta{color:#666;font-size:12px;margin-bottom:8px}
+.post p{color:#999;font-size:14px}
+.post .tag{display:inline-block;background:#ffd70015;color:#ffd700;padding:2px 10px;border-radius:4px;font-size:11px;margin-top:8px}
+.footer{text-align:center;padding:40px 0;color:#444;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📺 Blog IPTV</h1>
+  <p class="sub">Guides, comparatifs et astuces pour profiter de l'IPTV en 2026</p>
+  ${posts.length === 0 ? '<p style="color:#555;">Aucun article publié pour le moment. Revenez bientôt!</p>' : posts.map(p => `
+  <div class="post">
+    <h2><a href="/blog/${p.slug}">${p.title}</a></h2>
+    <div class="meta">${new Date(p.created_at).toLocaleDateString('fr-FR')} · ${p.language === 'fr' ? 'Français' : p.language === 'en' ? 'English' : p.language}</div>
+    <p>${p.excerpt}</p>
+    ${(() => { try { const k = JSON.parse(p.keywords || '[]'); return Array.isArray(k) ? k.slice(0,3).map(kw => '<span class="tag">'+kw+'</span>').join(' ') : '' } catch{return ''} })()}
+  </div>`).join('')}
+  <div class="footer">Dalletek — <a href="/" style="color:#555;">Accueil</a></div>
+</div>
+</body>
+</html>`)
+})
+
+app.get('/blog/:slug', (req, res) => {
+  const post = getPost(req.params.slug)
+  if (!post) return res.status(404).send('<h1>Article non trouvé</h1>')
+  const siteUrl = 'https://dalletek.live'
+  const keywords = (() => { try { const k = JSON.parse(post.keywords || '[]'); return Array.isArray(k) ? k : [] } catch { return [] } })()
+  res.send(`<!DOCTYPE html>
+<html lang="${post.language || 'fr'}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${post.title} | Dalletek</title>
+<meta name="description" content="${(post.excerpt || '').replace(/"/g, '&quot;')}">
+<link rel="canonical" href="${siteUrl}/blog/${post.slug}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "${(post.title || '').replace(/"/g, '\\"')}",
+  "description": "${(post.excerpt || '').replace(/"/g, '\\"')}",
+  "url": "${siteUrl}/blog/${post.slug}",
+  "datePublished": "${post.created_at}",
+  "dateModified": "${post.updated_at || post.created_at}",
+  "inLanguage": "${post.language || 'fr'}",
+  "about": { "@type": "Thing", "name": "IPTV" },
+  "keywords": "${keywords.join(', ')}",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "${siteUrl}/blog/${post.slug}" },
+  "publisher": { "@type": "Organization", "name": "Dalletek", "url": "${siteUrl}" }
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d0d;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.8}
+.container{max-width:780px;margin:0 auto;padding:40px 20px}
+.article{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:32px}
+.article h1{font-size:28px;margin-bottom:8px;color:#ffd700}
+.article .meta{color:#666;font-size:13px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #2a2a2a}
+.article h2{color:#fff;font-size:20px;margin:28px 0 12px}
+.article h3{color:#ccc;font-size:16px;margin:20px 0 8px}
+.article p{margin-bottom:16px;color:#b0b0b0;font-size:15px}
+.article ul,.article ol{margin:0 0 16px 20px;color:#b0b0b0;font-size:15px}
+.article li{margin-bottom:6px}
+.article a{color:#ffd700;text-decoration:none}
+.article a:hover{text-decoration:underline}
+.article strong{color:#fff}
+.footer{text-align:center;padding:40px 0}
+.footer a{color:#555;font-size:13px;text-decoration:none}
+.footer a:hover{color:#ffd700}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="article">
+    <h1>${post.title}</h1>
+    <div class="meta">Publié le ${new Date(post.created_at).toLocaleDateString('fr-FR')} · ${post.language === 'fr' ? 'Français' : post.language === 'en' ? 'English' : post.language}</div>
+    ${post.content}
+  </div>
+  <div class="footer"><a href="/blog">← Retour au blog</a> · <a href="/">Accueil</a></div>
+</div>
+</body>
+</html>`)
+})
+
+// XML Sitemap
+app.get('/sitemap.xml', (req, res) => {
+  const db = getDb()
+  const siteUrl = 'https://dalletek.live'
+  const posts = getPublishedPosts()
+  const landingPages = db.prepare("SELECT slug, updated_at FROM landing_pages WHERE active = 1").all()
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+  xml += `  <url><loc>${siteUrl}/</loc><priority>1.0</priority></url>\n`
+  xml += `  <url><loc>${siteUrl}/trial</loc><priority>0.9</priority></url>\n`
+  xml += `  <url><loc>${siteUrl}/blog</loc><priority>0.8</priority></url>\n`
+  for (const p of posts) {
+    xml += `  <url><loc>${siteUrl}/blog/${p.slug}</loc><lastmod>${(p.updated_at || p.created_at || '').split('T')[0]}</lastmod><priority>0.7</priority></url>\n`
+  }
+  for (const lp of landingPages) {
+    xml += `  <url><loc>${siteUrl}/lp/${lp.slug}</loc><lastmod>${(lp.updated_at || '').split('T')[0]}</lastmod><priority>0.6</priority></url>\n`
+  }
+  xml += '</urlset>'
+  res.header('Content-Type', 'application/xml').send(xml)
+})
 app.use('/api/scraper', require('./routes/scraper'));
 app.use('/api/webhooks', require('./routes/webhooks'));
 app.use('/api/orders', require('./routes/orders'));
@@ -214,6 +360,24 @@ body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
 </html>`);
 });
 
+// Emergency restore file downloads (remove after downloaded)
+app.get('/restore-files/guide', (req, res) => {
+  res.download('/root/full-restore-guide.sh', 'full-restore-guide.sh')
+})
+app.get('/restore-files/backup', (req, res) => {
+  res.download('/var/backups/backup-20260612-122942.tar.gz', 'backup.tar.gz')
+})
+app.get('/restore-files', (req, res) => {
+  res.send(`
+    <h2>Emergency Restore Files</h2>
+    <ul>
+      <li><a href="/restore-files/guide">full-restore-guide.sh</a> (step-by-step recovery instructions)</li>
+      <li><a href="/restore-files/backup">backup.tar.gz</a> (DBs, .env, nginx configs, SSL, restore.sh)</li>
+    </ul>
+    <p>Download both, then follow the guide on a fresh server.</p>
+  `)
+})
+
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'Not found' });
@@ -260,3 +424,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Dalletek server running on port ${PORT}`);
 });
+
+

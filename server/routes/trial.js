@@ -16,6 +16,54 @@ router.get('/', (req, res) => {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🏆 World Cup 2026 — Free Trial | ${siteName}</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How can I watch the World Cup 2026 for free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Claim a free 72-hour IPTV trial at dalletek.live. You get access to all 64 World Cup matches in 4K with multi-language commentary. No credit card required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What devices are supported for IPTV streaming?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "IPTV works on Firestick, Android TV, iOS, iPhone, Smart TVs, MAG boxes, Formuler, and Enigma2 devices. Popular apps include TiviMate, IPTV Smarters Pro, GSE Smart IPTV, VLC, and IPTVX."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is IPTV legal in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "IPTV services themselves are legal. The legality depends on whether the content is properly licensed. Always choose a provider that offers licensed content."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many channels does a premium IPTV subscription include?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Premium IPTV services offer 179,915+ channels including international sports, movies, TV series, and VOD content in multiple languages."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need a VPN for IPTV?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A VPN is recommended for privacy and to prevent ISP throttling during streaming. Many IPTV users use VPNs to ensure smooth 4K streaming without buffering."
+      }
+    }
+  ]
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0a0a1a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh}
