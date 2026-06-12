@@ -157,6 +157,13 @@ export default function LandingPage() {
   const [subscriptions, setSubscriptions] = useState([])
   const [showAuth, setShowAuth] = useState(false)
   const [settings, setSettings] = useState(null)
+  const [selectedMonths, setSelectedMonths] = useState(12)
+
+  const nonTrialPlans = plans.filter(p => p.plan_type !== 'trial')
+
+  const selectedPlan = nonTrialPlans
+    .map(p => ({ ...p, _months: p.duration_months || Math.round((p.duration_days || 30) / 30) }))
+    .sort((a, b) => Math.abs(a._months - selectedMonths) - Math.abs(b._months - selectedMonths))[0]
 
   useEffect(() => {
     fetch('/api/checkout/settings').then(r => r.json()).then(setSettings).catch(() => {})
@@ -529,70 +536,123 @@ export default function LandingPage() {
       </section>
 
       <section id="plans" style={{ padding: '80px 24px', background: 'linear-gradient(180deg, #0a0a0a, #0f0f0f, #0a0a0a)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
           <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#00d4ff10', color: '#00d4ff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('pricing')}</span></div>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>{t('pricingTitle')}</h2>
+          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 800, textAlign: 'center', marginBottom: 8 }}>{t('pricingTitle')}</h2>
           <p style={{ textAlign: 'center', color: '#666', fontSize: 15, maxWidth: 600, margin: '0 auto 32px' }}>{t('pricingSub')}</p>
 
-          <div style={{ marginBottom: 40 }}></div>
+          <div id="duration-section" style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'inline-flex', background: '#0f0f0f', borderRadius: 60, padding: 5, border: '1px solid #1a1a1a', gap: 4 }}>
+              {[3, 6, 12].map(m => {
+                const isBest = m === 12
+                const p = nonTrialPlans.find(pl => (pl.duration_months || Math.round((pl.duration_days || 30) / 30)) === m)
+                return (
+                  <button key={m} onClick={() => setSelectedMonths(m)} style={{
+                    position: 'relative', padding: '12px 28px', borderRadius: 50, border: 'none',
+                    background: selectedMonths === m ? 'linear-gradient(135deg, #00d4ff, #0090ff)' : 'transparent',
+                    color: selectedMonths === m ? '#000' : '#888', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                    transition: 'all 0.3s', minWidth: 120,
+                  }}>
+                    {m} {lang === 'fr' ? 'mois' : 'mos'}
+                    {p && <div style={{ fontSize: 11, marginTop: 2, opacity: 0.7 }}>{lang === 'fr' ? '€' : '$'}{(p.price_sell / m).toFixed(2)}/{lang === 'fr' ? 'mois' : 'mo'}</div>}
+                    {isBest && <div style={{ position: 'absolute', top: -10, right: -8, background: '#ffd700', color: '#000', fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 10, whiteSpace: 'nowrap' }}>{lang === 'fr' ? 'Meilleure Offre' : 'Best Value'}</div>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
-            {plans.slice(0, 6).map((plan, i) => {
-              const nonTrials = plans.filter(p => p.plan_type !== 'trial')
-              const isMiddle = nonTrials.length > 2 && i === Math.floor(nonTrials.length / 2)
-              return (
-                <FadeSection key={plan.id}>
-                  <div style={{
-                    background: isMiddle ? 'linear-gradient(145deg, #00d4ff08, #00d4ff04)' : 'linear-gradient(145deg, #ffffff08, #ffffff04)',
-                    border: isMiddle ? '1px solid #00d4ff44' : '1px solid #ffffff15',
-                    borderRadius: 20, padding: '36px 28px', textAlign: 'center',
-                    transition: 'all 0.4s', position: 'relative',
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; if (!isMiddle) e.currentTarget.style.borderColor = '#ffffff25' }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = ''; if (!isMiddle) e.currentTarget.style.borderColor = '#ffffff15' }}>
-                    {isMiddle && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#00d4ff', color: '#000', padding: '4px 20px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>{t('mostPopular')}</div>}
-                    <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{plan.plan_name}</div>
-                    <div style={{ color: '#888', fontSize: 13, marginBottom: 20 }}>{plan.provider_name} — {plan.specialty || t('general')}</div>
-                    <div style={{ fontSize: 42, fontWeight: 800, color: '#fff' }}>
-                      {lang === 'fr' ? '€' : '$'}{getPlanPrice(plan)}
-                      <span style={{ fontSize: 16, color: '#666', fontWeight: 400 }}> {getPlanLabel(plan)}</span>
-                    </div>
-                    <ul style={{ listStyle: 'none', margin: '24px 0', padding: 0, textAlign: 'left' }}>
-                      <li style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {plan.channels?.toLocaleString() || '?'} {t('channelsLabel')}
-                      </li>
-                      <li style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {plan.streams} {plan.streams > 1 ? t('streams') : t('stream')}
-                      </li>
-                      <li style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {t('hd')}
-                      </li>
-                      <li style={{ padding: '10px 0', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#00d4ff', fontWeight: 700 }}>✓</span> {t('email')}
-                      </li>
-                    </ul>
-                    <button onClick={() => handleBuyNow(plan)}
-                      style={{
-                        display: 'block', width: '100%', padding: 14, borderRadius: 50, border: 'none', fontWeight: 700,
-                        fontSize: 15, cursor: 'pointer', transition: 'all 0.3s', marginTop: 16,
-                        background: isMiddle ? '#00d4ff' : 'transparent',
-                        color: isMiddle ? '#000' : '#fff',
-                        border: isMiddle ? 'none' : '1.5px solid #ffffff33',
-                      }}
-                      onMouseEnter={e => {
-                        if (isMiddle) { e.target.style.boxShadow = '0 4px 20px #00d4ff44'; e.target.style.transform = 'translateY(-2px)' }
-                        else { e.target.style.borderColor = '#00d4ff'; e.target.style.color = '#00d4ff' }
-                      }}
-                      onMouseLeave={e => {
-                        if (isMiddle) { e.target.style.boxShadow = ''; e.target.style.transform = '' }
-                        else { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }
-                      }}>
-                      {t('subscribe')}
-                    </button>
+          {selectedPlan && (
+            <FadeSection>
+              <div style={{
+                background: 'linear-gradient(145deg, #00d4ff08, #00d4ff04)',
+                border: '1.5px solid #00d4ff44', borderRadius: 24, padding: '40px 32px',
+                maxWidth: 520, margin: '0 auto', position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, background: 'radial-gradient(circle, #00d4ff10, transparent)', borderRadius: '50%' }} />
+                <div style={{ textAlign: 'center', position: 'relative' }}>
+                  <div style={{ fontSize: 13, color: '#00d4ff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+                    {selectedPlan.provider_name}
                   </div>
-                </FadeSection>
-              )
-            })}
+                  <div style={{ fontSize: 56, fontWeight: 900, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    {lang === 'fr' ? '€' : '$'}{getPlanPrice(selectedPlan)}
+                    <span style={{ fontSize: 16, color: '#666', fontWeight: 400 }}>{getPlanLabel(selectedPlan)}</span>
+                  </div>
+                  <div style={{ color: '#666', fontSize: 14, marginBottom: 24 }}>
+                    {lang === 'fr' ? 'Soit' : 'Only'} {lang === 'fr' ? '€' : '$'}{(selectedPlan.price_sell / selectedMonths).toFixed(2)}/{lang === 'fr' ? 'mois' : 'mo'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+                    {[
+                      { label: `${selectedPlan.channels?.toLocaleString() || '25K+'} ${t('channelsLabel')}`, color: '#00d4ff' },
+                      { label: `${selectedPlan.streams} ${selectedPlan.streams > 1 ? t('streams') : t('stream')}`, color: '#00d4ff' },
+                      { label: t('hd'), color: '#00d4ff' },
+                      { label: t('email'), color: '#00d4ff' },
+                    ].map((badge, i) => (
+                      <span key={i} style={{ background: '#00d4ff10', color: badge.color, padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, border: '1px solid #00d4ff20' }}>
+                        ✓ {badge.label}
+                      </span>
+                    ))}
+                  </div>
+                  <button onClick={() => handleBuyNow(selectedPlan)} style={{
+                    width: '100%', padding: '16px 32px', borderRadius: 50, border: 'none', fontWeight: 800,
+                    fontSize: 17, cursor: 'pointer', background: 'linear-gradient(135deg, #00d4ff, #0090ff)',
+                    color: '#000', boxShadow: '0 8px 30px rgba(0,212,255,0.3)', transition: 'all 0.3s',
+                  }}
+                    onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 12px 40px rgba(0,212,255,0.4)' }}
+                    onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 8px 30px rgba(0,212,255,0.3)' }}>
+                    🚀 {t('subscribe')}
+                  </button>
+                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#666', fontSize: 12 }}>
+                    <span>🔒 {lang === 'fr' ? 'Paiement sécurisé' : 'Secure payment'}</span>
+                    <span>•</span>
+                    <span style={{ color: '#00d4ff', cursor: 'pointer' }} onClick={() => window.__showTrialForm?.()}>{lang === 'fr' ? 'Essai Gratuit →' : 'Free Trial →'}</span>
+                  </div>
+                </div>
+              </div>
+            </FadeSection>
+          )}
+
+          {/* How it works steps */}
+          <div style={{ marginTop: 60 }}>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#8b5cf610', color: '#8b5cf6', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>{lang === 'fr' ? 'Comment ça marche' : 'How It Works'}</span>
+              <h3 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{lang === 'fr' ? 'De l\'achat à la lecture en 2 minutes' : 'From purchase to watching in 2 minutes'}</h3>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 0, flexWrap: 'wrap', position: 'relative' }}>
+              {[
+                { icon: '💳', title: lang === 'fr' ? 'Achat' : 'Purchase', desc: lang === 'fr' ? 'Choisissez votre offre et payez en sécurité' : 'Choose your plan & pay securely', color: '#00d4ff' },
+                { icon: '📥', title: lang === 'fr' ? 'Installation' : 'Install', desc: lang === 'fr' ? 'Téléchargez l\'app sur votre appareil' : 'Download the app on your device', color: '#8b5cf6' },
+                { icon: '🔑', title: lang === 'fr' ? 'Activation' : 'Activate', desc: lang === 'fr' ? 'Entrez vos identifiants reçus par email' : 'Enter credentials received by email', color: '#ff6b35' },
+                { icon: '📺', title: lang === 'fr' ? 'Lecture' : 'Watch', desc: lang === 'fr' ? 'Profitez de 25 000+ chaînes en 4K' : 'Enjoy 25,000+ channels in 4K', color: '#00cc66' },
+              ].map((step, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ textAlign: 'center', width: 160 }}>
+                    <div style={{ width: 72, height: 72, margin: '0 auto 12px', borderRadius: '50%', background: step.color + '15', border: '2px solid ' + step.color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, position: 'relative' }}>
+                      {step.icon}
+                      <div style={{ position: 'absolute', top: -4, right: -4, width: 22, height: 22, borderRadius: '50%', background: step.color, color: '#000', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</div>
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{step.title}</div>
+                    <div style={{ color: '#888', fontSize: 12, lineHeight: 1.4 }}>{step.desc}</div>
+                  </div>
+                  {i < 3 && <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg, ' + step.color + '60, transparent)', margin: '0 8px', alignSelf: 'center', marginTop: -36 }} />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trust badges */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 32, flexWrap: 'wrap' }}>
+            {[
+              { icon: '🔒', text: lang === 'fr' ? 'Paiement 100% sécurisé' : '100% Secure Payment' },
+              { icon: '💬', text: lang === 'fr' ? 'Support 24/7' : '24/7 Support' },
+              { icon: '✅', text: lang === 'fr' ? 'Activation instantanée' : 'Instant Activation' },
+              { icon: '🔄', text: lang === 'fr' ? 'Garantie 7 jours' : '7-Day Guarantee' },
+            ].map((badge, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#888', fontSize: 13 }}>
+                <span>{badge.icon}</span>
+                <span>{badge.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>

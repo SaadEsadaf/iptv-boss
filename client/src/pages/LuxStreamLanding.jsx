@@ -268,6 +268,13 @@ export default function LuxStreamLanding() {
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [showTrialModal, setShowTrialModal] = useState(false)
   const [trialForm, setTrialForm] = useState({ name: '', email: '', phone: '', providerId: '', preferredApp: 'tivimate' })
+  const [selectedMonths, setSelectedMonths] = useState(12)
+
+  const nonTrialPlans = plans.filter(p => p.plan_type !== 'trial')
+
+  const selectedPlan = nonTrialPlans
+    .map(p => ({ ...p, _months: p.duration_months || Math.round((p.duration_days || 30) / 30) }))
+    .sort((a, b) => Math.abs(a._months - selectedMonths) - Math.abs(b._months - selectedMonths))[0]
 
   const APPS_LIST = [
     { id: 'tivimate', icon: '🔥', name: 'TiviMate', desc: 'Firestick / Android TV' },
@@ -775,45 +782,125 @@ export default function LuxStreamLanding() {
 
       {/* Plans */}
       <section id="plans" style={{ padding: '80px 24px', background: 'linear-gradient(180deg, #0a0a15, #050510)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <span style={{ display: 'inline-block', padding: '4px 16px', borderRadius: 20, background: '#ff6b3515', color: '#ff6b35', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 12 }}>{t('pricing')}</span>
-            <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 900, marginBottom: 12 }}>{t('pricingTitle')}</h2>
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 900, marginBottom: 8 }}>{t('pricingTitle')}</h2>
             <p style={{ color: '#6666aa', fontSize: 15, maxWidth: 550, margin: '0 auto' }}>{t('pricingSub')}</p>
           </div>
 
-          <div style={{ marginBottom: 40 }}></div>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'inline-flex', background: '#0a0a15', borderRadius: 60, padding: 5, border: '1px solid #1a1a2e', gap: 4 }}>
+              {[3, 6, 12].map(m => {
+                const isBest = m === 12
+                const p = nonTrialPlans.find(pl => (pl.duration_months || Math.round((pl.duration_days || 30) / 30)) === m)
+                return (
+                  <button key={m} onClick={() => setSelectedMonths(m)} style={{
+                    position: 'relative', padding: '12px 28px', borderRadius: 50, border: 'none',
+                    background: selectedMonths === m ? 'linear-gradient(135deg, #ff6b35, #ff2d92)' : 'transparent',
+                    color: selectedMonths === m ? '#fff' : '#6666aa', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                    transition: 'all 0.3s', minWidth: 120,
+                  }}>
+                    {m} {lang === 'fr' ? 'mois' : 'mos'}
+                    {p && <div style={{ fontSize: 11, marginTop: 2, opacity: 0.7 }}>{lang === 'fr' ? '€' : '$'}{(p.price_sell / m).toFixed(2)}/{lang === 'fr' ? 'mois' : 'mo'}</div>}
+                    {isBest && <div style={{ position: 'absolute', top: -10, right: -8, background: '#ffd700', color: '#000', fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 10, whiteSpace: 'nowrap' }}>{lang === 'fr' ? 'Meilleure Offre' : 'Best Value'}</div>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
-            {plans.filter(p => p.plan_type !== 'trial').slice(0, 4).map((plan) => {
-              const isMiddle = plans.filter(p => p.plan_type !== 'trial').length > 2
-              return (
-                <FadeSection key={plan.id}>
-                  <div style={{ background: 'linear-gradient(145deg, #ffffff08, #ffffff04)', border: '1px solid #ffffff15', borderRadius: 24, padding: '36px 28px', textAlign: 'center', transition: 'all 0.4s', position: 'relative' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = '#ffffff25' }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = '#ffffff15' }}>
-                    <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 6, color: '#fff' }}>{plan.plan_name}</div>
-                    <div style={{ color: '#6666aa', fontSize: 13, marginBottom: 20 }}>{plan.provider_name}</div>
-                    <div style={{ fontSize: 44, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
-                      {lang === 'fr' ? '€' : '$'}{getPlanPrice(plan)}
-                      <span style={{ fontSize: 16, color: '#6666aa', fontWeight: 400 }}>{getPlanLabel(plan)}</span>
-                    </div>
-                    <ul style={{ listStyle: 'none', margin: '24px 0', padding: 0, textAlign: 'left' }}>
-                      {[{ label: `${plan.channels?.toLocaleString() || '?'} ${t('channels')}` }, { label: `${plan.streams} ${t('streams')}` }, { label: t('hd4k') }, { label: t('emailUs') }].map((item, i) => (
-                        <li key={i} style={{ padding: '10px 0', borderBottom: '1px solid #ffffff08', color: '#aaa', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ color: '#ff6b35', fontWeight: 700 }}>✓</span> {item.label}
-                        </li>
-                      ))}
-                    </ul>
-                    <button onClick={() => setCheckoutPlan(plan)} style={{ display: 'block', width: '100%', padding: 14, borderRadius: 50, fontWeight: 700, fontSize: 15, cursor: 'pointer', transition: 'all 0.3s', marginTop: 8, background: 'transparent', color: '#fff', border: '1.5px solid #ffffff33' }}
-                      onMouseEnter={e => { e.target.style.borderColor = '#ff6b35'; e.target.style.color = '#ff6b35' }}
-                      onMouseLeave={e => { e.target.style.borderColor = '#ffffff33'; e.target.style.color = '#fff' }}>
-                      {t('getStarted')}
-                    </button>
+          {selectedPlan && (
+            <FadeSection>
+              <div style={{
+                background: 'linear-gradient(145deg, #ffffff08, #ffffff04)',
+                border: '1.5px solid #ff6b3544', borderRadius: 24, padding: '40px 32px',
+                maxWidth: 520, margin: '0 auto', position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, background: 'radial-gradient(circle, #ff6b3510, transparent)', borderRadius: '50%' }} />
+                <div style={{ textAlign: 'center', position: 'relative' }}>
+                  <div style={{ fontSize: 13, color: '#ff6b35', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>
+                    {selectedPlan.provider_name}
                   </div>
-                </FadeSection>
-              )
-            })}
+                  <div style={{ fontSize: 56, fontWeight: 900, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    {lang === 'fr' ? '€' : '$'}{getPlanPrice(selectedPlan)}
+                    <span style={{ fontSize: 16, color: '#6666aa', fontWeight: 400 }}>{getPlanLabel(selectedPlan)}</span>
+                  </div>
+                  <div style={{ color: '#6666aa', fontSize: 14, marginBottom: 24 }}>
+                    {lang === 'fr' ? 'Soit' : 'Only'} {lang === 'fr' ? '€' : '$'}{(selectedPlan.price_sell / selectedMonths).toFixed(2)}/{lang === 'fr' ? 'mois' : 'mo'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+                    {[
+                      { label: `${selectedPlan.channels?.toLocaleString() || '25K+'} ${t('channels')}`, color: '#ff6b35' },
+                      { label: `${selectedPlan.streams} ${t('streams')}`, color: '#ff6b35' },
+                      { label: t('hd4k'), color: '#ff6b35' },
+                      { label: t('support24'), color: '#ff6b35' },
+                    ].map((badge, i) => (
+                      <span key={i} style={{ background: '#ff6b3510', color: badge.color, padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, border: '1px solid #ff6b3520' }}>
+                        ✓ {badge.label}
+                      </span>
+                    ))}
+                  </div>
+                  <button onClick={() => setCheckoutPlan(selectedPlan)} style={{
+                    width: '100%', padding: '16px 32px', borderRadius: 50, border: 'none', fontWeight: 800,
+                    fontSize: 17, cursor: 'pointer', background: 'linear-gradient(135deg, #ff6b35, #ff2d92)',
+                    color: '#fff', boxShadow: '0 8px 30px rgba(255,107,53,0.3)', transition: 'all 0.3s',
+                  }}
+                    onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 12px 40px rgba(255,107,53,0.4)' }}
+                    onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 8px 30px rgba(255,107,53,0.3)' }}>
+                    🚀 {t('subscribe')}
+                  </button>
+                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#6666aa', fontSize: 12 }}>
+                    <span>🔒 {lang === 'fr' ? 'Paiement sécurisé' : 'Secure payment'}</span>
+                    <span>•</span>
+                    <span style={{ color: '#ff6b35', cursor: 'pointer' }} onClick={() => openTrialModal()}>{lang === 'fr' ? 'Essai Gratuit →' : 'Free Trial →'}</span>
+                  </div>
+                </div>
+              </div>
+            </FadeSection>
+          )}
+
+          {/* How it works steps */}
+          <div style={{ marginTop: 60 }}>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <span style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: '#7b2dff15', color: '#7b2dff', fontSize: 12, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>{lang === 'fr' ? 'Comment ça marche' : 'How It Works'}</span>
+              <h3 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{lang === 'fr' ? "De l'achat à la lecture en 2 minutes" : 'From purchase to watching in 2 minutes'}</h3>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 0, flexWrap: 'wrap', position: 'relative' }}>
+              {[
+                { icon: '💳', title: lang === 'fr' ? 'Achat' : 'Purchase', desc: lang === 'fr' ? "Choisissez votre offre et payez en sécurité" : 'Choose your plan & pay securely', color: '#ff6b35' },
+                { icon: '📥', title: lang === 'fr' ? 'Installation' : 'Install', desc: lang === 'fr' ? "Téléchargez l'app sur votre appareil" : 'Download the app on your device', color: '#7b2dff' },
+                { icon: '🔑', title: lang === 'fr' ? 'Activation' : 'Activate', desc: lang === 'fr' ? 'Entrez vos identifiants reçus par email' : 'Enter credentials received by email', color: '#ff2d92' },
+                { icon: '📺', title: lang === 'fr' ? 'Lecture' : 'Watch', desc: lang === 'fr' ? 'Profitez de 25 000+ chaînes en 4K' : 'Enjoy 25,000+ channels in 4K', color: '#00cc66' },
+              ].map((step, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ textAlign: 'center', width: 160 }}>
+                    <div style={{ width: 72, height: 72, margin: '0 auto 12px', borderRadius: '50%', background: step.color + '15', border: '2px solid ' + step.color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, position: 'relative' }}>
+                      {step.icon}
+                      <div style={{ position: 'absolute', top: -4, right: -4, width: 22, height: 22, borderRadius: '50%', background: step.color, color: '#000', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</div>
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{step.title}</div>
+                    <div style={{ color: '#6666aa', fontSize: 12, lineHeight: 1.4 }}>{step.desc}</div>
+                  </div>
+                  {i < 3 && <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg, ' + step.color + '60, transparent)', margin: '0 8px', alignSelf: 'center', marginTop: -36 }} />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trust badges */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 32, flexWrap: 'wrap' }}>
+            {[
+              { icon: '🔒', text: lang === 'fr' ? 'Paiement 100% sécurisé' : '100% Secure Payment' },
+              { icon: '💬', text: lang === 'fr' ? 'Support 24/7' : '24/7 Support' },
+              { icon: '✅', text: lang === 'fr' ? 'Activation instantanée' : 'Instant Activation' },
+              { icon: '🔄', text: lang === 'fr' ? 'Garantie 7 jours' : '7-Day Guarantee' },
+            ].map((badge, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6666aa', fontSize: 13 }}>
+                <span>{badge.icon}</span>
+                <span>{badge.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
