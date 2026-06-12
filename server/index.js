@@ -76,6 +76,7 @@ app.use('/api/blog', require('./routes/blog'));
 
 // Public-facing blog pages with schema markup for SEO
 const { getPublishedPosts, getPost } = require('./services/blogGenerator');
+const { getDb } = require('./db');
 app.get('/blog', (req, res) => {
   const posts = getPublishedPosts()
   const siteUrl = 'https://dalletek.live'
@@ -198,6 +199,11 @@ body{background:#0d0d0d;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFo
 </div>
 </body>
 </html>`)
+})
+
+// Robots.txt
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://dalletek.live/sitemap.xml\n')
 })
 
 // XML Sitemap
