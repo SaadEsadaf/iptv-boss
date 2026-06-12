@@ -20,6 +20,7 @@ import SalesEngine from '../components/AdminTabs/SalesEngine'
 import TitanHub from '../components/AdminTabs/TitanHub'
 import Campaigns from '../components/AdminTabs/Campaigns'
 import BrainHub from '../components/AdminTabs/BrainHub'
+import Tickets from '../components/AdminTabs/Tickets'
 const LOCALE = {
   en: {
     overview: 'Overview', providers: 'Providers', codes: 'Codes', trials: 'Trials',
@@ -49,6 +50,7 @@ const LOCALE = {
 
 const allTabs = [
   { id: 'overview', label: 'Overview', icon: '📊' },
+  { id: 'tickets', label: 'Tickets', icon: '🎫' },
   { id: 'providers', label: 'Providers', icon: '📡' },
   { id: 'codes', label: 'Codes', icon: '🔑' },
   { id: 'trials', label: 'Trials', icon: '🧪' },
@@ -177,6 +179,7 @@ export default function AdminDashboard() {
 
   const TabComponent = {
     overview: Overview,
+    tickets: Tickets,
     providers: ProvidersTab,
     codes: Codes,
     trials: Trials,

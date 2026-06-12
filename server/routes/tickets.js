@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
           <hr>
           <p>${sanitize(message).replace(/\n/g, '<br>')}</p>
           <hr>
-          <p><a href="https://lab.jobtool.shop/#tickets/${ticketId}" style="background:#00d4ff;color:#000;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;">View in Dashboard</a></p>
+          <p><a href="https://dalletek.live/admin/#tickets" style="background:#00d4ff;color:#000;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;">View in Dashboard</a></p>
         </div>`,
       });
     } catch (e) {
@@ -82,7 +82,7 @@ router.post('/', async (req, res) => {
     try {
       const fetch = (...args) => import('node-fetch').then(m => m.default(...args));
       const phone = '0031687402093';
-      const text = `📬 *New Ticket #${ref}*\nFrom: ${sanitize(name)} <${sanitize(email)}>\nSubject: ${sanitize(subject)}\n\n${sanitize(message).slice(0, 200)}\n\n🔗 View: https://lab.jobtool.shop/#tickets?ticket=${ticketId}`;
+      const text = `📬 *New Ticket #${ref}*\nFrom: ${sanitize(name)} <${sanitize(email)}>\nSubject: ${sanitize(subject)}\n\n${sanitize(message).slice(0, 200)}\n\n🔗 View: https://dalletek.live/admin/#tickets`;
       fetch(`https://wa.quadrate.live/send?phone=${phone}&text=${encodeURIComponent(text)}`).catch(() => {});
     } catch (e) {}
 
@@ -249,13 +249,13 @@ router.post('/:id/reply', async (req, res) => {
           html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
             <p><strong>${author}</strong> replied:</p>
             <p>${message.replace(/\n/g, '<br>')}</p>
-            <p><a href="https://lab.jobtool.shop/#tickets/${ticket.id}" style="background:#00d4ff;color:#000;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;">View in Dashboard</a></p>
+            <p><a href="https://dalletek.live/admin/#tickets" style="background:#00d4ff;color:#000;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;">View in Dashboard</a></p>
           </div>`,
         });
       } catch (e) {}
       try {
         const fetch = (...args) => import('node-fetch').then(m => m.default(...args));
-        fetch(`https://wa.quadrate.live/send?phone=0031687402093&text=${encodeURIComponent('📬 Reply on #' + ticket.ref_code + ': ' + message.slice(0, 100) + '\n\n🔗 View: https://lab.jobtool.shop/#tickets?ticket=' + ticket.id)}`).catch(() => {});
+        fetch(`https://wa.quadrate.live/send?phone=0031687402093&text=${encodeURIComponent('📬 Reply on #' + ticket.ref_code + ': ' + message.slice(0, 100) + '\n\n🔗 View: https://dalletek.live/admin/#tickets')}`).catch(() => {});
       } catch (e) {}
     }
 
