@@ -76,6 +76,17 @@ app.use('/api/blog', require('./routes/blog'));
 app.use('/api/scraper', require('./routes/scraper'));
 app.use('/api/webhooks', require('./routes/webhooks'));
 app.use('/api/orders', require('./routes/orders'));
+// Unified Checkout Plugin (with failover + cloaking)
+try {
+  const { integrateWithIptvBoss } = require('/var/www/unified-checkout/integrations/iptv-boss')
+  const { getDb } = require('./db')
+  integrateWithIptvBoss(app, { getDb })
+  console.log('[Checkout] Unified checkout plugin mounted at /api/checkout')
+} catch (err) {
+  console.warn('[Checkout] Unified checkout not available:', err.message)
+  console.warn(err.stack)
+}
+
 app.use(require('./routes/checkout'));
 app.use('/lp', require('./routes/pages'));
 app.use('/api/demand', require('./routes/demand'));
