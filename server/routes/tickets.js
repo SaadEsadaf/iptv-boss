@@ -158,8 +158,8 @@ router.get('/', (req, res) => {
       params.push(status);
     }
     query += ' ORDER BY t.updated_at DESC';
-    if (limit) query += ' LIMIT ?';
-    params.push(parseInt(limit) || 100);
+    const limitNum = parseInt(limit) || 100;
+    if (limitNum) { query += ' LIMIT ?'; params.push(limitNum); }
 
     const tickets = db.prepare(query).all(...params);
     res.json({ tickets });
