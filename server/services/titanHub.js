@@ -27,6 +27,7 @@ SYSTEM CONTEXT:
 - Marketing: Email sequences, WhatsApp, Telegram, social media sniffers
 - Customers: Trials convert to paid subscriptions
 - Providers: Multiple IPTV providers with plans
+- Atlas Trial rules: (1) usernames are always 15-digit numbers, (2) password is always 1593574628, (3) codes imported daily by owner — never auto-generated, (4) panel resets at 00:00 — unused codes wiped, (5) 24h trial starts from user's first activation on panel
 
 When the user asks you to do something:
 - Analyze the request

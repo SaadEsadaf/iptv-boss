@@ -128,11 +128,20 @@ async function sendThankYou({ email, name }) {
 async function sendCredentials({ email, name, credentials, providerName, planName }) {
   try {
     const t = getTransporter();
+    const { getDb } = require('../db');
+    const db = getDb();
+    const siteUrl = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_url'").get() || {}).value || process.env.SITE_URL || 'http://localhost:3000';
+    const siteName = (db.prepare("SELECT value FROM app_settings WHERE key = 'site_name'").get() || {}).value || process.env.SITE_NAME || 'Dalletek';
+    const m3uUrl = credentials.server_url
+      ? `${credentials.server_url}/get.php?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}&type=m3u_plus&output=ts`
+      : null;
     const tpl = renderEmailTemplate('credentials_default', {
       customer_name: name, customer_email: email,
       username: credentials.username, password: credentials.password,
       server_url: credentials.server_url, code: credentials.code,
       provider_name: providerName, plan_name: planName,
+      site_name: siteName, site_url: siteUrl,
+      m3u_url: m3uUrl || '',
     });
     const bodyHtml = tpl ? tpl.body : `
       <h2 style="color:#fff;margin:0 0 16px;">Your IPTV credentials</h2>
@@ -225,49 +234,72 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
 
     const app = APP_SETUP[preferredApp] || APP_SETUP.default;
 
-    const bodyHtml = `
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:48px;margin-bottom:8px;">📺</div>
-        <h1 style="color:#00d4ff;font-size:24px;margin:0 0 4px;">Bienvenue sur ${siteName} !</h1>
-        <p style="color:#a0a0a0;font-size:14px;margin:0 0 20px;">Votre essai gratuit de ${durationHours || 24}h est actif</p>
-      </div>
+    const appSteps = (app.steps || '').split('\n').join('<br>');
 
-      <div style="background:linear-gradient(135deg,#0a1628,#1a1a2e);border:2px solid #00d4ff30;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-        <div style="font-size:36px;margin-bottom:4px;">⏱️</div>
-        <p style="color:#a0a0a0;font-size:13px;margin:0 0 8px;">Votre essai expire dans</p>
-        <div style="font-size:28px;font-weight:800;color:#00d4ff;">${durationHours || 24}h</div>
-      </div>
+    // Try DB template first
+    const tpl = renderEmailTemplate('trial_default', {
+      customer_name: name || 'là', customer_email: email,
+      username: credentials.username, password: credentials.password,
+      server_url: credentials.server_url,
+      duration_hours: String(durationHours || 24),
+      site_name: siteName, site_url: siteUrl,
+      provider_name: providerName, plan_name: planName,
+      m3u_url: m3uUrl || '',
+      dashboard_url: dashboardUrl,
+      app_name: app.name,
+      app_logo: app.logo,
+      app_steps: appSteps,
+    });
 
-      <div style="background:#0f0f0f;border-radius:12px;padding:20px;margin-bottom:20px;">
-        <h3 style="color:#00d4ff;margin:0 0 12px;font-size:15px;">🔑 Identifiants IPTV</h3>
-        ${credentials.server_url ? '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Serveur</span><span style="color:#fff;font-family:monospace;">' + credentials.server_url + '</span></div>' : ''}
-        ${credentials.username ? '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Identifiant</span><span style="color:#fff;font-family:monospace;">' + credentials.username + '</span></div>' : ''}
-        ${credentials.password ? '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#fff;font-family:monospace;">' + credentials.password + '</span></div>' : ''}
-        ${!needsPortal && m3uUrl ? '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Lien M3U</span><span style="color:#a0a0a0;font-size:11px;word-break:break-all;max-width:300px;text-align:right;">' + m3uUrl + '</span></div>' : ''}
-        ${needsPortal && portalUrl ? '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">URL Portail</span><span style="color:#ffd700;font-size:11px;word-break:break-all;max-width:300px;text-align:right;font-family:monospace;">' + portalUrl + '</span></div>' : ''}
+    const bodyHtml = tpl ? tpl.body : `
+      <div style="text-align:center;padding:12px 0 20px;">
+        <div style="background:linear-gradient(135deg,#00d4ff,#0066ff);width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;">📺</div>
+        <h1 style="color:#fff;font-size:26px;margin:0 0 6px;letter-spacing:-0.5px;">Bienvenue sur {{site_name}} !</h1>
+        <p style="color:#888;font-size:14px;margin:0;">Votre essai gratuit de {{duration_hours}}h est actif</p>
       </div>
-
-      <div style="background:#0f0f0f;border-radius:12px;padding:20px;margin-bottom:20px;">
-        <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:15px;">' + app.logo + ' ' + app.name + ' — Configuration</h3>
-        <pre style="color:#a0a0a0;font-size:12px;line-height:1.8;white-space:pre-wrap;font-family:monospace;margin:0;">${app.steps}</pre>
+      <div style="background:linear-gradient(135deg,#0a1628,#002a4a);border:1px solid #00d4ff20;border-radius:14px;padding:24px;margin-bottom:24px;text-align:center;">
+        <div style="font-size:16px;margin-bottom:6px;color:#666;">⏱️ Temps restant</div>
+        <div style="font-size:42px;font-weight:800;background:linear-gradient(135deg,#00d4ff,#66aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{duration_hours}}h</div>
+        <p style="color:#555;font-size:12px;margin:8px 0 0;">L'essai démarre dès votre première connexion sur le serveur</p>
       </div>
-
-      <div style="background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border:1px solid #8b5cf630;border-radius:12px;padding:20px;margin-bottom:20px;">
-        <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:15px;">👤 Votre Compte</h3>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;"><span style="color:#666;">Email</span><span style="color:#fff;">${email}</span></div>
-        ${accountPassword ? '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#666;">Mot de passe</span><span style="color:#ffd700;font-family:monospace;">' + accountPassword + '</span></div>' : ''}
-        <div style="text-align:center;margin-top:14px;">
-          <a href="${dashboardUrl}" style="display:inline-block;background:#8b5cf6;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">📊 Mon Tableau de Bord</a>
+      <div style="background:#111;border:1px solid #222;border-radius:14px;padding:24px;margin-bottom:20px;">
+        <h3 style="color:#00d4ff;margin:0 0 16px;font-size:16px;">🔑 Identifiants de connexion</h3>
+        <div style="background:#0a0a0a;border-radius:10px;padding:16px;font-family:monospace;">
+          {{#if server_url}}<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#555;font-size:12px;">SERVEUR</span><span style="color:#fff;font-size:13px;word-break:break-all;text-align:right;max-width:280px;">{{server_url}}</span></div>{{/if}}
+          {{#if username}}<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#555;font-size:12px;">IDENTIFIANT</span><span style="color:#00d4ff;font-size:14px;font-weight:600;">{{username}}</span></div>{{/if}}
+          {{#if password}}<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#555;font-size:12px;">MOT DE PASSE</span><span style="color:#66ff66;font-size:14px;font-weight:600;">{{password}}</span></div>{{/if}}
+          {{#if m3u_url}}<div style="padding:8px 0 0;"><span style="color:#555;font-size:12px;display:block;margin-bottom:8px;">LIEN M3U (pour IPTV Smarters, GSE, VLC)</span><div style="background:#000;border:1px solid #333;border-radius:8px;padding:12px;font-size:11px;color:#aaa;word-break:break-all;line-height:1.6;">{{m3u_url}}</div></div>{{/if}}
         </div>
-        <p style="color:#666;font-size:12px;text-align:center;margin:8px 0 0;">Connectez-vous pour voir votre compte à rebours, configurer votre appareil et passer premium</p>
       </div>
-
-      <div style="text-align:center;margin-bottom:20px;">
-        <a href="${siteUrl}/#plans" style="display:inline-block;background:linear-gradient(135deg,#ff6b35,#ff2d92);color:#fff;padding:14px 40px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">🚀 Voir les Offres Premium</a>
-        <p style="color:#666;font-size:12px;margin-top:10px;">💳 Paiement 100% sécurisé • Support 24/7</p>
+      {{#if app_name}}<div style="background:#111;border:1px solid #222;border-radius:14px;padding:24px;margin-bottom:20px;">
+        <h3 style="color:#8b5cf6;margin:0 0 16px;font-size:16px;">{{app_logo}} {{app_name}} — Configuration</h3>
+        <div style="background:#0a0a0a;border-radius:10px;padding:16px;color:#ccc;font-size:12px;line-height:2;font-family:monospace;">{{app_steps}}</div>
+      </div>{{/if}}
+      <div style="background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border:1px solid #8b5cf630;border-radius:14px;padding:24px;margin-bottom:20px;">
+        <h3 style="color:#8b5cf6;margin:0 0 16px;font-size:16px;">👤 Votre compte client</h3>
+        <div style="background:#0a0a0a;border-radius:10px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;"><span style="color:#555;">Email</span><span style="color:#fff;">{{customer_email}}</span></div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <a href="{{dashboard_url}}" style="display:inline-block;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;padding:12px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;">📊 Accéder au tableau de bord</a>
+        </div>
+        <p style="color:#555;font-size:12px;text-align:center;margin:12px 0 0;">Suivez votre essai, configurez vos appareils et passez à l'offre premium</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#ff6b3520,#ff2d9220);border:1px solid #ff6b3540;border-radius:14px;padding:24px;text-align:center;margin-bottom:16px;">
+        <h3 style="color:#fff;margin:0 0 8px;font-size:18px;">🚀 Passez à l'offre Premium</h3>
+        <p style="color:#aaa;font-size:13px;margin:0 0 16px;">+25 000 chaînes • 4K HDR • Sport en direct • VOD illimitée</p>
+        <a href="{{site_url}}/#plans" style="display:inline-block;background:linear-gradient(135deg,#ff6b35,#ff2d92);color:#fff;padding:14px 44px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 20px #ff2d9240;">🔥 Voir les offres</a>
+        <p style="color:#555;font-size:12px;margin:14px 0 0;">💳 Paiement 100% sécurisé • 🔒 Données protégées • 🎧 Support 24/7</p>
+      </div>
+      <div style="background:#111;border:1px solid #222;border-radius:14px;padding:20px;margin-bottom:20px;">
+        <h3 style="color:#666;margin:0 0 12px;font-size:13px;">📱 BESOIN D'AIDE ?</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <a href="{{dashboard_url}}" style="display:inline-block;background:#1a1a1a;color:#aaa;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;">📖 Guide d'installation</a>
+          <a href="{{site_url}}/support" style="display:inline-block;background:#1a1a1a;color:#aaa;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;">🎧 Support client</a>
+        </div>
       </div>`;
 
-    const subject = `🎬 ${siteName} — Votre essai gratuit ${durationHours || 24}h est actif !`;
+    const subject = tpl ? tpl.subject : `🎬 {{site_name}} — Votre essai gratuit {{duration_hours}}h est actif !`;
     const html = renderTemplate(bodyHtml);
     const sent = await sendWithFallback({
       method: () => t.sendMail({ from: `"${siteName}" <${t.fromEmail}>`, to: email, subject, html }),

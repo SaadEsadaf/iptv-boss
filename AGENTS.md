@@ -250,3 +250,12 @@ Single-page React app served by Express. Sidebar tabs:
 - `salesAgent.js` — French fallbacks updated to mention Atlas Pro IPTV. Keyword `atlas` triggers an Atlas-specific fallback reply.
 - Knowledge base at `server/data/iptvKnowledge.js` has topic `atlas_pro_setup` with full setup guide in French + troubleshooting for ISP blocking, activation codes, and EPG.
 
+## Critical: Atlas Trial Credentials Format
+- Atlas trial usernames must be **15-digit numbers only** (e.g. `446813353907907`)
+- Password is always `1593574628` for all Atlas trial codes
+- `code` = `username` = the same 15-digit number
+- NEVER generate usernames with letters or fewer digits — `wc-user-003`, `Atlas_001_XXXX`, `WC2026-*` formats are WRONG
+- Trial activation codes are **always imported by the owner** via Admin → Import — never auto-generate codes
+- Panel resets at 00:00 daily — all unused trial codes are wiped. Only use **same-day imports** (fresh codes).
+- Once a user activates a trial on the panel, the 24h starts from **their first use** (not from assignment time).
+

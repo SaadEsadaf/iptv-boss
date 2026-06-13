@@ -94,24 +94,4 @@ async function restockTrials(providerId, codes) {
   return count;
 }
 
-async function generateSampleCodes(providerId, count = 10) {
-  const db = getDb();
-  const provider = db.prepare('SELECT id, name, panel_url, panel_username, panel_password FROM providers_catalog WHERE id = ?').get(providerId);
-  if (!provider) throw new Error('Provider not found');
-
-  // Use the panel's main credentials for all trial codes
-  const codes = [];
-  for (let i = 0; i < count; i++) {
-    const randomSuffix = String(Math.floor(Math.random() * 90000000) + 10000000);
-    codes.push({
-      code: `${i + 1}${randomSuffix}`,
-      username: provider.panel_username || '',
-      password: provider.panel_password || '',
-      server_url: provider.panel_url || '',
-    });
-  }
-
-  return restockTrials(providerId, codes);
-}
-
-module.exports = { autoExpireTrials, checkLowStock, restockTrials, generateSampleCodes };
+module.exports = { autoExpireTrials, checkLowStock, restockTrials };

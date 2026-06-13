@@ -54,6 +54,15 @@ Landing page → GET /api/plans
 | `server/routes/checkout.js` | Payment processing (Sellup/Stripe/PayPal) |
 | `client/src/components/AdminTabs/Providers.jsx` | Admin providers UI with plan CRUD |
 
+## Critical: Atlas Trial Credential Format
+- Atlas trial usernames must be **15-digit numbers only** (e.g. `446813353907907`)
+- Password is always `1593574628` for all Atlas trial codes
+- `code` = `username` = the same 15-digit number
+- NEVER generate usernames with letters or fewer digits — `wc-user-003`, `Atlas_001_XXXX`, `WC2026-*` formats are WRONG
+- Trial activation codes are **always imported by the owner** via Admin → Import — never auto-generate codes
+- Panel resets at 00:00 daily — unused codes wiped. Only use same-day imports.
+- Once user activates trial on panel, 24h starts from first use (not from assignment time).
+
 ## Orphans & Pending
 
 ### Empty — all items resolved

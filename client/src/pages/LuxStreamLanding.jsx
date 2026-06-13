@@ -287,6 +287,7 @@ export default function LuxStreamLanding() {
     { id: 'iptvx', icon: '📱', name: 'IPTVX', desc: 'iPhone / iPad' },
   ]
   const [trialProviders, setTrialProviders] = useState([])
+  const [trialProvidersLoading, setTrialProvidersLoading] = useState(false)
   const [trialSubmitting, setTrialSubmitting] = useState(false)
   const [trialSuccess, setTrialSuccess] = useState(null)
 
@@ -347,7 +348,9 @@ export default function LuxStreamLanding() {
     setShowTrialModal(true)
     setTrialSuccess(null)
     setTrialForm({ name: '', email: '', phone: '', providerId: '', preferredApp: 'tivimate' })
-    fetch('/api/providers/active').then(r => r.json()).then(setTrialProviders).catch(() => {})
+    setTrialProviders([])
+    setTrialProvidersLoading(true)
+    fetch('/api/providers/active').then(r => r.json()).then(d => { setTrialProviders(d); setTrialProvidersLoading(false) }).catch(() => setTrialProvidersLoading(false))
   }
 
   async function handleTrialSubmit(e) {
@@ -1041,8 +1044,8 @@ export default function LuxStreamLanding() {
 
       {/* Trial Modal */}
       {showTrialModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(12px)', padding: 24 }}>
-          <div style={{ background: 'linear-gradient(145deg, #0f0f1a, #1a0a1a)', border: '1px solid #ff6b3544', borderRadius: 24, padding: 0, maxWidth: 480, width: '100%', position: 'relative', overflow: 'hidden', boxShadow: '0 20px 80px rgba(0,0,0,0.6)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(12px)', padding: 16 }}>
+          <div style={{ background: 'linear-gradient(145deg, #0f0f1a, #1a0a1a)', border: '1px solid #ff6b3544', borderRadius: 24, padding: 0, maxWidth: 480, width: '100%', position: 'relative', overflowY: 'auto', maxHeight: '90vh', boxShadow: '0 20px 80px rgba(0,0,0,0.6)' }}>
             {/* Header */}
             <div style={{ padding: '28px 28px 20px', borderBottom: '1px solid #ffffff10', position: 'relative' }}>
               <button onClick={() => setShowTrialModal(false)} style={{ position: 'absolute', top: 20, right: 20, background: 'transparent', border: 'none', color: '#8888aa', cursor: 'pointer', fontSize: 20, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'all 0.3s' }}>✕</button>
@@ -1072,17 +1075,17 @@ export default function LuxStreamLanding() {
                   </div>
                   <div>
                     <label style={{ display: 'block', color: '#8888aa', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>📱 Your Device</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 4 }}>
                       {APPS_LIST.map(a => (
                         <button key={a.id} type="button" onClick={() => setTrialForm(f => ({ ...f, preferredApp: a.id }))} style={{
-                          padding: '8px', background: trialForm.preferredApp === a.id ? '#ff6b3520' : '#ffffff08',
+                          padding: '6px 4px', background: trialForm.preferredApp === a.id ? '#ff6b3520' : '#ffffff08',
                           border: trialForm.preferredApp === a.id ? '1.5px solid #ff6b35' : '1px solid #ffffff15',
-                          borderRadius: 10, cursor: 'pointer', color: trialForm.preferredApp === a.id ? '#ff6b35' : '#8888aa',
-                          fontSize: 11, textAlign: 'center', transition: 'all 0.15s',
+                          borderRadius: 8, cursor: 'pointer', color: trialForm.preferredApp === a.id ? '#ff6b35' : '#8888aa',
+                          fontSize: 10, textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.2,
                         }}>
-                          <div style={{ fontSize: 18 }}>{a.icon}</div>
-                          <div style={{ fontWeight: 700, marginTop: 2 }}>{a.name}</div>
-                          <div style={{ fontSize: 9, color: '#666' }}>{a.desc}</div>
+                          <div style={{ fontSize: 16, lineHeight: 1.3 }}>{a.icon}</div>
+                          <div style={{ fontWeight: 700, marginTop: 1, fontSize: 9 }}>{a.name}</div>
+                          <div style={{ fontSize: 8, color: '#666' }}>{a.desc}</div>
                         </button>
                       ))}
                     </div>
@@ -1090,9 +1093,9 @@ export default function LuxStreamLanding() {
                   <div>
                     <label style={{ display: 'block', color: '#ff6b35', fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t('providerLabel')}</label>
                     <select value={trialForm.providerId} onChange={e => setTrialForm(f => ({ ...f, providerId: e.target.value }))} required
-                      style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ff6b3544', borderRadius: 12, color: '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit', appearance: 'auto', cursor: 'pointer' }}>
-                      <option value="" style={{ background: '#1a1a2e' }}>{t('selectProvider')}</option>
-                      {trialProviders.map(p => (
+                      style={{ width: '100%', padding: '12px 16px', background: '#ffffff08', border: '1px solid #ff6b3544', borderRadius: 12, color: trialProvidersLoading ? '#666' : '#fff', fontSize: 14, outline: 'none', transition: 'all 0.3s', fontFamily: 'inherit', appearance: 'auto', cursor: trialProvidersLoading ? 'wait' : 'pointer' }}>
+                      <option value="" style={{ background: '#1a1a2e' }}>{trialProvidersLoading ? '⏳ Chargement...' : t('selectProvider')}</option>
+                      {!trialProvidersLoading && trialProviders.map(p => (
                         <option key={p.id} value={p.id} style={{ background: '#1a1a2e' }}>{p.name} — {p.plan_name}</option>
                       ))}
                     </select>

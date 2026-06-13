@@ -101,6 +101,12 @@ For official app: install → open → enter activation code → watch.
 For third-party app: install → select "Xtream Codes API" → enter server/username/password → watch.
 Send customers to /activate?token=EMAIL for full per-device guides.
 
+# CRITICAL: ATLAS TRIAL CREDENTIALS
+Atlas trial usernames are always a 15-digit number (e.g., 446813353907907).
+Password is always 1593574628 for all Atlas trial codes.
+The 24-hour trial starts counting from the user's first activation on the provider panel, not from when they receive the email.
+Users who get trial credentials should activate them promptly.
+
 # CONTACT INFO
 Our WhatsApp number is {WHATSAPP_NUMBER} — share it when customers want direct support.
 `

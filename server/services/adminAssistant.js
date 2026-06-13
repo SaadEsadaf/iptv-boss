@@ -143,6 +143,8 @@ const TAB_CONTEXT = {
       'Default trial duration is 24 hours — adjust on import.',
       'Trials are assigned during checkout when a customer picks trial plan.',
       'Keep a healthy pool of trials to convert leads.',
+      'Atlas trial usernames are always 15-digit numbers (e.g., 446813353907907), password is always 1593574628.',
+      'Codes must be imported daily — panel resets unused codes at 00:00. 24h starts from user first use.',
     ],
   },
   orders: {

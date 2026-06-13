@@ -84,9 +84,11 @@ Valid actions:
 - flag_abuse_pattern: {}
 - optimize_provider_priority: {}
 - send_stock_alert: {"provider_id": N, "plan_id": N}
-- restock_trial_codes: {"provider_id": N, "count": N}
+- notify_owner_restock: {"provider_id": N, "count_needed": N} — trial codes are imported by owner only, never auto-generated
 - trigger_watcher: {} — force immediate engine health check
-- check_engine_health: {} — report latest status of all 3 engines`;
+- check_engine_health: {} — report latest status of all 3 engines
+
+CRITICAL: Trial codes are NEVER auto-generated. The owner imports them daily via Admin → Import. Atlas trial usernames are always 15-digit numbers with password 1593574628. The panel resets at 00:00 wiping unused codes. Once a user activates, the 24h starts from first use.`;
 }
 
 function parseDecision(text) {
