@@ -140,7 +140,7 @@
 ### A/B Testing Ideas
 - Price point: €9.99 vs €12.99 vs €14.99
 - Plan names: "Basic" vs "Premium" vs "Elite"
-- Trial duration: 24h vs 72h vs 7 days
+- Trial duration: 24h vs 24h vs 7 days
 - Payment options: PayPal vs Stripe vs both
 - Checkout flow: 1-page vs 3-step
 - Upsell timing: Immediate vs 24h later
@@ -228,7 +228,7 @@ Subject: "Still interested? Here's 10% off"
 - Social proof
 - Guarantee
 
-**Email 3: 72 hours after abandon**
+**Email 3: 24 hours after abandon**
 Subject: "Final offer — 20% off your LuxStream subscription"
 - Final discount
 - Scarcity

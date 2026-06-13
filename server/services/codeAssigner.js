@@ -32,7 +32,7 @@ function assignTrial(orderId, providerId) {
 
   if (!trial) return null;
 
-  const durationHours = trial.duration_hours || 72;
+  const durationHours = trial.duration_hours || 24;
   const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
 
   db.prepare(

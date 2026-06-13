@@ -33,7 +33,7 @@ async function autoProvision(providerId) {
   if (existingPlans === 0) {
     const channelCount = m3uStats?.live || 30000;
     const plans = [
-      { name: 'Trial 72h', type: 'trial', months: 0, days: 3, price: 0, channels: channelCount, streams: 1 },
+      { name: 'Trial 24h', type: 'trial', months: 0, days: 1, price: 0, channels: channelCount, streams: 1 },
       { name: '1 Mois', type: 'monthly', months: 1, days: 30, price: 12.99, channels: channelCount, streams: 1 },
       { name: '3 Mois', type: 'quarterly', months: 3, days: 90, price: 29.99, channels: channelCount, streams: 2 },
       { name: '6 Mois', type: 'biannual', months: 6, days: 180, price: 49.99, channels: channelCount, streams: 3 },

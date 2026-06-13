@@ -91,7 +91,7 @@ router.post('/activate-trial', async (req, res) => {
       db.prepare("UPDATE trial_codes SET preferred_app = ? WHERE id = ?").run(preferred_app, trialCode.id);
     }
 
-    const expiresAt = new Date(Date.now() + (trialCode.duration_hours || 72) * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + (trialCode.duration_hours || 24) * 60 * 60 * 1000).toISOString();
     db.prepare("UPDATE trial_codes SET status = 'used', assigned_at = datetime('now'), expires_at = ? WHERE id = ?")
       .run(expiresAt, trialCode.id);
 
@@ -155,7 +155,7 @@ router.post('/activate-trial', async (req, res) => {
           password: trialCode.password,
           server_url: serverUrl,
         },
-        durationHours: trialCode.duration_hours || 72,
+        durationHours: trialCode.duration_hours || 24,
         providerName: 'Atlas',
         planName: 'Essai Gratuit',
         preferredApp: preferred_app || '',

@@ -152,7 +152,7 @@ Sports? Movies? Your favorite international content?
 
 We have all of it, and you can start with a free trial to test everything before committing.
 
-👉 [Try Free for 72 Hours]
+👉 [Try Free for 24 Hours]
 
 Let me know what content you're looking for — I can point you to the right plan.
 

@@ -140,7 +140,7 @@ const TAB_CONTEXT = {
     description: 'Manage trial/demo codes separate from paid codes. Track duration (hours), status, and assignment.',
     fields: [],
     tips: [
-      'Default trial duration is 72 hours — adjust on import.',
+      'Default trial duration is 24 hours — adjust on import.',
       'Trials are assigned during checkout when a customer picks trial plan.',
       'Keep a healthy pool of trials to convert leads.',
     ],

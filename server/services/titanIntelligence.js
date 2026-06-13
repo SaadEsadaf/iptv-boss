@@ -214,7 +214,7 @@ class TitanIntelligenceEngine {
     // Get Titan AI analysis (fast pre-computed based on sentiment)
     const analysisMap = {
       'frustrated': 'Frustrated user seeking solution. Approach: empathetic, offer reliability guarantee. Key point: 99.9% uptime, instant setup.',
-      'trial_seeker': 'Wants to test before buying. Approach: friendly, low-pressure. Key point: 72h free trial, no credit card.',
+      'trial_seeker': 'Wants to test before buying. Approach: friendly, low-pressure. Key point: 24h free trial, no credit card.',
       'high_intent': 'Ready to buy. Approach: direct, professional. Key point: 25K+ channels, 4K HDR, instant activation.',
       'sports_fan': 'Sports enthusiast. Approach: excited, highlight sports. Key point: World Cup 2026, all leagues in 4K.',
       'price_sensitive': 'Budget-conscious. Approach: value-focused. Key point: Save 20% yearly, cheaper than cable.',
@@ -329,7 +329,7 @@ class TitanIntelligenceEngine {
       'trial_seeker': {
         tone: 'friendly and inviting',
         channel: 'reddit_dm',
-        selling_point: '72-hour free trial, no credit card required',
+        selling_point: '24-hour free trial, no credit card required',
         cta: 'Try all 25,000+ channels risk-free',
         timing: 'afternoon',
       },
@@ -451,24 +451,24 @@ I noticed your current IPTV service isn't working well. That sucks! We've all be
 
 LuxStream gives you 99.9% uptime guarantee, 4K HDR quality, and instant setup in under 5 minutes. Plus 25,000+ channels including all World Cup 2026 matches.
 
-Try us FREE for 72 hours - no credit card needed:
+Try us FREE for 24 hours - no credit card needed:
 https://dalletek.live/trial
 
 If you have any issues, our support team is available 24/7.
 
 Best regards,
 LuxStream Team`,
-        'reddit_dm': `Hey u/${lead.username}! Saw your post about IPTV issues. LuxStream has 99.9% uptime and 4K quality. Free 72h trial - no CC required. Check it out: https://dalletek.live/trial`,
-        'twitter_dm': `@${lead.username} Tired of buffering? 😤 Try LuxStream - 99.9% uptime, 4K HDR, 25K+ channels. FREE 72h trial! https://dalletek.live/trial`,
+        'reddit_dm': `Hey u/${lead.username}! Saw your post about IPTV issues. LuxStream has 99.9% uptime and 4K quality. Free 24h trial - no CC required. Check it out: https://dalletek.live/trial`,
+        'twitter_dm': `@${lead.username} Tired of buffering? 😤 Try LuxStream - 99.9% uptime, 4K HDR, 25K+ channels. FREE 24h trial! https://dalletek.live/trial`,
         'telegram_dm': `Hi ${lead.username}! We saw you're having issues with your current IPTV. LuxStream offers 99.9% uptime and 4K quality. Free trial available: https://dalletek.live/trial`,
-        'default': `Hi ${lead.username}! We noticed you're looking for a more reliable IPTV service. LuxStream offers 99.9% uptime, 4K HDR, and 25,000+ channels. Try FREE for 72h: https://dalletek.live/trial`,
+        'default': `Hi ${lead.username}! We noticed you're looking for a more reliable IPTV service. LuxStream offers 99.9% uptime, 4K HDR, and 25,000+ channels. Try FREE for 24h: https://dalletek.live/trial`,
       },
       'trial_seeker': {
         'email': `Hi ${lead.username},
 
 Great news! Your LuxStream free trial is ready.
 
-✅ 72 hours FREE
+✅ 24 hours FREE
 ✅ No credit card required
 ✅ 25,000+ channels
 ✅ 4K HDR quality
@@ -488,10 +488,10 @@ Questions? Reply to this email or visit our help center.
 
 Enjoy!
 LuxStream Team`,
-        'reddit_dm': `u/${lead.username}! Your free trial is ready 🎁 72h, no CC, 25K+ channels in 4K. World Cup 2026 included. Start here: https://dalletek.live/trial`,
-        'twitter_dm': `@${lead.username} Your FREE trial is waiting! 🎉 72h access to 25K+ channels in 4K HDR. No credit card needed. World Cup 2026 ready! https://dalletek.live/trial`,
-        'telegram_dm': `Hi ${lead.username}! Your free trial is activated. 72h access to all channels, 4K quality, no credit card needed. Start here: https://dalletek.live/trial`,
-        'default': `Hi ${lead.username}! Your LuxStream free trial is ready. 72 hours, no credit card, 25,000+ channels in 4K HDR. Start now: https://dalletek.live/trial`,
+        'reddit_dm': `u/${lead.username}! Your free trial is ready 🎁 24h, no CC, 25K+ channels in 4K. World Cup 2026 included. Start here: https://dalletek.live/trial`,
+        'twitter_dm': `@${lead.username} Your FREE trial is waiting! 🎉 24h access to 25K+ channels in 4K HDR. No credit card needed. World Cup 2026 ready! https://dalletek.live/trial`,
+        'telegram_dm': `Hi ${lead.username}! Your free trial is activated. 24h access to all channels, 4K quality, no credit card needed. Start here: https://dalletek.live/trial`,
+        'default': `Hi ${lead.username}! Your LuxStream free trial is ready. 24 hours, no credit card, 25,000+ channels in 4K HDR. Start now: https://dalletek.live/trial`,
       },
       'high_intent': {
         'email': `Hi ${lead.username},
@@ -568,7 +568,7 @@ Yearly plan: Only $99 (that's $8.25/month!)
 Start saving:
 https://dalletek.live/trial
 
-Free 72-hour trial. No credit card.
+Free 24-hour trial. No credit card.
 
 Best regards,
 LuxStream Team`,

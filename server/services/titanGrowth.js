@@ -520,7 +520,7 @@ class TitanGrowthEngine {
       { text: 'IPTV service down during World Cup final. Never again. Need reliable provider', platform: 'twitter', username: 'wc2026_fan', type: 'frustrated', score: 14 },
       { text: 'What is the best IPTV for Smart TV? Samsung user here', platform: 'reddit', username: 'samsung_owner', type: 'high_intent', score: 9 },
       { text: 'Need affordable IPTV with sports package. Yearly plan preferred', platform: 'reddit', username: 'yearly_plan', type: 'price_sensitive', score: 9 },
-      { text: 'Free trial IPTV for 3 days? Want to test before committing', platform: 'twitter', username: 'tester_3days', type: 'trial_seeker', score: 10 },
+      { text: 'Free trial IPTV for 24h? Want to test before committing', platform: 'twitter', username: 'tester_24h', type: 'trial_seeker', score: 10 },
       { text: 'My IPTV provider scammed me. Looking for legitimate service with support', platform: 'reddit', username: 'scam_victim', type: 'frustrated', score: 13 },
       { text: 'Best IPTV for NBA and NFL? Need all games in 4K HDR', platform: 'twitter', username: 'nba_nfl_fan', type: 'sports_fan', score: 11 },
     ];

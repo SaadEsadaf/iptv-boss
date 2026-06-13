@@ -111,7 +111,7 @@ function initializeDatabase() {
       username TEXT,
       password TEXT,
       server_url TEXT,
-      duration_hours INTEGER DEFAULT 72,
+      duration_hours INTEGER DEFAULT 24,
       status TEXT DEFAULT 'available',
       used_by_order_id INTEGER,
       assigned_at TEXT,

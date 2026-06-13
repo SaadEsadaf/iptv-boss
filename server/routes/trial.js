@@ -26,7 +26,7 @@ router.get('/', (req, res) => {
       "name": "How can I watch the World Cup 2026 for free?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Claim a free 72-hour IPTV trial at dalletek.live. You get access to all 64 World Cup matches in 4K with multi-language commentary. No credit card required."
+        "text": "Claim a free 24-hour IPTV trial at dalletek.live. You get access to all 64 World Cup matches in 4K with multi-language commentary. No credit card required."
       }
     },
     {
@@ -118,7 +118,7 @@ body{background:#0a0a1a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
 
   <div class="countdown-box">
     <div class="label">Your Free Access</div>
-    <div class="big">72h</div>
+    <div class="big">24h</div>
     <div class="label">of premium IPTV • All World Cup matches</div>
     <div class="remaining">⚡ Only 9 codes remaining today</div>
   </div>
@@ -162,16 +162,16 @@ body{background:#0a0a1a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,
       <label>Trial Code</label>
       <input type="text" id="code" value="${code}">
     </div>
-    <button class="btn" id="claimBtn" onclick="claimTrial()">🎯 CLAIM FREE 72h TRIAL</button>
+    <button class="btn" id="claimBtn" onclick="claimTrial()">🎯 CLAIM FREE 24h TRIAL</button>
     <div class="spinner" id="spinner"></div>
   </div>
 
   <div class="success-box" id="successBox">
     <span class="check">✅</span>
     <h2>Trial Activated!</h2>
-    <p>Your 72-hour free trial is ready. Check your email for credentials or use them below:</p>
+    <p>Your 24-hour free trial is ready. Check your email for credentials or use them below:</p>
     <div class="creds" id="credsBox"></div>
-    <p style="color:#ffd700;font-size:13px;margin-top:8px;">⚡ Expires in 72 hours — upgrade to keep watching</p>
+    <p style="color:#ffd700;font-size:13px;margin-top:8px;">⚡ Expires in 24 hours — upgrade to keep watching</p>
     <button class="btn" onclick="window.location.href='/#plans'" style="background:linear-gradient(135deg,#00d4ff,#0088cc);margin-top:12px;">🚀 See Premium Plans</button>
   </div>
 
@@ -247,14 +247,14 @@ async function claimTrial() {
       errorBox.textContent = data.error || 'Failed to activate trial. Code may be expired.';
       errorBox.style.display = 'block';
       btn.disabled = false;
-      btn.textContent = '🎯 CLAIM FREE 72h TRIAL';
+      btn.textContent = '🎯 CLAIM FREE 24h TRIAL';
       spinner.style.display = 'none';
     }
   } catch (e) {
     errorBox.textContent = 'Connection error. Please try again.';
     errorBox.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = '🎯 CLAIM FREE 72h TRIAL';
+    btn.textContent = '🎯 CLAIM FREE 24h TRIAL';
     spinner.style.display = 'none';
   }
 }

@@ -563,7 +563,7 @@ router.post('/trials/import', authMiddleware, (req, res) => {
   );
   const insertMany = db.transaction(() => {
     for (const c of parsed) {
-      insert.run(provider_id, c.code || null, c.username || null, c.password || null, c.server_url || null, duration_hours || 72);
+      insert.run(provider_id, c.code || null, c.username || null, c.password || null, c.server_url || null, duration_hours || 24);
     }
   });
   insertMany();

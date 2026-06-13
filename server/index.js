@@ -304,7 +304,7 @@ td{color:#ccc}
     <p>179 915+ chaînes en 4K • VPN inclus • Support 24/7 • Compatible Firestick, Android, iOS, Smart TV</p>
     <p style="color:#81c784;font-size:13px;">⭐ Note: 4.8/5 (1250 avis) — Recommandé pour le sport et les chaînes françaises</p>
     <span class="tag">4K Ultra HD</span> <span class="tag">VPN Inclus</span> <span class="tag">Support 24/7</span>
-    <br><a class="cta" href="/trial">🎁 Essai Gratuit 72h</a>
+    <br><a class="cta" href="/trial">🎁 Essai Gratuit 24h</a>
   </div>
 
   <table>
