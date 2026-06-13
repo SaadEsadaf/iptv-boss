@@ -83,6 +83,26 @@ async function runWatcher() {
     ).run('EngineWatcher', 'summary', summary, 1);
   }
 
+  // Also check email health
+  try {
+    const { checkEmailHealth } = require('./emailService');
+    const emailHealth = await checkEmailHealth();
+    db.prepare(
+      "INSERT INTO watcher_log (engine, status, checks, response_time_ms, error) VALUES (?, ?, ?, ?, ?)"
+    ).run(
+      'email', emailHealth.ok ? 'ok' : 'degraded',
+      JSON.stringify(emailHealth), 0,
+      emailHealth.ok ? null : `smtp:${emailHealth.smtp} sendgrid:${emailHealth.sendgrid}`
+    );
+    if (!emailHealth.ok) {
+      db.prepare(
+        "INSERT INTO agent_log (agent, action, details, website_id) VALUES (?, ?, ?, ?)"
+      ).run('EngineWatcher', 'alert', `Email services degraded — ${JSON.stringify(emailHealth)}`, 1);
+    }
+  } catch (e) {
+    console.error('[EngineWatcher] Email health check failed:', e.message);
+  }
+
   return results;
 }
 

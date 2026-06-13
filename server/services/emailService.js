@@ -93,10 +93,12 @@ async function sendPaymentLink({ email, name, checkoutUrl, planName, amount, ord
       <p style="color:#666;font-size:13px;margin:0;">Your credentials will arrive after payment confirmation.</p>`;
     const subject = tpl ? tpl.subject : `Your ${siteName} checkout link`;
     const html = renderTemplate(bodyHtml);
-    return await sendWithFallback({
+    const sent = await sendWithFallback({
       method: () => t.sendMail({ from: `"${t.fromName}" <${t.fromEmail}>`, to: email, subject, html }),
       to: email, name, subject, html,
     });
+    if (sent) trackSend();
+    return sent;
   } catch (e) {
     console.error('sendPaymentLink error:', e);
     return false;
@@ -111,10 +113,12 @@ async function sendThankYou({ email, name }) {
       <p style="color:#a0a0a0;margin:0 0 16px;">Thanks ${name}, your payment was successful.</p>
       <p style="color:#a0a0a0;margin:0;">Your activation credentials will arrive within minutes.</p>`;
     const html = renderTemplate(body);
-    return await sendWithFallback({
+    const sent = await sendWithFallback({
       method: () => t.sendMail({ from: `"${t.fromName}" <${t.fromEmail}>`, to: email, subject: 'Payment confirmed!', html }),
       to: email, name, subject: 'Payment confirmed!', html,
     });
+    if (sent) trackSend();
+    return sent;
   } catch (e) {
     console.error('sendThankYou error:', e);
     return false;
@@ -147,10 +151,12 @@ async function sendCredentials({ email, name, credentials, providerName, planNam
       </ol>`;
     const subject = (tpl ? tpl.subject : 'Your IPTV activation credentials');
     const html = renderTemplate(bodyHtml);
-    return await sendWithFallback({
+    const sent = await sendWithFallback({
       method: () => t.sendMail({ from: `"${t.fromName}" <${t.fromEmail}>`, to: email, subject, html }),
       to: email, name, subject, html,
     });
+    if (sent) trackSend();
+    return sent;
   } catch (e) {
     console.error('sendCredentials error:', e);
     return false;
@@ -263,10 +269,12 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
 
     const subject = `🎬 ${siteName} — Votre essai gratuit ${durationHours || 24}h est actif !`;
     const html = renderTemplate(bodyHtml);
-    return await sendWithFallback({
+    const sent = await sendWithFallback({
       method: () => t.sendMail({ from: `"${siteName}" <${t.fromEmail}>`, to: email, subject, html }),
       to: email, name, subject, html,
     });
+    if (sent) trackSend();
+    return sent;
   } catch (e) {
     console.error('sendTrial error:', e);
     return false;
@@ -338,4 +346,81 @@ async function sendWithFallback({ method, to, subject, html, name }) {
   }
 }
 
-module.exports = { sendPaymentLink, sendThankYou, sendCredentials, sendTrial, sendStockAlert, sendRaw, getTransporter, sendViaSendGrid, sendWithFallback };
+// Check email service availability — tests both providers
+async function checkEmailHealth() {
+  const { getDb } = require('../db');
+  const db = getDb();
+  const result = { smtp: 'unknown', sendgrid: 'unknown', sendgrid_remaining: null, ok: false };
+
+  // Test SMTP by creating a transport and verifying
+  try {
+    const t = getTransporter();
+    if (t && t.verify) {
+      await t.verify();
+      result.smtp = 'ok';
+    } else {
+      result.smtp = 'no_auth';
+    }
+  } catch (e) {
+    result.smtp = `error: ${e.message}`;
+  }
+
+  // Test SendGrid via API
+  try {
+    const apiKey = (db.prepare("SELECT value FROM app_settings WHERE key = 'sendgrid_api_key'").get() || {}).value;
+    if (apiKey) {
+      const resp = await fetch('https://api.sendgrid.com/v3/user/credits', {
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        result.sendgrid = 'ok';
+        result.sendgrid_remaining = data.remain || 0;
+        // Alert if SendGrid is running low
+        if (data.remain !== undefined && data.remain < 20) {
+          result.sendgrid = `low (${data.remain} remaining)`;
+        }
+      } else {
+        result.sendgrid = `api_error (${resp.status})`;
+      }
+    } else {
+      result.sendgrid = 'not_configured';
+    }
+  } catch (e) {
+    result.sendgrid = `error: ${e.message}`;
+  }
+
+  result.ok = result.smtp === 'ok' || result.sendgrid === 'ok';
+
+  // Log to agent_log if both are down
+  if (!result.ok) {
+    try {
+      db.prepare("INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)").run(
+        'EmailHealth', 'alert', `Both email providers down — SMTP: ${result.smtp}, SendGrid: ${result.sendgrid}`
+      );
+    } catch {}
+  }
+
+  return result;
+}
+
+// Track email send attempt in daily counter
+function trackSend() {
+  try {
+    const { getDb } = require('../db');
+    const db = getDb();
+    const today = new Date().toISOString().split('T')[0];
+    const row = db.prepare("SELECT value FROM app_settings WHERE key = 'email_sent_today'").get();
+    let count = row ? parseInt(row.value || '0') : 0;
+    db.prepare("INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)").run('email_sent_today', String(count + 1));
+    db.prepare("INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)").run('email_sent_date', today);
+    // Alert if sending more than 250 in a day (Brevo free limit is 300)
+    if (count + 1 >= 250) {
+      db.prepare("INSERT INTO agent_log (agent, action, details) VALUES (?, ?, ?)").run(
+        'EmailHealth', 'quota_warning', `${count + 1} emails sent today — approaching Brevo limit of 300`
+      );
+    }
+  } catch {}
+}
+
+module.exports = { sendPaymentLink, sendThankYou, sendCredentials, sendTrial, sendStockAlert, sendRaw, getTransporter, sendViaSendGrid, sendWithFallback, checkEmailHealth, trackSend };
