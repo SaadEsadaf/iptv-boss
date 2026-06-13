@@ -66,7 +66,7 @@ class TrialEngine {
     }
     
     // Assign code to this user
-    const expiresAt = new Date(Date.now() + (code.duration_hours || 24) * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     db.prepare("UPDATE trial_codes SET email = ?, status = 'used', assigned_at = datetime('now'), expires_at = ? WHERE id = ?")
       .run(email, expiresAt, code.id);
     
@@ -124,7 +124,7 @@ class TrialEngine {
           password: code.password,
           server_url: this.serverUrl,
         },
-        durationHours: code.duration_hours || 24,
+        durationHours: 24,
         providerName: 'Atlas',
         planName: 'Essai Gratuit',
         preferredApp: preferredApp || '',

@@ -92,13 +92,11 @@ async function sendPaymentLink({ email, name, checkoutUrl, planName, amount, ord
       <div style="text-align:center;margin:32px 0;"><a href="${checkoutUrl}" style="display:inline-block;background:#00d4ff;color:#000;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:16px;">Complete Payment</a></div>
       <p style="color:#666;font-size:13px;margin:0;">Your credentials will arrive after payment confirmation.</p>`;
     const subject = tpl ? tpl.subject : `Your ${siteName} checkout link`;
-    await t.sendMail({
-      from: `"${t.fromName}" <${t.fromEmail}>`,
-      to: email,
-      subject,
-      html: renderTemplate(bodyHtml),
+    const html = renderTemplate(bodyHtml);
+    return await sendWithFallback({
+      method: () => t.sendMail({ from: `"${t.fromName}" <${t.fromEmail}>`, to: email, subject, html }),
+      to: email, name, subject, html,
     });
-    return true;
   } catch (e) {
     console.error('sendPaymentLink error:', e);
     return false;
@@ -112,13 +110,11 @@ async function sendThankYou({ email, name }) {
       <h2 style="color:#fff;margin:0 0 16px;">Payment confirmed! ✅</h2>
       <p style="color:#a0a0a0;margin:0 0 16px;">Thanks ${name}, your payment was successful.</p>
       <p style="color:#a0a0a0;margin:0;">Your activation credentials will arrive within minutes.</p>`;
-    await t.sendMail({
-      from: `"${t.fromName}" <${t.fromEmail}>`,
-      to: email,
-      subject: 'Payment confirmed!',
-      html: renderTemplate(body),
+    const html = renderTemplate(body);
+    return await sendWithFallback({
+      method: () => t.sendMail({ from: `"${t.fromName}" <${t.fromEmail}>`, to: email, subject: 'Payment confirmed!', html }),
+      to: email, name, subject: 'Payment confirmed!', html,
     });
-    return true;
   } catch (e) {
     console.error('sendThankYou error:', e);
     return false;
@@ -149,13 +145,12 @@ async function sendCredentials({ email, name, credentials, providerName, planNam
         <li>Enter the server URL and your credentials</li>
         <li>Enjoy your channels!</li>
       </ol>`;
-    await t.sendMail({
-      from: `"${t.fromName}" <${t.fromEmail}>`,
-      to: email,
-      subject: (tpl ? tpl.subject : 'Your IPTV activation credentials'),
-      html: renderTemplate(bodyHtml),
+    const subject = (tpl ? tpl.subject : 'Your IPTV activation credentials');
+    const html = renderTemplate(bodyHtml);
+    return await sendWithFallback({
+      method: () => t.sendMail({ from: `"${t.fromName}" <${t.fromEmail}>`, to: email, subject, html }),
+      to: email, name, subject, html,
     });
-    return true;
   } catch (e) {
     console.error('sendCredentials error:', e);
     return false;
@@ -267,13 +262,11 @@ async function sendTrial({ email, name, credentials, durationHours, providerName
       </div>`;
 
     const subject = `🎬 ${siteName} — Votre essai gratuit ${durationHours || 24}h est actif !`;
-    await t.sendMail({
-      from: `"${siteName}" <${t.fromEmail}>`,
-      to: email,
-      subject,
-      html: renderTemplate(bodyHtml),
+    const html = renderTemplate(bodyHtml);
+    return await sendWithFallback({
+      method: () => t.sendMail({ from: `"${siteName}" <${t.fromEmail}>`, to: email, subject, html }),
+      to: email, name, subject, html,
     });
-    return true;
   } catch (e) {
     console.error('sendTrial error:', e);
     return false;
@@ -297,4 +290,52 @@ async function sendRaw({ to, subject, html }) {
   }
 }
 
-module.exports = { sendPaymentLink, sendThankYou, sendCredentials, sendTrial, sendStockAlert, sendRaw, getTransporter };
+// SendGrid fallback via API
+async function sendViaSendGrid(to, name, subject, html) {
+  const { getDb } = require('../db');
+  const db = getDb();
+  const apiKey = (db.prepare("SELECT value FROM app_settings WHERE key = 'sendgrid_api_key'").get() || {}).value;
+  if (!apiKey) throw new Error('SendGrid not configured');
+
+  const fromEmail = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_email'").get() || {}).value || 'support@dalletek.live';
+  const fromName = (db.prepare("SELECT value FROM app_settings WHERE key = 'smtp_from_name'").get() || {}).value || 'Dalletek';
+
+  const body = {
+    personalizations: [{ to: [{ email: to, name: name || '' }] }],
+    from: { email: fromEmail, name: fromName },
+    subject,
+    content: [{ type: 'text/html', value: html }],
+    tracking_settings: { click_tracking: { enable: true }, open_tracking: { enable: true } },
+  };
+
+  const resp = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`SendGrid API returned ${resp.status}: ${text.substring(0, 200)}`);
+  }
+  return true;
+}
+
+// Fallback wrapper: try SMTP first, then SendGrid
+async function sendWithFallback({ method, to, subject, html, name }) {
+  try {
+    const success = await method();
+    if (success) return true;
+  } catch (e) {
+    console.error(`[Email] SMTP failed (${e.message}), trying SendGrid...`);
+  }
+  try {
+    await sendViaSendGrid(to, name || '', subject, html);
+    return true;
+  } catch (e2) {
+    console.error(`[Email] SendGrid also failed: ${e2.message}`);
+    return false;
+  }
+}
+
+module.exports = { sendPaymentLink, sendThankYou, sendCredentials, sendTrial, sendStockAlert, sendRaw, getTransporter, sendViaSendGrid, sendWithFallback };
