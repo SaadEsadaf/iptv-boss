@@ -461,23 +461,43 @@ router.post('/codes/analyze', authMiddleware, (req, res) => {
 });
 
 router.post('/codes/import-csv', authMiddleware, upload.single('file'), (req, res) => {
-  const { provider_id, plan_id } = req.body;
+  const { provider_id, plan_id, is_trial } = req.body;
   if (!provider_id || !plan_id || !req.file) return res.status(400).json({ error: 'provider_id, plan_id, and file are required' });
   const db = getDb();
   const content = req.file.buffer.toString('utf-8');
   const parsed = parseCSV(content);
   if (parsed.length === 0) return res.status(400).json({ error: 'No valid codes found in CSV' });
 
-  const insert = db.prepare(
-    'INSERT INTO activation_codes (provider_id, plan_id, code, username, password, server_url, mac_address, expires_at, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  );
-  const insertMany = db.transaction(() => {
-    for (const c of parsed) {
-      insert.run(provider_id, plan_id, c.code || null, c.username || null, c.password || null, c.server_url || null, c.mac_address || null, c.expires_at || null, c.notes || null);
-    }
-  });
-  insertMany();
-  res.json({ imported: parsed.length });
+  // Check if plan is a trial type
+  let isTrialPlan = is_trial;
+  if (!isTrialPlan) {
+    const plan = db.prepare("SELECT plan_type FROM provider_plans WHERE id = ?").get(plan_id);
+    isTrialPlan = plan?.plan_type === 'trial';
+  }
+
+  if (isTrialPlan) {
+    const insert = db.prepare(
+      'INSERT INTO trial_codes (provider_id, code, username, password, server_url, duration_hours, expires_at, status) VALUES (?, ?, ?, ?, ?, 24, datetime(\'now\', \'+24 hours\'), \'available\')'
+    );
+    const insertMany = db.transaction(() => {
+      for (const c of parsed) {
+        insert.run(provider_id, c.code || c.username || c.password || null, c.username || null, c.password || null, c.server_url || null);
+      }
+    });
+    insertMany();
+    res.json({ imported: parsed.length, table: 'trial_codes' });
+  } else {
+    const insert = db.prepare(
+      'INSERT INTO activation_codes (provider_id, plan_id, code, username, password, server_url, mac_address, expires_at, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    const insertMany = db.transaction(() => {
+      for (const c of parsed) {
+        insert.run(provider_id, plan_id, c.code || null, c.username || null, c.password || null, c.server_url || null, c.mac_address || null, c.expires_at || null, c.notes || null);
+      }
+    });
+    insertMany();
+    res.json({ imported: parsed.length, table: 'activation_codes' });
+  }
 });
 
 router.put('/codes/:id', authMiddleware, (req, res) => {

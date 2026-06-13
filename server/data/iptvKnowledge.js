@@ -433,7 +433,7 @@ const topics = [
       '1. Install TiviMate, IPTV Smarters, or your preferred player.',
       '2. Select "Login with Xtream Codes API" (not M3U).',
       '3. Enter the Xtream Codes credentials from your email:',
-      '   - Server URL (e.g. http://appley.site)',
+      '   - Server URL (e.g. http://apcup26.space)',
       '   - Username',
       '   - Password',
       '4. Tap "Add User" or "Login".',

@@ -2,7 +2,7 @@ const axios = require('axios');
 const { getDb } = require('../db');
 const m3uParser = require('../services/m3uParser');
 
-const M3U_URL = 'http://appley.site/get.php?username=994023355135879&password=1593574628&type=m3u&output=ts';
+const M3U_URL = 'http://apcup26.space/get.php?username=941740798827195&password=1593574628&type=m3u&output=ts';
 const PROVIDER_ID = 4;
 
 async function parseAndSaveM3U() {

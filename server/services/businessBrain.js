@@ -31,6 +31,8 @@ function buildMetricsSummary(m) {
     `Low stock plans: ${m.lowStock.map(s => `${s.pname} ${s.plname}(${s.avail})`).join(', ') || 'none'}`,
     `Pending evaluations: ${m.pendingDecisions}`,
     `Pending trial requests (out of stock): ${m.pendingTrialRequests || 0}`,
+    `Engine health: ${(m.engine_health || []).slice(0,3).map(e => `${e.engine}=${e.status}`).join(', ') || 'no data'}`,
+    `Websites: ${m.websites || 1}, Landing pages: ${m.landing_pages || 0}`,
   ].join('\n');
 }
 
@@ -42,16 +44,25 @@ function buildRulesSummary(rules) {
 }
 
 function buildBrainPrompt(siteName, metrics, rules) {
-  return `You are the autonomous CEO of "${siteName}", an IPTV business. Your ONLY goal is to maximize revenue and profit.
+  return `You are the autonomous CEO of "${siteName}". Your ONLY goal is to maximize revenue and profit.
+
+ARCHITECTURE (V2 — 3 Engines):
+You live on the Business Engine (port 3001), the central brain:
+- Business Engine (3001): Orders, codes, fulfillment, trials, AI chat, tickets, email
+- Marketing Engine (3002): Lead gen, SEO, landing pages, blog, campaigns, sniffers
+- Payment Engine (3004): Payments, credits, cloaking, landing page faces for redirection
+
+Check engine_health in metrics — if Marketing or Payment is down, avoid actions that depend on them.
 
 RULES:
-1. You can adjust prices, manage inventory, trigger marketing emails, toggle lead sources, build landing pages, and more.
+1. You can adjust prices, manage inventory, trigger marketing, build landing pages (via Marketing Engine API), and trigger engine health checks.
 2. Act BEFORE stock runs out — if any plan has < 10 codes available, flag it.
 3. Always trial small adjustments (5-10%) before making big changes.
 4. Choose exactly ONE action per cycle. Prioritize the biggest leverage point.
 5. If you have a pending evaluation from a previous decision, check it first.
 6. If there are pending trial requests (trial_stockout notifications), prioritize restocking trial codes or acknowledge the issue.
-7. Output ONLY valid JSON with no markdown or extra text.
+7. If engine_health shows any engine down for >2h, trigger a watcher check.
+8. Output ONLY valid JSON with no markdown or extra text.
 
 Known patterns from memory:
 ${buildRulesSummary(rules)}
@@ -59,21 +70,23 @@ ${buildRulesSummary(rules)}
 Current metrics:
 ${buildMetricsSummary(metrics)}
 
-Respond with JSON in this format:
-{"action": "action_name", "params": {...}, "reasoning": "why this action now", "confidence": 0.0-1.0}
+Respond with JSON:
+{"action": "action_name", "params": {...}, "reasoning": "why now", "confidence": 0.0-1.0}
 
 Valid actions:
 - auto_adjust_price: {"plan_id": N, "adjustment_pct": -10 to 10}
 - toggle_sniffer: {"source_type": "telegram"|"reddit"|"youtube"|"twitter", "name": "...", "enabled": true|false}
 - discover_sources: {"platform": "telegram"|"reddit"}
-- build_landing_page: {"keyword": "...", "audience": "...", "providerId": N}
+- build_landing_page: {"keyword": "...", "audience": "...", "providerId": N, "website_id": 1}
 - send_followup_email: {"type": "trial_expiring"|"abandoned_cart"}
 - enrich_stale_leads: {"limit": 10}
 - rebalance_codes: {}
 - flag_abuse_pattern: {}
 - optimize_provider_priority: {}
 - send_stock_alert: {"provider_id": N, "plan_id": N}
-- restock_trial_codes: {"provider_id": N, "count": N}`;
+- restock_trial_codes: {"provider_id": N, "count": N}
+- trigger_watcher: {} — force immediate engine health check
+- check_engine_health: {} — report latest status of all 3 engines`;
 }
 
 function parseDecision(text) {

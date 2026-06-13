@@ -18,9 +18,17 @@ const panelManager = require('./panelManager');
 class TrialEngine {
   constructor() {
     this.providerId = 4; // Atlas
-    this.serverUrl = 'http://appley.site';
-    this.portalUrl = 'http://appley.site/c/';
-    this.apiUrl = 'http://appley.site/player_api.php';
+    this._loadProviderUrl();
+  }
+
+  _loadProviderUrl() {
+    const { getDb } = require('../db');
+    const db = getDb();
+    const provider = db.prepare('SELECT panel_url FROM providers_catalog WHERE id = ?').get(this.providerId);
+    const base = provider?.panel_url ? provider.panel_url.replace(/\/+$/, '') : 'http://apcup26.space';
+    this.serverUrl = base;
+    this.portalUrl = base + '/c/';
+    this.apiUrl = base + '/player_api.php';
     this.apps = [
       { name: 'IPTV Smarters Pro', url: 'https://www.iptvsmarters.com/', icon: 'smarters' },
       { name: 'TiviMate', url: 'https://play.google.com/store/apps/details?id=ar.tvplayer.tv', icon: 'tivimate' },

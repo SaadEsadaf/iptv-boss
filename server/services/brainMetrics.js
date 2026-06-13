@@ -48,6 +48,14 @@ function gatherMetrics() {
   const pendingDecisions = db.prepare("SELECT COUNT(*) as c FROM brain_decisions WHERE outcome_score IS NULL AND executed = 1 AND executed_at IS NOT NULL").get().c || 0;
   const pendingTrialRequests = db.prepare("SELECT COUNT(*) as c FROM admin_notifications WHERE type = 'trial_stockout' AND read = 0").get().c || 0;
 
+  // Architecture V2 metrics
+  let engineHealth = [];
+  try { engineHealth = db.prepare("SELECT engine, status, response_time_ms, error, created_at FROM watcher_log ORDER BY created_at DESC LIMIT 4").all(); } catch {}
+
+  const websiteCount = db.prepare('SELECT COUNT(*) as c FROM websites').get().c || 1;
+  let lpCount = 0;
+  try { lpCount = db.prepare("SELECT COUNT(*) as c FROM landing_pages WHERE active = 1").get().c || 0; } catch {}
+
   const codesByProvider = db.prepare(`
     SELECT pc.name, pp.plan_name, (SELECT COUNT(*) FROM activation_codes ac WHERE ac.provider_id = pp.provider_id AND ac.plan_id = pp.id AND ac.status = 'available') as avail
     FROM provider_plans pp JOIN providers_catalog pc ON pp.provider_id = pc.id
@@ -80,6 +88,10 @@ function gatherMetrics() {
     aiProviderPerf: aiPerf,
     pendingDecisions,
     pendingTrialRequests,
+    // Architecture V2
+    engine_health: engineHealth,
+    websites: websiteCount,
+    landing_pages: lpCount,
   };
 }
 

@@ -96,7 +96,11 @@ router.get('/:token', (req, res) => {
 
   let username = record.username;
   let password = record.password;
-  let serverUrl = record.server_url || 'http://appley.site';
+  if (!record.server_url) {
+    const prov = db.prepare('SELECT panel_url FROM providers_catalog WHERE id = ?').get(record.provider_id);
+    record.server_url = prov?.panel_url || 'http://apcup26.space';
+  }
+  let serverUrl = record.server_url;
   let portalUrl = `${serverUrl}/c/`;
 
   if (order) {

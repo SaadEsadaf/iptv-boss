@@ -368,6 +368,7 @@ function initializeDatabase() {
   try { db.exec("ALTER TABLE users ADD COLUMN magic_link_expires TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN credentials_sent_at TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE orders ADD COLUMN activation_code_id INTEGER"); } catch (e) {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN payment_id TEXT"); } catch (e) {}
   try { db.exec("ALTER TABLE trial_codes ADD COLUMN preferred_app TEXT DEFAULT NULL"); } catch (e) {}
   try { db.exec("ALTER TABLE users ADD COLUMN preferred_app TEXT DEFAULT 'tivimate'"); } catch (e) {}
 
@@ -406,6 +407,10 @@ function initializeDatabase() {
     id INTEGER PRIMARY KEY AUTOINCREMENT, page_id INTEGER NOT NULL, date TEXT NOT NULL,
     visits INTEGER DEFAULT 0, conversions INTEGER DEFAULT 0,
     UNIQUE(page_id, date))`); } catch (e) {}
+  try { db.exec(`CREATE TABLE IF NOT EXISTS watcher_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, engine TEXT NOT NULL,
+    status TEXT NOT NULL, checks TEXT, response_time_ms INTEGER,
+    error TEXT, created_at TEXT DEFAULT (datetime('now')))`); } catch (e) {}
 
   const existingWebsite = db.prepare('SELECT id FROM websites LIMIT 1').get();
   if (!existingWebsite) {
@@ -476,6 +481,7 @@ function initializeDatabase() {
     ['ai_model_custom', ''],
     ['ai_url_custom', ''],
     ['anthropic_api_key', ''],
+    ['internal_api_secret', process.env.INTERNAL_API_SECRET || 'dev-secret-change-in-production'],
     ['site_name', process.env.SITE_NAME || 'Dalletek'],
     ['site_url', process.env.SITE_URL || 'http://localhost:3001'],
     ['support_email', process.env.SUPPORT_EMAIL || ''],

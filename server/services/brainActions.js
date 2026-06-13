@@ -31,7 +31,10 @@ async function executeAction({ type, params }) {
       return leadOutreach(params);
     case 'cart_recovery':
       return cartRecovery(params);
-    default:
+    case 'trigger_watcher':
+      return triggerWatcher(params);
+    case 'check_engine_health':
+      return checkEngineHealth(params);
       logAction('brain_unknown', `Unknown action: ${type}`, db);
       return { error: `Unknown action: ${type}` };
   }
@@ -235,12 +238,59 @@ async function restockTrialCodes(params, db) {
   return { alerted: true, providers: exhausted.map(e => e.provider_id) };
 }
 
+async function buildLandingPage(params) {
+  try {
+    const db = getDb();
+    const bossUrl = process.env.SITE_URL || 'http://localhost:3001';
+    const marketingUrl = process.env.MARKETING_ENGINE_URL || 'http://localhost:3002';
+    const secret = db.prepare("SELECT value FROM app_settings WHERE key = 'internal_api_secret'").get()?.value || process.env.INTERNAL_API_SECRET;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const body = JSON.stringify({ keyword: params.keyword, audience: params.audience, providerId: params.providerId, planId: params.planId, website_id: params.website_id || 1 });
+    const sig = require('crypto').createHmac('sha256', secret).update(body + timestamp).digest('hex');
+    const res = await fetch(`${marketingUrl}/api/pages/build`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Engine-Signature': `${timestamp}.${sig}` },
+      body,
+      signal: AbortSignal.timeout(120000),
+    });
+    const result = await res.json();
+    if (result.error) return { error: result.error };
+    logAction('page_built', `Landing page "${result.title}" (${result.slug}) via Marketing Engine`, db);
+    return { page_id: result.id, slug: result.slug, title: result.title };
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+async function triggerWatcher(params) {
+  try {
+    const { runWatcher } = require('./engineWatcher');
+    const results = await runWatcher();
+    const alive = results.filter(r => r.status === 'ok').length;
+    const down = results.filter(r => r.status === 'down').length;
+    logAction('watcher_triggered', `Immediate check: ${alive} ok, ${down} down`, getDb());
+    return { engines: results.length, ok: alive, down };
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+async function checkEngineHealth(params) {
+  try {
+    const { getLatestStatus } = require('./engineWatcher');
+    const status = getLatestStatus();
+    logAction('engine_health', `Latest: ${Object.keys(status).map(k => `${k}=${status[k].status}`).join(', ')}`, getDb());
+    return { status };
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
 function tryParse(text) {
   try {
     const jsonMatch = text.match(/\{.*\}/s);
     if (jsonMatch) return JSON.parse(jsonMatch[0]);
     return JSON.parse(text);
   } catch { return null; }
-}
-
+} 
 module.exports = { executeAction };

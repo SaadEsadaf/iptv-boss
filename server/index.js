@@ -29,6 +29,8 @@ startTwitterSniffer();
 startRankChecker();
 startBrain();
 startSalesEngine();
+const { startWatcher } = require('./services/engineWatcher');
+startWatcher();
 
 // Panel Manager & Content Engine
 const panelManager = require('./services/panelManager');
@@ -436,7 +438,17 @@ li{margin-bottom:6px}
 </html>`)
 })
 
+app.use('/api/internal', require('./routes/internal'));
 app.use('/api/scraper', require('./routes/scraper'));
+app.get('/api/watcher/status', (req, res) => {
+  const { getLatestStatus } = require('./services/engineWatcher');
+  res.json(getLatestStatus());
+});
+app.get('/api/watcher/history', (req, res) => {
+  const { getHistory } = require('./services/engineWatcher');
+  const limit = parseInt(req.query.limit) || 50;
+  res.json(getHistory(limit));
+});
 app.use('/api/webhooks', require('./routes/webhooks'));
 app.use('/api/orders', require('./routes/orders'));
 // Unified Checkout Plugin (with failover + cloaking)
@@ -594,6 +606,8 @@ app.get('/restore-files', (req, res) => {
     <p>Download both, then follow the guide on a fresh server.</p>
   `)
 })
+
+app.use(express.static(path.join(__dirname, '..', 'client', 'public')));
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/blog') || req.path === '/sitemap.xml' || req.path === '/robots.txt' || req.path === '/top-iptv-services' || req.path === '/iptv-api') {
