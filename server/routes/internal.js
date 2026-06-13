@@ -164,6 +164,138 @@ router.post('/fulfill', (req, res) => {
   }
 })
 
+// GET /api/internal/stock-overview — full stock + orders overview for Marketing Engine
+router.get('/stock-overview', (req, res) => {
+  try {
+    const { getDb } = require('../db')
+    const db = getDb()
+    const websiteId = req.query.website_id || null
+
+    const wc = websiteId ? 'WHERE website_id = ?' : ''
+    const wcp = websiteId ? [websiteId] : []
+
+    // Activation codes
+    const activationTotal = db.prepare(`SELECT COUNT(*) as c FROM activation_codes ${wc.replace('website_id', 'a.website_id') || ''}`).get(...(wc ? wcp : []))
+    const activationAvailable = db.prepare(`SELECT COUNT(*) as c FROM activation_codes WHERE status = 'available' ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const activationUsed = db.prepare(`SELECT COUNT(*) as c FROM activation_codes WHERE status = 'used' ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const activationExpired = db.prepare(`SELECT COUNT(*) as c FROM activation_codes WHERE status = 'expired' ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const activationByProvider = db.prepare(`
+      SELECT pc.name as provider, COUNT(*) as total,
+        SUM(CASE WHEN ac.status='available' THEN 1 ELSE 0 END) as available,
+        SUM(CASE WHEN ac.status='used' THEN 1 ELSE 0 END) as used
+      FROM activation_codes ac JOIN providers_catalog pc ON ac.provider_id = pc.id
+      ${websiteId ? 'WHERE pc.website_id = ?' : ''}
+      GROUP BY pc.name ORDER BY available DESC
+    `).all(...(websiteId ? [websiteId] : []))
+    const activationByPlan = db.prepare(`
+      SELECT pp.plan_name, pp.duration_months, COUNT(*) as total,
+        SUM(CASE WHEN ac.status='available' THEN 1 ELSE 0 END) as available
+      FROM activation_codes ac JOIN provider_plans pp ON ac.plan_id = pp.id
+      ${websiteId ? 'WHERE pp.website_id = ?' : ''}
+      GROUP BY pp.plan_name, pp.duration_months ORDER BY pp.duration_months
+    `).all(...(websiteId ? [websiteId] : []))
+
+    // Trial codes
+    const trialTotal = db.prepare(`SELECT COUNT(*) as c FROM trial_codes`).get()
+    const trialAvailable = db.prepare(`SELECT COUNT(*) as c FROM trial_codes WHERE status = 'available'`).get()
+    const trialUsed = db.prepare(`SELECT COUNT(*) as c FROM trial_codes WHERE status = 'used'`).get()
+    const trialByProvider = db.prepare(`
+      SELECT pc.name as provider, COUNT(*) as total,
+        SUM(CASE WHEN tc.status='available' THEN 1 ELSE 0 END) as available
+      FROM trial_codes tc JOIN providers_catalog pc ON tc.provider_id = pc.id
+      GROUP BY pc.name ORDER BY available DESC
+    `).all()
+
+    // Orders
+    const ordersTotal = db.prepare(`SELECT COUNT(*) as c FROM orders ${wc}`).get(...wcp)
+    const ordersToday = db.prepare(`SELECT COUNT(*) as c FROM orders WHERE date(created_at) = date('now') ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const ordersPending = db.prepare(`SELECT COUNT(*) as c FROM orders WHERE status = 'pending' ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const ordersCompleted = db.prepare(`SELECT COUNT(*) as c FROM orders WHERE status IN ('completed','fulfilled') ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const ordersCancelled = db.prepare(`SELECT COUNT(*) as c FROM orders WHERE status = 'cancelled' ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const ordersTrial = db.prepare(`SELECT COUNT(*) as c FROM orders WHERE is_trial = 1 AND status != 'cancelled' ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const ordersPaid = db.prepare(`SELECT COUNT(*) as c FROM orders WHERE (is_trial = 0 OR is_trial IS NULL) AND status IN ('completed','fulfilled') ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const ordersByMethod = db.prepare(`
+      SELECT
+        CASE WHEN stripe_payment_id IS NOT NULL AND stripe_payment_id != '' THEN 'stripe'
+             WHEN paypal_payment_id IS NOT NULL AND paypal_payment_id != '' THEN 'paypal'
+             WHEN sellup_order_id IS NOT NULL AND sellup_order_id != '' THEN 'sellup'
+             WHEN payment_id IS NOT NULL AND payment_id != '' THEN 'other'
+             ELSE 'pending' END as method,
+        COUNT(*) as count
+      FROM orders WHERE status IN ('completed','fulfilled') ${websiteId ? 'AND website_id = ?' : ''}
+      GROUP BY method ORDER BY count DESC
+    `).all(...(websiteId ? [websiteId] : []))
+    const ordersRecent = db.prepare(`SELECT id, customer_email, plan_id, is_trial, amount, status, created_at FROM orders ${wc} ORDER BY created_at DESC LIMIT 20`).all(...wcp)
+
+    // Revenue
+    const revenueTotal = db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM orders WHERE status IN ('completed','fulfilled') ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const revenueToday = db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM orders WHERE status IN ('completed','fulfilled') AND date(created_at) = date('now') ${websiteId ? 'AND website_id = ?' : ''}`).get(...(websiteId ? [websiteId] : []))
+    const revenueByDay = db.prepare(`SELECT date(created_at) as day, COALESCE(SUM(amount), 0) as revenue, COUNT(*) as count FROM orders WHERE status IN ('completed','fulfilled') AND created_at > datetime('now', '-30 days') ${websiteId ? 'AND website_id = ?' : ''} GROUP BY date(created_at) ORDER BY day`).all(...(websiteId ? [websiteId] : []))
+
+    // Stock alerts
+    const stockAlerts = db.prepare(`
+      SELECT sa.*, pc.name as provider_name, pp.plan_name, pp.duration_months,
+        (SELECT COUNT(*) FROM activation_codes WHERE provider_id = sa.provider_id AND plan_id = sa.plan_id AND status = 'available') as current_stock
+      FROM stock_alerts sa
+      JOIN providers_catalog pc ON sa.provider_id = pc.id
+      JOIN provider_plans pp ON sa.plan_id = pp.id
+      ${websiteId ? 'WHERE pc.website_id = ?' : ''}
+    `).all(...(websiteId ? [websiteId] : []))
+
+    // Low stock warnings
+    const lowStock = db.prepare(`
+      SELECT pc.name as provider, pp.plan_name, pp.duration_months,
+        (SELECT COUNT(*) FROM activation_codes WHERE provider_id = pp.provider_id AND plan_id = pp.id AND status = 'available') as available,
+        COALESCE(pp.min_stock, 5) as min_stock
+      FROM provider_plans pp JOIN providers_catalog pc ON pp.provider_id = pc.id
+      WHERE pp.active = 1
+        AND (SELECT COUNT(*) FROM activation_codes WHERE provider_id = pp.provider_id AND plan_id = pp.id AND status = 'available') < COALESCE(pp.min_stock, 5)
+      ${websiteId ? 'AND pp.website_id = ?' : ''}
+    `).all(...(websiteId ? [websiteId] : []))
+
+    res.json({
+      activationCodes: {
+        total: (activationTotal || {}).c || 0,
+        available: (activationAvailable || {}).c || 0,
+        used: (activationUsed || {}).c || 0,
+        expired: (activationExpired || {}).c || 0,
+        byProvider: activationByProvider,
+        byPlan: activationByPlan,
+      },
+      trialCodes: {
+        total: (trialTotal || {}).c || 0,
+        available: (trialAvailable || {}).c || 0,
+        used: (trialUsed || {}).c || 0,
+        byProvider: trialByProvider,
+      },
+      orders: {
+        total: (ordersTotal || {}).c || 0,
+        today: (ordersToday || {}).c || 0,
+        pending: (ordersPending || {}).c || 0,
+        completed: (ordersCompleted || {}).c || 0,
+        cancelled: (ordersCancelled || {}).c || 0,
+        trial: (ordersTrial || {}).c || 0,
+        paid: (ordersPaid || {}).c || 0,
+        byMethod: ordersByMethod,
+        recent: ordersRecent,
+      },
+      revenue: {
+        total: (revenueTotal || {}).total || 0,
+        today: (revenueToday || {}).total || 0,
+        byDay: revenueByDay,
+      },
+      alerts: {
+        stockAlerts,
+        lowStock,
+      },
+      updatedAt: new Date().toISOString(),
+    })
+  } catch (err) {
+    console.error('[Internal] Stock overview error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // POST /api/internal/verify-credits — verify user has enough credits
 router.post('/verify-credits', (req, res) => {
   res.json({ supported: false, error: 'Credits managed by Payment Engine' })
