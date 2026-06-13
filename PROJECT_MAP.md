@@ -1,5 +1,13 @@
 # IPTV Boss — Project Map
 
+## Owner
+- **Email**: babilon26@gmail.com
+- When the owner says "send me", send credentials/emails to this address.
+
+## Contact
+- **Owner email**: babilon26@gmail.com
+- **SMTP from**: support@dalletek.live
+
 ## Tech Stack
 - **Runtime**: Node.js v20.20.2 (LTS)
 - **Backend**: Express.js, port 3001
