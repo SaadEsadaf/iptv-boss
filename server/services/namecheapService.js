@@ -156,15 +156,15 @@ function splitDomain(domainName) {
 
 async function getDnsRecords(domainName) {
   const { sld, tld } = splitDomain(domainName)
-  const res = await apiCall('namecheap.domains.dns.getList', { SLD: sld, TLD: tld })
-  const result = res.CommandResponse?.DomainDNSGetListResult || {}
+  const res = await apiCall('namecheap.domains.dns.getHosts', { SLD: sld, TLD: tld })
+  const result = res.CommandResponse?.DomainDNSGetHostsResult || {}
   const hosts = result.hosts?.host || result.host || []
   const hostList = Array.isArray(hosts) ? hosts : [hosts]
 
   return {
     domain: result['@_Domain'] || domainName,
     isUsingOurDNS: result['@_IsUsingOurDNS'] === 'true',
-    nameservers: result.Nameservers?.Nameserver || [],
+    nameservers: [],
     emailType: result['@_EmailType'] || '',
     records: hostList.filter(Boolean).map(h => ({
       hostId: parseInt(h['@_HostId'] || '0'),
