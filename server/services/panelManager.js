@@ -69,10 +69,16 @@ class PanelManager {
     
     return panels.map(p => {
       const stats = this.getPanelStats(p.id);
+      const plans = db.prepare(`
+        SELECT pp.*,
+          (SELECT COUNT(*) FROM activation_codes ac WHERE ac.plan_id = pp.id AND ac.status = 'available') as codes_available
+        FROM provider_plans pp WHERE pp.provider_id = ? AND pp.active = 1 ORDER BY pp.duration_days
+      `).all(p.id);
       return {
         ...p,
         panel_password: p.panel_password ? '********' : '',
         ...stats,
+        plans,
       };
     });
   }
